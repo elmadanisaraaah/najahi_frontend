@@ -498,7 +498,7 @@ export default function Solo() {
       <div style={{ minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", zIndex:1, display:"flex", flexDirection:"column" }}>
 
         {/* Navbar */}
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, zIndex:50, overflow:"hidden" }}>
+        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, position:"relative", zIndex:100 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.8)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -528,7 +528,7 @@ export default function Solo() {
                 <Image size={13}/> {!isMobile && wallpaper.label}
               </button>
               {showWpMenu && (
-                <div style={{ position:"absolute", top:"calc(100%+8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:210, zIndex:200, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
+                <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:210, zIndex:9999, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
                   {WP_GROUPS.map(group => (
                     <div key={group.type}>
                       <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.3)", padding:"8px 10px 4px", letterSpacing:"1px" }}>{group.label}</div>
@@ -561,7 +561,7 @@ export default function Solo() {
                 {!isMobile && activeSound.label}
               </button>
               {showSndMenu && (
-                <div style={{ position:"absolute", top:"calc(100%+8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:200, zIndex:200, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
+                <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:200, zIndex:9999, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
                   {SND_GROUPS.map(group => (
                     <div key={group.label}>
                       <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.3)", padding:"8px 10px 4px", letterSpacing:"1px" }}>{group.label}</div>
@@ -597,7 +597,7 @@ export default function Solo() {
                 {!isMobile && (musicEmbed && showPlayer ? "Musique active" : "Ma playlist")}
               </button>
               {showMusicPanel && (
-                <div style={{ position:"absolute", top:"calc(100%+8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:16, minWidth:320, zIndex:200, animation:"soloFadeIn 0.2s ease" }}>
+                <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:16, minWidth:320, zIndex:9999, animation:"soloFadeIn 0.2s ease" }}>
                   <div style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.7)", marginBottom:4 }}>
                     Colle ton lien
                   </div>
@@ -712,7 +712,7 @@ export default function Solo() {
                 <Timer size={13}/> {PRESETS[preset].label} <ChevronDown size={11}/>
               </button>
               {showPresetMenu && (
-                <div style={{ position:"absolute", bottom:"calc(100%+8px)", left:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:8, minWidth:200, zIndex:200, animation:"soloFadeIn 0.2s ease" }}>
+                <div style={{ position:"absolute", bottom:"calc(100% + 8px)", left:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:8, minWidth:200, zIndex:9999, animation:"soloFadeIn 0.2s ease" }}>
                   {PRESETS.map((p, i) => (
                     <button key={i} type="button" className="solo-menu-item"
                       onClick={() => { setPreset(i); changePhase("focus"); setShowPresetMenu(false); if(i!==3) setTimeLeft(p.focus*60); }}
