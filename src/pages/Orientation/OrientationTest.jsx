@@ -279,7 +279,7 @@ export default function OrientationTest() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [results, setResults]       = useState(null);
   const [error, setError]           = useState("");
-  const [profilePrefilled, setProfilePrefilled] = useState(false);
+  const [profileData, setProfileData] = useState(null);
 
   const [form, setForm] = useState({
     bac: "", moyenne: "14",
@@ -291,18 +291,25 @@ export default function OrientationTest() {
   // ── Pre-fill from profile ──────────────────────────────────────────────────
   useEffect(() => {
     const t = localStorage.getItem("najahi_token");
-    if (!t) return;
+    if (!t) { setProfileData({}); return; }
     fetch(API_URL + "/api/profile/me", { headers: { Authorization: `Bearer ${t}` } })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
-        if (d && d.niveau && d.moyenne_generale != null) {
-          setForm((f) => ({ ...f, bac: d.niveau, moyenne: String(d.moyenne_generale) }));
-          setProfilePrefilled(true);
-        } else if (d && d.ville) {
-          setForm((f) => ({ ...f, ville: d.ville }));
+        const filled = {};
+        if (d?.niveau)                   filled.bac     = d.niveau;
+        if (d?.moyenne_generale != null) filled.moyenne = String(d.moyenne_generale);
+        if (d?.ville)                    filled.ville   = d.ville;
+        setProfileData(filled);
+        if (Object.keys(filled).length > 0) {
+          setForm((f) => ({
+            ...f,
+            ...(filled.bac     ? { bac: filled.bac }         : {}),
+            ...(filled.moyenne ? { moyenne: filled.moyenne }  : {}),
+            ...(filled.ville   ? { ville: filled.ville }     : {}),
+          }));
         }
       })
-      .catch(() => {});
+      .catch(() => setProfileData({}));
   }, []);
 
   // ── Loading rotations ──────────────────────────────────────────────────────
@@ -318,10 +325,18 @@ export default function OrientationTest() {
     return () => { clearInterval(msgId); clearInterval(barId); };
   }, [phase]);
 
+  // ── Derived step data ──────────────────────────────────────────────────────
+  const skipSteps = new Set();
+  if (profileData && profileData.bac)   skipSteps.add(1);
+  if (profileData && profileData.ville) skipSteps.add(5);
+  const visibleSteps    = [1,2,3,4,5,6].filter(s => !skipSteps.has(s));
+  const EFFECTIVE_TOTAL = visibleSteps.length;
+  const originalStep    = visibleSteps[step - 1] ?? step;
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   function goNext() {
     setDirection(1);
-    if (step < TOTAL_STEPS) setStep((s) => s + 1);
+    if (step < EFFECTIVE_TOTAL) setStep((s) => s + 1);
     else submit();
   }
   function goPrev() {
@@ -331,12 +346,12 @@ export default function OrientationTest() {
   }
 
   function canNext() {
-    if (step === 1) return !!form.bac;
-    if (step === 2) return !!form.domaine;
-    if (step === 3) return form.personnalite.length > 0;
-    if (step === 4) return !!form.carriere;
-    if (step === 5) return !!form.ville;
-    if (step === 6) return !!form.budget;
+    if (originalStep === 1) return !!form.bac;
+    if (originalStep === 2) return !!form.domaine;
+    if (originalStep === 3) return form.personnalite.length > 0;
+    if (originalStep === 4) return !!form.carriere;
+    if (originalStep === 5) return !!form.ville;
+    if (originalStep === 6) return !!form.budget;
     return true;
   }
 
@@ -395,8 +410,13 @@ export default function OrientationTest() {
     setDirection(1);
     setResults(null);
     setError("");
-    setForm({ bac: "", moyenne: "14", note_maths: "14", note_physique: "14", note_svt: "14", note_francais: "14", domaine: "", personnalite: [], carriere: "", ville: "", mobility: true, budget: "" });
-    setProfilePrefilled(false);
+    const base = { bac: "", moyenne: "14", note_maths: "14", note_physique: "14", note_svt: "14", note_francais: "14", domaine: "", personnalite: [], carriere: "", ville: "", mobility: true, budget: "" };
+    if (profileData) {
+      if (profileData.bac)     base.bac     = profileData.bac;
+      if (profileData.moyenne) base.moyenne = profileData.moyenne;
+      if (profileData.ville)   base.ville   = profileData.ville;
+    }
+    setForm(base);
   }
 
   function togglePersonnalite(id) {
@@ -472,14 +492,20 @@ export default function OrientationTest() {
             6 étapes · 5 minutes · Résultats IA personnalisés
           </p>
 
-          {profilePrefilled && (
-            <div style={{
+          {profileData && (profileData.bac || profileData.ville) && (
+            <div onClick={() => navigate("/app/profile")} style={{
               display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 24,
-              padding: "9px 18px", borderRadius: 20,
+              padding: "10px 18px", borderRadius: 20, cursor: "pointer",
               background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)",
               color: "#10b981", fontSize: 13, fontWeight: 700,
+              transition: "opacity 0.2s",
             }}>
-              <CheckCircle size={15} /> Ton profil bac a été récupéré ✓
+              <CheckCircle size={15} />
+              ✓ Nous avons récupéré ton profil :
+              {profileData.bac     && ` ${profileData.bac}`}
+              {profileData.moyenne && ` · ${profileData.moyenne}/20`}
+              {profileData.ville   && ` · ${profileData.ville}`}
+              <span style={{ fontSize: 11, fontWeight: 500, opacity: 0.7, marginLeft: 2 }}>→ modifier</span>
             </div>
           )}
 
@@ -778,19 +804,19 @@ export default function OrientationTest() {
     const sP = { fontSize: 14, color: textMuted, marginBottom: 16 };
 
     // Step 1 — Bac & Moyenne
-    if (step === 1) return (
+    if (originalStep === 1) return (
       <div>
         <h2 style={sH}>Ton niveau scolaire</h2>
         <p style={sP}>Sélectionne ton bac ou diplôme</p>
 
-        {profilePrefilled && (
+        {profileData && profileData.bac && (
           <div style={{
             display: "flex", alignItems: "center", gap: 8, marginBottom: 14,
             padding: "9px 14px", borderRadius: 10,
             background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)",
-            color: "#10b981", fontSize: 13, fontWeight: 600,
+            color: "#10b981", fontSize: 13, fontWeight: 600, flexWrap: "wrap",
           }}>
-            <CheckCircle size={14} /> Pré-rempli depuis ton profil — tu peux modifier si besoin
+            <CheckCircle size={14} /> Bac et moyenne pré-remplis depuis ton profil — modifiable ci-dessous
           </div>
         )}
 
@@ -828,7 +854,7 @@ export default function OrientationTest() {
     );
 
     // Step 2 — Domaine
-    if (step === 2) return (
+    if (originalStep === 2) return (
       <div>
         <h2 style={sH}>Quel domaine t'attire le plus ?</h2>
         <p style={sP}>Ce choix est le plus important — sois honnête avec toi-même</p>
@@ -856,7 +882,7 @@ export default function OrientationTest() {
     );
 
     // Step 3 — Personnalité
-    if (step === 3) return (
+    if (originalStep === 3) return (
       <div>
         <h2 style={sH}>Quelle est ta personnalité ?</h2>
         <p style={sP}>Choisis jusqu'à 2 traits qui te décrivent le mieux ({form.personnalite.length}/2)</p>
@@ -886,7 +912,7 @@ export default function OrientationTest() {
     );
 
     // Step 4 — Carrière
-    if (step === 4) return (
+    if (originalStep === 4) return (
       <div>
         <h2 style={sH}>Ton objectif de carrière</h2>
         <p style={sP}>Quel métier te fait rêver ? ({CARRIERES.length} options)</p>
@@ -913,7 +939,7 @@ export default function OrientationTest() {
     );
 
     // Step 5 — Localisation
-    if (step === 5) return (
+    if (originalStep === 5) return (
       <div>
         <h2 style={sH}>Ta localisation</h2>
         <p style={sP}>Où est-ce que tu habites actuellement ?</p>
@@ -966,7 +992,7 @@ export default function OrientationTest() {
     );
 
     // Step 6 — Budget
-    if (step === 6) return (
+    if (originalStep === 6) return (
       <div>
         <h2 style={sH}>Ton budget pour les études</h2>
         <p style={sP}>Cela nous aide à filtrer les options réalistes pour toi</p>
@@ -1029,13 +1055,13 @@ export default function OrientationTest() {
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: textMuted }}>Étape {step} / {TOTAL_STEPS}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: purple }}>{STEP_LABELS[step - 1]}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: textMuted }}>Étape {step} / {EFFECTIVE_TOTAL}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: purple }}>{STEP_LABELS[originalStep - 1]}</span>
           </div>
           <div style={{ height: 5, borderRadius: 5, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)" }}>
             <div style={{
               height: "100%", borderRadius: 5,
-              width: `${(step / TOTAL_STEPS) * 100}%`,
+              width: `${(step / EFFECTIVE_TOTAL) * 100}%`,
               background: `linear-gradient(90deg, ${purple}, #a78bfa)`,
               transition: "width 0.4s ease",
             }} />
@@ -1045,6 +1071,20 @@ export default function OrientationTest() {
       </div>
 
       <div style={{ maxWidth: 620, margin: "0 auto", padding: "24px 16px 80px" }}>
+
+        {/* Profile pre-fill banner */}
+        {profileData && (profileData.bac || profileData.ville) && (
+          <div style={{ marginBottom: 12, padding: "9px 14px", borderRadius: 10, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+            <span style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
+              <CheckCircle size={12} style={{ verticalAlign: "middle", marginRight: 4 }} />
+              Profil récupéré :{profileData.bac && ` ${profileData.bac}`}{profileData.moyenne && ` · ${profileData.moyenne}/20`}{profileData.ville && ` · ${profileData.ville}`}
+            </span>
+            <button onClick={() => navigate("/app/profile")} style={{ background: "none", border: "none", cursor: "pointer", color: "#10b981", fontSize: 12, fontWeight: 600, textDecoration: "underline", padding: 0 }}>
+              ← Mettre à jour mon profil
+            </button>
+          </div>
+        )}
+
         {/* Step card */}
         <div
           key={`${step}-${direction}`}
@@ -1076,7 +1116,7 @@ export default function OrientationTest() {
               boxShadow: canNext() ? "0 6px 24px rgba(124,58,237,0.35)" : "none",
             }}
           >
-            {step === TOTAL_STEPS ? "Voir mes résultats ✨" : "Suivant"}
+            {step === EFFECTIVE_TOTAL ? "Voir mes résultats ✨" : "Suivant"}
             {step < TOTAL_STEPS && <ArrowRight size={16} />}
           </button>
         </div>

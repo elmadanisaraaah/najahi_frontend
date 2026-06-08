@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
@@ -35,6 +35,15 @@ const WALLPAPERS = [
   { id: "neon-city",    label: "Néon city",         type: "ambiance", url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1920&q=80" },
   { id: "rainy-window", label: "Fenêtre pluvieuse", type: "ambiance", url: "https://images.unsplash.com/photo-1428908728789-d2de25dbd4e2?w=1920&q=80" },
   { id: "cozy-room",    label: "Chambre cozy",      type: "ambiance", url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&q=80" },
+  // Animated CSS themes
+  { id: "anim-espace",  label: "🌌 Espace",   type: "animated", animated: true, bgColor: "#020817", url: null },
+  { id: "anim-ocean",   label: "🌊 Océan",    type: "animated", animated: true, bgColor: "#0b1340", url: null },
+  { id: "anim-foret",   label: "🌲 Forêt",    type: "animated", animated: true, bgColor: "#010c06", url: null },
+  { id: "anim-sakura",  label: "🌸 Pétales",  type: "animated", animated: true, bgColor: "#0f0520", url: null },
+  { id: "anim-ville",   label: "🏙️ Ville",    type: "animated", animated: true, bgColor: "#020c18", url: null },
+  { id: "anim-nuages",  label: "☁️ Nuages",   type: "animated", animated: true, bgColor: "#040c1c", url: null },
+  { id: "anim-feu",     label: "🔥 Feu",      type: "animated", animated: true, bgColor: "#050100", url: null },
+  { id: "anim-nuit",    label: "🌙 Nuit",     type: "animated", animated: true, bgColor: "#030510", url: null },
 ];
 
 const SOUNDS = [
@@ -60,6 +69,7 @@ const SND_GROUPS = [
 ];
 
 const WP_GROUPS = [
+  { type: "animated", label: "✨ ANIMÉS (CSS)" },
   { type: "nature",   label: "NATURE & PAYSAGES" },
   { type: "space",    label: "ESPACE & NUIT" },
   { type: "ambiance", label: "AMBIANCE" },
@@ -82,6 +92,104 @@ const QUOTES = [
   { text: "Investis en toi-même, c'est le meilleur investissement.", author: "Warren Buffett" },
   { text: "La réussite appartient à ceux qui persévèrent.", author: "Anonyme" },
 ];
+
+function AnimatedBg({ id }) {
+  const data = useMemo(() => {
+    let seed = id.split("").reduce((a, c) => a * 31 + c.charCodeAt(0), 1);
+    const rng = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const stars   = Array.from({ length: 160 }, () => ({ left:`${rng()*100}%`, top:`${rng()*100}%`, size:0.8+rng()*2.5, delay:rng()*5, dur:1.5+rng()*3 }));
+    const petals  = Array.from({ length: 30  }, () => ({ left:`${rng()*115-5}%`, delay:rng()*12, dur:5+rng()*8, size:6+rng()*14, rot:rng()*360 }));
+    const clouds  = Array.from({ length: 8   }, () => ({ top:`${5+rng()*60}%`, dur:25+rng()*35, delay:-(rng()*25), w:100+rng()*220, h:50+rng()*90, op:0.05+rng()*0.13 }));
+    const flies   = Array.from({ length: 24  }, () => ({ left:`${rng()*100}%`, top:`${15+rng()*75}%`, delay:rng()*5, dur:3+rng()*6 }));
+    const windows = Array.from({ length: 90  }, () => ({ left:`${rng()*100}%`, top:`${25+rng()*60}%`, w:2+rng()*5, h:3+rng()*8, delay:rng()*8, dur:1+rng()*6, hue:rng() }));
+    return { stars, petals, clouds, flies, windows };
+  }, [id]);
+
+  const A = { position:"absolute" };
+
+  if (id === "anim-espace") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#020817 0%,#0a1230 100%)" }}>
+      {[{t:"18%",l:"28%",sz:240,c:"rgba(99,102,241,0.14)"},{t:"65%",l:"72%",sz:300,c:"rgba(16,185,129,0.09)"},{t:"40%",l:"8%",sz:180,c:"rgba(239,68,68,0.08)"}].map((n,i)=>(
+        <div key={i} style={{ ...A, top:n.t, left:n.l, width:n.sz, height:n.sz, borderRadius:"50%", background:`radial-gradient(circle,${n.c} 0%,transparent 70%)`, animation:`nebulaPulse ${3+i*2}s ease-in-out infinite`, transform:"translate(-50%,-50%)" }}/>
+      ))}
+      {data.stars.map((s,i)=>(
+        <div key={i} style={{ ...A, left:s.left, top:s.top, width:s.size, height:s.size, borderRadius:"50%", background:"#fff", animation:`${i%3===0?"twinkleFast":"twinkle"} ${s.dur}s ${s.delay}s ease-in-out infinite` }}/>
+      ))}
+    </div>
+  );
+
+  if (id === "anim-ocean") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#0b1340 0%,#0a345a 45%,#0d5c7a 100%)" }}>
+      {[0,1,2].map(i=>(
+        <div key={i} style={{ ...A, bottom:`${i*10-2}%`, left:"-10%", right:"-10%", height:"28%", background:`rgba(14,165,233,${0.13-i*0.035})`, borderRadius:"50% 50% 0 0 / 55% 55% 0 0", animation:`waveRise ${3.5+i*1.5}s ${i*-1.2}s ease-in-out infinite` }}/>
+      ))}
+      {data.stars.slice(0,40).map((s,i)=>(
+        <div key={i} style={{ ...A, left:s.left, top:`${parseFloat(s.top)*0.35}%`, width:1.5, height:1.5, borderRadius:"50%", background:"rgba(255,255,255,0.65)", animation:`twinkle ${s.dur}s ${s.delay}s ease-in-out infinite` }}/>
+      ))}
+    </div>
+  );
+
+  if (id === "anim-foret") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#010c06 0%,#042212 65%,#071a0c 100%)" }}>
+      <div style={{ ...A, inset:0, background:"radial-gradient(ellipse at 50% 100%,rgba(16,185,129,0.13) 0%,transparent 60%)" }}/>
+      <div style={{ ...A, inset:0, background:"radial-gradient(ellipse at 20% 80%,rgba(5,150,105,0.08) 0%,transparent 50%)" }}/>
+      {data.flies.map((f,i)=>(
+        <div key={i} style={{ ...A, left:f.left, top:f.top, width:3, height:3, borderRadius:"50%", background:"#a7f3d0", boxShadow:"0 0 7px 3px rgba(167,243,208,0.5)", animation:`fireflyFloat ${f.dur}s ${f.delay}s ease-in-out infinite` }}/>
+      ))}
+    </div>
+  );
+
+  if (id === "anim-sakura") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#0f0520 0%,#180832 55%,#0d0218 100%)" }}>
+      <div style={{ ...A, inset:0, background:"radial-gradient(ellipse at 50% 0%,rgba(244,114,182,0.16) 0%,transparent 55%)" }}/>
+      {data.petals.map((p,i)=>(
+        <div key={i} style={{ ...A, left:p.left, top:"-18px", width:p.size, height:p.size*0.55, borderRadius:"60% 10% 60% 10%", background:`rgba(${238+i%10},${100+i%45},${168+i%35},0.72)`, transform:`rotate(${p.rot}deg)`, animation:`petalFall ${p.dur}s ${p.delay}s linear infinite` }}/>
+      ))}
+    </div>
+  );
+
+  if (id === "anim-ville") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#020c18 0%,#050f20 65%,#06090f 100%)" }}>
+      <div style={{ ...A, bottom:0, left:0, right:0, height:"40%", background:"radial-gradient(ellipse at 50% 100%,rgba(30,64,175,0.22) 0%,transparent 70%)" }}/>
+      {data.windows.map((w,i)=>(
+        <div key={i} style={{ ...A, left:w.left, top:w.top, width:w.w, height:w.h, background:w.hue>0.6?"#fbbf24":w.hue>0.3?"#a78bfa":"#60a5fa", borderRadius:1, opacity:0.85, animation:`cityBlink ${w.dur}s ${w.delay}s ease-in-out infinite` }}/>
+      ))}
+    </div>
+  );
+
+  if (id === "anim-nuages") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#040c1c 0%,#0f1f38 100%)" }}>
+      {data.stars.slice(0,70).map((s,i)=>(
+        <div key={i} style={{ ...A, left:s.left, top:s.top, width:s.size*0.65, height:s.size*0.65, borderRadius:"50%", background:"rgba(255,255,255,0.75)", animation:`twinkle ${s.dur}s ${s.delay}s ease-in-out infinite` }}/>
+      ))}
+      {data.clouds.map((c,i)=>(
+        <div key={i} style={{ ...A, top:c.top, left:0, width:c.w, height:c.h, background:"rgba(255,255,255,0.07)", borderRadius:"50%", boxShadow:`0 0 40px 10px rgba(255,255,255,${c.op})`, filter:"blur(10px)", animation:`cloudDrift ${c.dur}s ${c.delay}s linear infinite` }}/>
+      ))}
+    </div>
+  );
+
+  if (id === "anim-feu") return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#050100 0%,#1c0600 100%)" }}>
+      <div style={{ ...A, bottom:0, left:"5%", right:"5%", height:"75%", background:"radial-gradient(ellipse at 50% 100%,rgba(251,146,60,0.45) 0%,rgba(239,68,68,0.3) 30%,transparent 70%)", animation:"nebulaPulse 0.9s ease-in-out infinite" }}/>
+      {[{w:"52%",h:"52%",c:"rgba(251,191,36,0.3)",d:"0.85s"},{w:"36%",h:"64%",c:"rgba(249,115,22,0.28)",d:"1.1s"},{w:"22%",h:"74%",c:"rgba(239,68,68,0.22)",d:"0.7s"}].map((f,i)=>(
+        <div key={i} style={{ ...A, bottom:0, left:"50%", width:f.w, height:f.h, background:`radial-gradient(ellipse at 50% 100%,${f.c} 0%,transparent 70%)`, animation:`fireFlicker ${f.d} ${i*0.15}s ease-in-out infinite`, filter:"blur(18px)" }}/>
+      ))}
+      {data.flies.slice(0,18).map((f,i)=>(
+        <div key={i} style={{ ...A, left:`${20+parseFloat(f.left)*0.6}%`, top:`${55+(i%18)*1.8}%`, width:2, height:2, borderRadius:"50%", background:"#fcd34d", boxShadow:"0 0 4px 2px rgba(252,211,77,0.7)", animation:`fireflyFloat ${f.dur*0.55}s ${f.delay}s ease-in-out infinite` }}/>
+      ))}
+    </div>
+  );
+
+  // anim-nuit (default)
+  return (
+    <div style={{ ...A, inset:0, background:"linear-gradient(180deg,#030510 0%,#0a0e24 70%,#06091e 100%)" }}>
+      <div style={{ ...A, top:"10%", right:"18%", width:55, height:55, borderRadius:"50%", background:"radial-gradient(circle,#f1f5f9 0%,#e2e8f0 45%,rgba(226,232,240,0.2) 100%)", boxShadow:"0 0 25px rgba(241,245,249,0.5),0 0 70px rgba(241,245,249,0.18)" }}/>
+      {data.stars.map((s,i)=>(
+        <div key={i} style={{ ...A, left:s.left, top:s.top, width:s.size, height:s.size, borderRadius:"50%", background:"#fff", animation:`${i%4===0?"twinkleFast":"twinkle"} ${s.dur}s ${s.delay}s ease-in-out infinite` }}/>
+      ))}
+    </div>
+  );
+}
 
 function Confetti({ active }) {
   if (!active) return null;
@@ -327,6 +435,15 @@ export default function Solo() {
         @keyframes soloFadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
         @keyframes quoteFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes twinkle{0%,100%{opacity:0.15}50%{opacity:1}}
+        @keyframes twinkleFast{0%,100%{opacity:0.08;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+        @keyframes nebulaPulse{0%,100%{opacity:0.6}50%{opacity:1}}
+        @keyframes waveRise{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+        @keyframes petalFall{0%{transform:translateY(-20px) translateX(0) rotate(0deg);opacity:0.9}100%{transform:translateY(105vh) translateX(65px) rotate(540deg);opacity:0}}
+        @keyframes fireflyFloat{0%,100%{transform:translate(0,0);opacity:0.2}25%{transform:translate(10px,-22px);opacity:0.9}50%{transform:translate(-6px,-38px);opacity:0.6}75%{transform:translate(14px,-20px);opacity:0.85}}
+        @keyframes cloudDrift{from{transform:translateX(-320px)}to{transform:translateX(120vw)}}
+        @keyframes fireFlicker{0%,100%{transform:translateX(-50%) scaleY(1) scaleX(1)}50%{transform:translateX(-50%) scaleY(1.09) scaleX(0.93)}}
+        @keyframes cityBlink{0%,90%,100%{opacity:0.85}94%{opacity:0.05}}
         .solo-btn:hover{opacity:0.9;transform:translateY(-1px);}
         .solo-menu-item:hover{background:rgba(255,255,255,0.12) !important;}
         .play-btn:hover{transform:scale(1.08) !important;}
@@ -337,13 +454,19 @@ export default function Solo() {
       `}</style>
 
       {/* Background */}
-      <div style={{ position:"fixed", inset:0, zIndex:0, background:"#0a0510" }}>
-        <img key={wallpaper.id} src={wallpaper.url} alt=""
-          onLoad={() => setImgLoaded(true)}
-          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:imgLoaded?1:0, transition:"opacity 1s ease" }}
-        />
-        <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.52)" }}/>
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0.05) 50%,rgba(0,0,0,0.35) 100%)" }}/>
+      <div style={{ position:"fixed", inset:0, zIndex:0, background:wallpaper.bgColor||"#0a0510", overflow:"hidden" }}>
+        {wallpaper.animated ? (
+          <AnimatedBg id={wallpaper.id}/>
+        ) : (
+          <>
+            <img key={wallpaper.id} src={wallpaper.url} alt=""
+              onLoad={() => setImgLoaded(true)}
+              style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:imgLoaded?1:0, transition:"opacity 1s ease" }}
+            />
+            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.52)" }}/>
+            <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0.05) 50%,rgba(0,0,0,0.35) 100%)" }}/>
+          </>
+        )}
       </div>
 
       <Confetti active={showConfetti}/>
@@ -414,7 +537,10 @@ export default function Solo() {
                           onClick={() => { setWallpaper(wp); setShowWpMenu(false); }}
                           style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"7px 10px", border:"none", borderRadius:8, background:wallpaper.id===wp.id?"rgba(124,58,237,0.25)":"transparent", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", color:"#fff", fontSize:13, transition:"all 0.15s" }}>
                           <div style={{ width:30, height:20, borderRadius:4, overflow:"hidden", flexShrink:0, border:"1px solid rgba(255,255,255,0.1)" }}>
-                            <img src={wp.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                            {wp.url
+                              ? <img src={wp.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                              : <div style={{ width:"100%", height:"100%", background:wp.bgColor||"#111", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11 }}>{wp.label.split(" ")[0]}</div>
+                            }
                           </div>
                           <span style={{ flex:1, textAlign:"left" }}>{wp.label}</span>
                           {wallpaper.id===wp.id && <Check size={11} color="#a78bfa"/>}
