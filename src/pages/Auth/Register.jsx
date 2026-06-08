@@ -477,8 +477,8 @@ export default function Register() {
   }`;
 
   // ── Theme tokens ──
-  const pageBg   = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 50%,#0d1a2e 100%)" : "#f5f3ef";
-  const rightBg  = dark ? "linear-gradient(160deg,#1a1035 0%,#160d2e 100%)" : "#f5f3ef";
+  const pageBg   = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 45%,#0d1a2e 100%)" : "linear-gradient(135deg,#f0edff 0%,#e8e4ff 45%,#eef2ff 100%)";
+  const rightBg  = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 45%,#0d1a2e 100%)" : "linear-gradient(135deg,#f0edff 0%,#e8e4ff 45%,#eef2ff 100%)";
   const cardBg   = "transparent";
   const cardBdr  = "none";
   const textCol  = dark ? "#ffffff" : "#1a1625";
