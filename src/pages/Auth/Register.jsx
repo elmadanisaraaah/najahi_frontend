@@ -611,7 +611,7 @@ export default function Register() {
               {step === 0 && (
                 <>
                   <button type="button"
-                    onClick={() => window.location.href = "/api/auth/google"}
+                    onClick={() => window.location.href = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api/auth/google"}
                     style={{
                       width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:10,
                       padding:"11px 20px", marginBottom:10,
