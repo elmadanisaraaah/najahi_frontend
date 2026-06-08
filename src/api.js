@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || ''
+const BASE_URL = import.meta.env.VITE_API_URL || ''
 
 const request = async (method, path, body = null) => {
   const token = localStorage.getItem('najahi_token')
@@ -8,7 +8,7 @@ const request = async (method, path, body = null) => {
     headers.Authorization = `Bearer ${token}`
   }
 
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : null,
@@ -33,7 +33,7 @@ export const api = {
 export const auth = {
   login:    (body) => api.post('/api/auth/login', body),
   register: (body) => api.post('/api/auth/register', body),
-  me:       ()     => api.get('/api/auth/me'),
+  me:       ()     => api.get('/api/profile/me'),
 }
 
 export default api
