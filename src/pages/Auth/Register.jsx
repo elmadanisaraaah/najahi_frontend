@@ -446,7 +446,13 @@ export default function Register() {
       setSuccess(true);
       setTimeout(() => navigate("/verify-email", { state: { email: form.email } }), 2000);
     } catch (err) {
-      setError(err.message || "Erreur lors de la création du compte");
+      if (err.status === 409) {
+        setError(err.message);
+      } else if (err.status === 500) {
+        setError("Erreur serveur. Réessaie plus tard.");
+      } else {
+        setError(err.message || "Erreur lors de la création du compte");
+      }
     } finally {
       setLoading(false);
     }
