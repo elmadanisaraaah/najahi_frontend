@@ -479,8 +479,9 @@ export default function Register() {
   // ── Theme tokens ──
   const pageBg   = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 45%,#0d1a2e 100%)" : "linear-gradient(135deg,#f0edff 0%,#e8e4ff 45%,#eef2ff 100%)";
   const rightBg  = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 45%,#0d1a2e 100%)" : "linear-gradient(135deg,#f0edff 0%,#e8e4ff 45%,#eef2ff 100%)";
-  const cardBg   = "transparent";
-  const cardBdr  = "none";
+  const cardBg  = dark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.82)";
+  const cardBdr = dark ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(124,58,237,0.12)";
+  const cardSh  = dark ? "0 30px 90px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.08)" : "0 20px 60px rgba(124,58,237,0.1),0 4px 20px rgba(0,0,0,0.05)";
   const textCol  = dark ? "#ffffff" : "#1a1625";
   const subCol   = dark ? "rgba(255,255,255,0.45)" : "rgba(26,22,37,0.5)";
   const labelCol = dark ? "rgba(255,255,255,0.7)" : "rgba(26,22,37,0.65)";
@@ -529,17 +530,21 @@ export default function Register() {
       <div style={{
         width:"100%", minHeight:"100vh",
         background: rightBg,
-        display:"flex", alignItems:"flex-start", justifyContent:"center",
-        padding: isMobile ? "24px 16px" : "36px 32px", overflowY:"auto",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        position:"relative",
+        padding: isMobile ? "32px 16px" : "40px 24px",
         transition:"background 0.5s ease",
       }}>
         <div style={{
-          width:"100%", maxWidth:400,
-          background: "transparent",
-          border: "none",
-          borderRadius: 0,
-          padding: 0,
-          transition:"all 0.5s ease",
+          position:"relative", zIndex:10,
+          width:"100%", maxWidth:420,
+          background: cardBg,
+          backdropFilter:"blur(28px)", WebkitBackdropFilter:"blur(28px)",
+          border: cardBdr,
+          borderRadius:"26px",
+          padding: isMobile ? "28px 20px" : "44px 38px",
+          boxShadow: cardSh,
+          transition:"all 0.4s ease",
         }}>
 
           {success ? (
@@ -910,7 +915,7 @@ export default function Register() {
   );
 
   const leftPanel = (
-    <div className={leftWrapClass} style={{ display: isMobile ? "none" : undefined }}>
+    <div className={leftWrapClass} style={{ display: isMobile ? "none" : undefined, minHeight: "100vh" }}>
       <AuthLeft step={step} />
     </div>
   );
