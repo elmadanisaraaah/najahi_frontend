@@ -163,7 +163,7 @@ function Message({ msg, dark }) {
     return (
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
         <div style={{
-          maxWidth: "72%", padding: "11px 15px",
+          maxWidth: isMobile ? "88%" : "72%", padding: "11px 15px",
           background: "linear-gradient(135deg,#7c3aed,#a78bfa)",
           borderRadius: "16px 16px 3px 16px",
           color: "#fff", fontSize: 13, lineHeight: 1.6,
@@ -204,7 +204,7 @@ function Message({ msg, dark }) {
     <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-start" }}>
       <Avatar dark={dark} error={isErr} />
       <div style={{
-        maxWidth: "84%", padding: "14px 16px",
+        maxWidth: isMobile ? "96%" : "84%", padding: "14px 16px",
         background: isErr
           ? (dark ? "rgba(239,68,68,0.08)" : "rgba(254,226,226,0.55)")
           : (dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.95)"),
@@ -254,6 +254,7 @@ export default function Schools() {
   const { theme } = useTheme();
   const navigate  = useNavigate();
   const dark = theme === "dark";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [messages, setMessages] = useState([{
     role: "assistant",
@@ -281,6 +282,11 @@ export default function Schools() {
   const suggBg  = dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)";
   const suggBd  = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.14)";
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -438,7 +444,7 @@ export default function Schools() {
           {/* Input bar */}
           <div style={{ paddingBottom:20 }}>
             <div style={{
-              display:"flex", gap:10, padding:"10px 13px",
+              display:"flex", gap: isMobile ? 6 : 10, padding:"10px 13px",
               background:inputBg, border:inputBd, borderRadius:18,
               backdropFilter:"blur(22px)",
               boxShadow: dark ? "0 4px 28px rgba(0,0,0,0.4)" : "0 4px 22px rgba(124,58,237,0.08)",

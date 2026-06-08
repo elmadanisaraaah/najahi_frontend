@@ -82,6 +82,7 @@ export default function Dashboard() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const dark = theme === "dark";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [activeIdx, setActiveIdx]   = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState(null);
@@ -91,6 +92,11 @@ export default function Dashboard() {
   const autoRef = useRef(null);
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const startAuto = () => {
     clearInterval(autoRef.current);
@@ -137,7 +143,7 @@ export default function Dashboard() {
       isActive, isAdjacent, isVisible,
       style: {
         position: "absolute", left: "50%",
-        transform: `translateX(calc(-50% + ${pos * 230}px)) scale(${scale})`,
+        transform: `translateX(calc(-50% + ${pos * (isMobile ? 160 : 230)}px)) scale(${scale})`,
         zIndex: isActive ? 10 : isAdjacent ? 5 : 1,
         opacity: isVisible ? (isActive ? 1 : 0.72) : 0,
         filter: `blur(${isActive ? 0 : isAdjacent ? 1 : 5}px)`,
@@ -176,7 +182,7 @@ export default function Dashboard() {
         <ParticlesBackground dark={dark} />
 
         {/* Navbar */}
-        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 28px", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
+        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap: isMobile ? 8 : 0, padding: isMobile ? "10px 14px" : "14px 28px", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:38, height:38, borderRadius:11, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:5, flexShrink:0, animation:"dglow 3s ease-in-out infinite alternate" }}>
               {!logoError
@@ -190,7 +196,7 @@ export default function Dashboard() {
           </div>
 
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ display:"flex", gap:2, background:dark?"rgba(255,255,255,0.07)":"rgba(124,58,237,0.06)", border:`1px solid ${dark?"rgba(255,255,255,0.1)":"rgba(124,58,237,0.12)"}`, borderRadius:99, padding:"4px 6px" }}>
+            <div style={{ display: isMobile ? "none" : "flex", gap:2, background:dark?"rgba(255,255,255,0.07)":"rgba(124,58,237,0.06)", border:`1px solid ${dark?"rgba(255,255,255,0.1)":"rgba(124,58,237,0.12)"}`, borderRadius:99, padding:"4px 6px" }}>
               {LANGS.map((lang, i) => (
                 <button key={lang} type="button" onClick={() => setLangIdx(i)}
                   style={{ padding:"4px 10px", borderRadius:99, border:"none", fontSize:11, fontWeight:700, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", transition:"all 0.2s", background:langIdx===i?"#7c3aed":"transparent", color:langIdx===i?"#fff":dark?"rgba(255,255,255,0.5)":"rgba(15,10,30,0.5)", letterSpacing:"0.3px" }}>
@@ -203,7 +209,7 @@ export default function Dashboard() {
               <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"grid", placeItems:"center", fontSize:13, fontWeight:700, color:"#fff", flexShrink:0, boxShadow:"0 0 0 2px rgba(124,58,237,0.3)" }}>
                 {(user?.prenom?.[0] || user?.email?.[0] || "U").toUpperCase()}
               </div>
-              <span style={{ fontSize:13, fontWeight:600, color:textCol, maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.4s" }}>
+              <span style={{ fontSize:13, fontWeight:600, color:textCol, maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.4s", display: isMobile ? "none" : "block" }}>
                 {displayName}
               </span>
               <button type="button"
@@ -219,10 +225,10 @@ export default function Dashboard() {
         </nav>
 
         {/* Content */}
-        <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 67px)", padding:"40px 24px", textAlign:"center" }}>
+        <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 67px)", padding: isMobile ? "20px 12px" : "40px 24px", textAlign:"center" }}>
 
           {/* Welcome */}
-          <div style={{ marginBottom:52, animation: mounted?"dfadeUp 0.5s 0.1s ease both":"none" }}>
+          <div style={{ marginBottom: isMobile ? 24 : 52, animation: mounted?"dfadeUp 0.5s 0.1s ease both":"none" }}>
             <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", background:dark?"rgba(124,58,237,0.14)":"rgba(124,58,237,0.09)", border:`1px solid ${dark?"rgba(124,58,237,0.3)":"rgba(124,58,237,0.2)"}`, borderRadius:99, marginBottom:18 }}>
               <div style={{ width:6, height:6, borderRadius:"50%", background:"#10b981", animation:"dpulse 2s infinite" }}/>
               <span style={{ fontSize:12, fontWeight:600, color:"#7c3aed", letterSpacing:"0.3px" }}>Plateforme scolaire marocaine</span>
@@ -237,7 +243,7 @@ export default function Dashboard() {
 
           {/* Carousel */}
           <div
-            style={{ position:"relative", width:"100%", maxWidth:780, height:320, animation: mounted?"dfadeUp 0.5s 0.25s ease both":"none" }}
+            style={{ position:"relative", width:"100%", maxWidth:780, height: isMobile ? 400 : 320, animation: mounted?"dfadeUp 0.5s 0.25s ease both":"none" }}
             onMouseEnter={() => clearInterval(autoRef.current)}
             onMouseLeave={startAuto}
           >
@@ -250,7 +256,7 @@ export default function Dashboard() {
                   onMouseLeave={() => setHoveredIdx(null)}
                   onClick={() => !isActive && pick(i)}
                 >
-                  <div style={{ width:256, background:cardBg, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:`1px solid ${isActive?f.color+"50":cardBdr}`, borderRadius:24, padding:"28px 24px", boxShadow:isActive
+                  <div style={{ width: isMobile ? "min(256px, 88vw)" : 256, background:cardBg, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:`1px solid ${isActive?f.color+"50":cardBdr}`, borderRadius:24, padding:"28px 24px", boxShadow:isActive
                     ? `0 24px 64px ${f.glow}35, 0 0 0 1px ${f.color}20, inset 0 1px 0 rgba(255,255,255,0.15)`
                     : dark
                       ? "0 8px 24px rgba(0,0,0,0.25)"

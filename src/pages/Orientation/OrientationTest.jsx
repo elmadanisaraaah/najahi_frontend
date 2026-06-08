@@ -261,7 +261,13 @@ function GradeInput({ label, value, onChange, emoji, isDark, border }) {
 export default function OrientationTest() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const [phase, setPhase]           = useState("welcome");
   const [step, setStep]             = useState(1);
   const [direction, setDirection]   = useState(1);
@@ -494,7 +500,7 @@ export default function OrientationTest() {
           <button
             onClick={() => { setPhase("step"); setStep(1); }}
             style={{
-              padding: "17px 52px", fontSize: 17, fontWeight: 800,
+              padding: isMobile ? "15px 32px" : "17px 52px", fontSize: 17, fontWeight: 800, width: isMobile ? "100%" : undefined,
               background: `linear-gradient(135deg, ${purple}, #a78bfa)`,
               color: "white", border: "none", borderRadius: 50, cursor: "pointer",
               animation: "glowPulse 2.2s ease-in-out infinite",
@@ -1052,12 +1058,12 @@ export default function OrientationTest() {
         </div>
 
         {/* Next button */}
-        <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ marginTop: 18, display: "flex", justifyContent: isMobile ? "stretch" : "flex-end" }}>
           <button
             onClick={goNext}
             disabled={!canNext()}
             style={{
-              padding: "14px 38px", fontSize: 15, fontWeight: 800,
+              padding: "14px 38px", fontSize: 15, fontWeight: 800, width: isMobile ? "100%" : undefined,
               background: canNext() ? `linear-gradient(135deg, ${purple}, #a78bfa)` : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"),
               color: canNext() ? "white" : textMuted,
               border: "none", borderRadius: 50,

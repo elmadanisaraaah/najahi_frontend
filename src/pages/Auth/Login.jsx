@@ -32,6 +32,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const dark = theme === "dark";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -42,6 +43,11 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || "/app/dashboard";
   useEffect(() => { setTimeout(() => setMounted(true), 50); }, []);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -159,7 +165,7 @@ export default function Login() {
         <div style={{
           position:"relative", zIndex:10, width:"100%", maxWidth:"420px", margin:"24px",
           background:cardBg, backdropFilter:"blur(28px)", WebkitBackdropFilter:"blur(28px)",
-          border:cardBdr, borderRadius:"26px", padding:"44px 38px",
+          border:cardBdr, borderRadius:"26px", padding: isMobile ? "28px 20px" : "44px 38px",
           boxShadow:cardSh, transition:"all 0.4s ease",
           animation: mounted ? "cardIn 0.55s cubic-bezier(0.34,1.56,0.64,1) both" : "none",
         }}>

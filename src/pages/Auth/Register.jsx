@@ -326,6 +326,7 @@ export default function Register() {
   const navigate = useNavigate();
   const fileRef = useRef();
   const dark = theme === "dark";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [step, setStep]                 = useState(0);
   const [slideDir, setSlideDir]         = useState("");
@@ -452,6 +453,11 @@ export default function Register() {
   };
 
   const goLogin = () => { setFlipped(true); setTimeout(() => navigate("/login"), 400); };
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // ── Animation classes ──
   const slideClass =
@@ -524,7 +530,7 @@ export default function Register() {
         width:"100%", minHeight:"100vh",
         background: rightBg,
         display:"flex", alignItems:"flex-start", justifyContent:"center",
-        padding:"36px 32px", overflowY:"auto",
+        padding: isMobile ? "24px 16px" : "36px 32px", overflowY:"auto",
         transition:"background 0.5s ease",
       }}>
         <div style={{
@@ -904,7 +910,7 @@ export default function Register() {
   );
 
   const leftPanel = (
-    <div className={leftWrapClass}>
+    <div className={leftWrapClass} style={{ display: isMobile ? "none" : undefined }}>
       <AuthLeft step={step} />
     </div>
   );

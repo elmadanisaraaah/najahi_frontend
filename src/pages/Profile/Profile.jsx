@@ -140,7 +140,7 @@ function Field({ icon: Icon, label, value, editMode, field, editData, onChange, 
       borderBottom: `1px solid ${border}`,
     }}>
       <Icon size={16} color="#7c3aed" style={{ flexShrink: 0 }} />
-      <span style={{ width: 130, fontSize: 13, color: textMuted, flexShrink: 0 }}>{label}</span>
+      <span style={{ width: 110, fontSize: 12, color: textMuted, flexShrink: 0 }}>{label}</span>
       {editMode ? (
         options ? (
           <select
@@ -183,6 +183,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -258,6 +259,11 @@ export default function Profile() {
     }
   }
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   useEffect(() => {
     fetchProfile();
     fetchBulletins();
@@ -468,8 +474,8 @@ export default function Profile() {
           <div style={{ padding: "0 24px 24px" }}>
             {/* Avatar + name row */}
             <div style={{
-              display: "flex", alignItems: "flex-end", gap: 18,
-              marginTop: -44, marginBottom: 20,
+              display: "flex", alignItems: "flex-end", gap: 18, flexWrap: "wrap",
+              marginTop: isMobile ? -20 : -44, marginBottom: 20,
             }}>
               <AvatarZone
                 profile={profile}
