@@ -24,6 +24,8 @@ function ParticlesBackground({ dark }) {
   );
 }
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 export default function VerifyEmail() {
   const { theme } = useTheme();
   const location  = useLocation();
@@ -100,7 +102,7 @@ export default function VerifyEmail() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/verify-email", {
+      const res = await fetch(API_URL + "/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code: finalCode }),
@@ -125,7 +127,7 @@ export default function VerifyEmail() {
     setResending(true);
     setError("");
     try {
-      await fetch("/api/auth/resend-verification", {
+      await fetch(API_URL + "/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

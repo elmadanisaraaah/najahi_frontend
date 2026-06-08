@@ -51,12 +51,17 @@ export default function Login() {
 
   const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await login(form);
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Le serveur met trop de temps à répondre. Réessaie.")), 10000)
+      );
+      await Promise.race([login(form), timeout]);
       navigate("/app/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Identifiants incorrects");
@@ -199,7 +204,7 @@ export default function Login() {
 
           {/* Google button */}
           <button type="button"
-            onClick={() => window.location.href = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api/auth/google"}
+            onClick={() => { window.location.href = apiUrl + "/api/auth/google"; }}
             style={{
               width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:10,
               padding:"12px 20px", marginBottom:12,

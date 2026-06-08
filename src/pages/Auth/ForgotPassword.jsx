@@ -73,6 +73,8 @@ function TimerRing({ seconds, total }) {
   );
 }
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 export default function ForgotPassword() {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -168,7 +170,7 @@ export default function ForgotPassword() {
         ? { email }
         : { phone: `${countryCode}${phone.replace(/^0/, "")}`, method: "sms" };
 
-      await fetch("/api/auth/forgot-password", {
+      await fetch(API_URL + "/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
