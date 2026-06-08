@@ -14,11 +14,16 @@ export default function AuthCallback() {
 
     if (error) return navigate("/login?error=" + error);
 
-    if (access_token) {
+    if (!access_token) return navigate("/login?error=missing_token");
+
+    try {
+      // Persist tokens to localStorage immediately so protected routes can read them
+      localStorage.setItem("najahi_token",         access_token);
+      localStorage.setItem("najahi_refresh_token", refresh_token || "");
       loginWithTokens({ access_token, refresh_token });
       navigate("/app/dashboard", { replace: true });
-    } else {
-      navigate("/login");
+    } catch {
+      navigate("/login?error=invalid_token");
     }
   }, []);
 
