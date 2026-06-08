@@ -194,9 +194,15 @@ export default function Servers() {
   const [showModal, setShowModal]         = useState(false);
   const [logoError, setLogoError]         = useState(false);
   const [mounted, setMounted]             = useState(false);
+  const [isMobile, setIsMobile]           = useState(window.innerWidth < 768);
   const socketRef = useRef(null);
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const socket = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
@@ -249,7 +255,7 @@ export default function Servers() {
         <div style={{ position:"absolute", inset:0, pointerEvents:"none", backgroundImage:"linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)", backgroundSize:"48px 48px" }}/>
 
         {/* Navbar */}
-        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 24px", background:navBg, backdropFilter:"blur(18px)", borderBottom:`1px solid ${navBd}` }}>
+        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "12px 24px", background:navBg, backdropFilter:"blur(18px)", borderBottom:`1px solid ${navBd}`, overflow:"hidden" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:subCol, fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
@@ -274,14 +280,14 @@ export default function Servers() {
               <div style={{ width:5, height:5, borderRadius:"50%", background:"#10b981", animation:"livePulse 2s infinite" }}/>
               <Users size={11} color={subCol}/>
               <span style={{ fontSize:12, fontWeight:700, color:textCol }}>{onlineCount}</span>
-              <span style={{ fontSize:11, color:subCol }}>en ligne</span>
+              {!isMobile && <span style={{ fontSize:11, color:subCol }}>en ligne</span>}
             </div>
             <ThemeToggle/>
           </div>
         </nav>
 
         {/* Content */}
-        <div style={{ position:"relative", zIndex:10, maxWidth:1100, margin:"0 auto", padding:"32px 24px" }}>
+        <div style={{ position:"relative", zIndex:10, maxWidth:1100, margin:"0 auto", padding: isMobile ? "16px" : "32px 24px" }}>
 
           <div style={{ textAlign:"center", marginBottom:36, animation:mounted?"svfadeUp 0.5s 0.1s ease both":"none" }}>
             <h1 style={{ fontFamily:"'Fraunces',serif", fontSize:"clamp(28px,4vw,48px)", fontWeight:700, color:textCol, letterSpacing:"-1px", marginBottom:10 }}>

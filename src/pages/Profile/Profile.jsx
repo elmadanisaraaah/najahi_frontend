@@ -8,7 +8,7 @@ import {
   Clock, Users, CheckCircle, AlertCircle, Camera,
 } from "lucide-react";
 
-const API = (path) => `/api/profile${path}`;
+const API = (path) => `${import.meta.env.VITE_API_URL || ""}/api/profile${path}`;
 const token = () => localStorage.getItem("najahi_token") || "";
 const authH = () => ({ Authorization: `Bearer ${token()}` });
 
@@ -250,7 +250,7 @@ export default function Profile() {
 
   async function fetchOrientResult() {
     try {
-      const res = await fetch("/api/orientation/my-result", { headers: authH() });
+      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/orientation/my-result", { headers: authH() });
       if (!res.ok) { setOrientResult(null); return; }
       const data = await res.json();
       setOrientResult(data.result || null);
@@ -310,7 +310,7 @@ export default function Profile() {
     try {
       const fd = new FormData();
       fd.append("avatar", file);
-      const res = await fetch("/api/profile/avatar", {
+      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/profile/avatar", {
         method: "POST",
         headers: authH(),
         body: fd,
@@ -427,7 +427,8 @@ export default function Profile() {
         backdropFilter: "blur(16px)",
         borderBottom: `1px solid ${border}`,
         display: "flex", alignItems: "center", gap: 14,
-        padding: "14px 24px",
+        padding: isMobile ? "10px 14px" : "14px 24px",
+        overflow: "hidden",
       }}>
         <button onClick={() => navigate("/app/dashboard")} style={{
           width: 36, height: 36, borderRadius: "50%",

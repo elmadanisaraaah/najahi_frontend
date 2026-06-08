@@ -68,8 +68,14 @@ export default function Study() {
   const [mounted, setMounted]     = useState(false);
   const [hovered, setHovered]     = useState(null);
   const [logoError, setLogoError] = useState(false);
+  const [isMobile, setIsMobile]   = useState(window.innerWidth < 768);
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const bg      = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 50%,#0d1a2e 100%)" : "linear-gradient(135deg,#f0edff 0%,#e8e4ff 50%,#eef2ff 100%)";
   const navBg   = dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.75)";
@@ -106,7 +112,7 @@ export default function Study() {
         <ParticlesBackground dark={dark} />
 
         {/* Navbar */}
-        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 28px", background:navBg, backdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}` }}>
+        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 16px" : "14px 28px", background:navBg, backdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, overflow:"hidden" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:36, height:36, borderRadius:10, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:4, animation:"smglow 3s ease-in-out infinite alternate" }}>
               {!logoError
@@ -115,7 +121,7 @@ export default function Study() {
               }
             </div>
             <span style={{ fontSize:17, fontWeight:700, color:textCol, fontFamily:"'Fraunces',serif", letterSpacing:"-0.3px" }}>Najahi</span>
-            <span style={{ fontSize:12, color:"#7c3aed", fontWeight:600, padding:"3px 10px", background:"rgba(124,58,237,0.1)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:99 }}>Study</span>
+            {!isMobile && <span style={{ fontSize:12, color:"#7c3aed", fontWeight:600, padding:"3px 10px", background:"rgba(124,58,237,0.1)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:99 }}>Study</span>}
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <ThemeToggle />
@@ -128,7 +134,7 @@ export default function Study() {
         </nav>
 
         {/* Content */}
-        <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 67px)", padding:"40px 24px" }}>
+        <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 67px)", padding: isMobile ? "20px 16px" : "40px 24px" }}>
 
           {/* Header */}
           <div style={{ textAlign:"center", marginBottom:52, animation: mounted?"smfadeUp 0.5s 0.1s ease both":"none" }}>

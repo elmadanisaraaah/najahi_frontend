@@ -5,6 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import { ArrowLeft, Plus, Hash, Copy, Check, Users, Timer, ArrowRight } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 function ParticlesBackground({ dark }) {
   const particles = Array.from({ length: 12 }).map((_, i) => ({
     position: "absolute",
@@ -43,8 +45,14 @@ export default function PrivateRooms() {
   const [copied, setCopied]         = useState(false);
   const [logoError, setLogoError]   = useState(false);
   const [mounted, setMounted]       = useState(false);
+  const [isMobile, setIsMobile]     = useState(window.innerWidth < 768);
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const totalMinutes = heures * 60 + minutes;
 
@@ -59,7 +67,7 @@ export default function PrivateRooms() {
   
   setCreating(true); setError("");
   try {
-    const res = await fetch("/api/rooms/create", {
+    const res = await fetch(API_URL + "/api/rooms/create", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json", 
@@ -87,7 +95,7 @@ export default function PrivateRooms() {
     if (code.length < 4) return setError("Entre le code de la salle");
     setJoining(true); setError("");
     try {
-      const res = await fetch("/api/rooms/join", {
+      const res = await fetch(API_URL + "/api/rooms/join", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ code }),
@@ -203,7 +211,7 @@ export default function PrivateRooms() {
                   Crée une salle privée ou rejoins celle d'un ami.
                 </p>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
                 <div className="pr-choice"
                   onClick={() => { setStep("form"); setError(""); }}
                   style={{ background: cardBg, backdropFilter: "blur(20px)", border: cardBdr, borderRadius: 20, padding: "28px 24px", cursor: "pointer", transition: "all 0.3s", boxShadow: dark ? "0 4px 20px rgba(0,0,0,0.2)" : "0 4px 20px rgba(124,58,237,0.07)", textAlign: "center" }}>

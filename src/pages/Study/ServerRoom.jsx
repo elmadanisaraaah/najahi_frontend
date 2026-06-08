@@ -69,10 +69,17 @@ export default function ServerRoom() {
   const [pomCount, setPomCount]         = useState(0);
   const [page, setPage]                 = useState(0);
   const [ready, setReady]               = useState(false);
+  const [isMobile, setIsMobile]         = useState(window.innerWidth < 768);
 
   const socketRef  = useRef(null);
   const timerRef   = useRef(null);
   const sessionRef = useRef(null);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const PER_PAGE     = 12;
   const PHASE_COLORS = { focus:"#7c3aed", break:"#10b981", longBreak:"#3b82f6" };
@@ -215,7 +222,7 @@ export default function ServerRoom() {
             <button type="button" className="ctrl" onClick={toggleCam}
               style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:camOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.07)", border:`1px solid ${camOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.1)"}`, borderRadius:99, cursor:"pointer", color:camOn?"#a78bfa":"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
               {camOn ? <Video size={13}/> : <VideoOff size={13}/>}
-              {camOn ? "Cam on" : "Cam off"}
+              {!isMobile && (camOn ? "Cam on" : "Cam off")}
             </button>
           </div>
 
@@ -263,7 +270,8 @@ export default function ServerRoom() {
             <div style={{ position:"relative" }}>
               <button type="button" onClick={() => setShowWpMenu(v=>!v)}
                 style={{ padding:"5px 10px", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:99, cursor:"pointer", color:"rgba(255,255,255,0.45)", fontSize:11, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
-                Ambiance
+                {!isMobile && "Ambiance"}
+                {isMobile && "🎨"}
               </button>
               {showWpMenu && (
                 <div style={{ position:"absolute", top:"calc(100%+6px)", right:0, background:"rgba(5,2,15,0.97)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:6, minWidth:140, zIndex:200 }}>
@@ -281,7 +289,7 @@ export default function ServerRoom() {
             {/* Leave */}
             <button type="button" className="leave" onClick={leave}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 14px", background:"rgba(239,68,68,0.15)", border:"1.5px solid rgba(239,68,68,0.3)", borderRadius:99, cursor:"pointer", color:"#ef4444", fontSize:11, fontWeight:700, fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
-              <PhoneOff size={12}/> Quitter
+              <PhoneOff size={12}/> {!isMobile && "Quitter"}
             </button>
           </div>
         </div>

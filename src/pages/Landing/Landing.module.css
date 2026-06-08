@@ -308,8 +308,7 @@
   .navbar       { overflow: hidden; }
   .navInner     { overflow: hidden; padding: 10px 14px; gap: 10px; }
   .navLangSwitcher { display: none; }
-  .themeBtn     { display: none; }
-  .navLoginBtn  { font-size: 12px !important; padding: 5px 10px !important; }
+  .navLoginBtn  { display: none; }
 }
 @media (max-width: 480px) {
   .navActions .btn:not(:last-child) { display: none; }

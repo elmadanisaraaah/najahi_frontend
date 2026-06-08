@@ -258,9 +258,12 @@ function GradeInput({ label, value, onChange, emoji, isDark, border }) {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 export default function OrientationTest() {
   const navigate = useNavigate();
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -289,7 +292,7 @@ export default function OrientationTest() {
   useEffect(() => {
     const t = localStorage.getItem("najahi_token");
     if (!t) return;
-    fetch("/api/profile/me", { headers: { Authorization: `Bearer ${t}` } })
+    fetch(API_URL + "/api/profile/me", { headers: { Authorization: `Bearer ${t}` } })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         if (d && d.niveau && d.moyenne_generale != null) {
@@ -361,7 +364,7 @@ export default function OrientationTest() {
 
     try {
       await new Promise((r) => setTimeout(r, 4200));
-      const res = await fetch("/api/orientation/predict", {
+      const res = await fetch(API_URL + "/api/orientation/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(t ? { Authorization: `Bearer ${t}` } : {}) },
         body: JSON.stringify(payload),

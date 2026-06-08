@@ -4,6 +4,8 @@ import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import { ArrowLeft, Send, GraduationCap, Sparkles, AlertTriangle } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 const SUGGESTIONS = [
   "ENSA admission",
   "ENSIAS filières",
@@ -156,7 +158,7 @@ function MD({ text, dark }) {
 }
 
 // ─── Individual message bubble ────────────────────────────────────────────────
-function Message({ msg, dark }) {
+function Message({ msg, dark, isMobile }) {
   const subCol = dark ? "rgba(255,255,255,0.32)" : "rgba(30,22,51,0.38)";
 
   if (msg.role === "user") {
@@ -300,7 +302,7 @@ export default function Schools() {
 
     try {
       const token = localStorage.getItem("najahi_token");
-      const res = await fetch("/api/schools/ask", {
+      const res = await fetch(API_URL + "/api/schools/ask", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -409,7 +411,7 @@ export default function Schools() {
           {/* Messages */}
           <div style={{ flex:1, overflowY:"auto", padding:"22px 0 10px" }}>
             {messages.map((msg, idx) => (
-              <Message key={idx} msg={msg} dark={dark} />
+              <Message key={idx} msg={msg} dark={dark} isMobile={isMobile} />
             ))}
             <div ref={bottomRef} />
           </div>

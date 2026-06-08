@@ -139,6 +139,7 @@ export default function Solo() {
   const { theme } = useTheme();
   const navigate  = useNavigate();
 
+  const [isMobile, setIsMobile]           = useState(window.innerWidth < 768);
   const [preset, setPreset]               = useState(0);
   const [customFocus, setCustomFocus]     = useState(25);
   const [customBreak, setCustomBreak]     = useState(5);
@@ -173,6 +174,12 @@ export default function Solo() {
   const getBreak     = () => preset===3 ? customBreak*60   : PRESETS[preset].break*60;
   const getLongBreak = () => preset===3 ? customBreak*2*60 : PRESETS[preset].longBreak*60;
   const getDuration  = (p) => p==="focus" ? getFocus() : p==="break" ? getBreak() : getLongBreak();
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Quote rotation every 3 min
   useEffect(() => {
@@ -368,7 +375,7 @@ export default function Solo() {
       <div style={{ minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", zIndex:1, display:"flex", flexDirection:"column" }}>
 
         {/* Navbar */}
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, zIndex:50 }}>
+        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, zIndex:50, overflow:"hidden" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.8)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -395,7 +402,7 @@ export default function Solo() {
               <button type="button" className="solo-btn"
                 onClick={() => { setShowWpMenu(v=>!v); setShowSndMenu(false); setShowPresetMenu(false); setShowMusicPanel(false); }}
                 style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.85)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
-                <Image size={13}/> {wallpaper.label}
+                <Image size={13}/> {!isMobile && wallpaper.label}
               </button>
               {showWpMenu && (
                 <div style={{ position:"absolute", top:"calc(100%+8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:210, zIndex:200, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
@@ -425,7 +432,7 @@ export default function Solo() {
                 onClick={() => { setShowSndMenu(v=>!v); setShowWpMenu(false); setShowPresetMenu(false); setShowMusicPanel(false); }}
                 style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.85)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
                 {activeSound.id==="silence" ? <VolumeX size={13}/> : <Volume2 size={13}/>}
-                {activeSound.label}
+                {!isMobile && activeSound.label}
               </button>
               {showSndMenu && (
                 <div style={{ position:"absolute", top:"calc(100%+8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:200, zIndex:200, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
@@ -461,7 +468,7 @@ export default function Solo() {
                 onClick={() => { setShowMusicPanel(v=>!v); setShowWpMenu(false); setShowSndMenu(false); setShowPresetMenu(false); }}
                 style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background: musicEmbed&&showPlayer?"rgba(29,185,84,0.2)":"rgba(255,255,255,0.1)", border:`1px solid ${musicEmbed&&showPlayer?"rgba(29,185,84,0.4)":"rgba(255,255,255,0.15)"}`, borderRadius:8, color: musicEmbed&&showPlayer?"#1DB954":"rgba(255,255,255,0.85)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
                 <Music size={13}/>
-                {musicEmbed && showPlayer ? "Musique active" : "Ma playlist"}
+                {!isMobile && (musicEmbed && showPlayer ? "Musique active" : "Ma playlist")}
               </button>
               {showMusicPanel && (
                 <div style={{ position:"absolute", top:"calc(100%+8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:16, minWidth:320, zIndex:200, animation:"soloFadeIn 0.2s ease" }}>
