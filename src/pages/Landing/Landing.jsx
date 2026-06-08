@@ -57,7 +57,7 @@ export default function Landing() {
           </div>
 
           <div className={styles.navActions}>
-            <LangSwitcher />
+            <div className={styles.navLangSwitcher}><LangSwitcher /></div>
             <button className={styles.themeBtn} onClick={toggle}>
               <span className={`${styles.themeIcon} ${theme === 'light' ? styles.iconActive : ''}`}>
                 <Sun size={17}/>
@@ -66,7 +66,7 @@ export default function Landing() {
                 <Moon size={17}/>
               </span>
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login')}>
+            <button className={`btn btn-ghost btn-sm ${styles.navLoginBtn}`} onClick={() => navigate('/login')}>
               {t.nav.login}
             </button>
             <button className="btn btn-primary btn-sm" onClick={() => navigate('/register')}>
