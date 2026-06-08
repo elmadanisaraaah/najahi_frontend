@@ -915,7 +915,7 @@ export default function Register() {
   );
 
   const leftPanel = (
-    <div className={leftWrapClass} style={{ display: isMobile ? "none" : undefined, minHeight: "100vh" }}>
+    <div className={leftWrapClass} style={{ display: isMobile ? "none" : undefined, minHeight: "100vh", height: "100%" }}>
       <AuthLeft step={step} />
     </div>
   );
