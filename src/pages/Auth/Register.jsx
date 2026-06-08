@@ -478,7 +478,7 @@ export default function Register() {
 
   // ── Theme tokens ──
   const pageBg   = dark ? "linear-gradient(135deg,#0f0a1e 0%,#160d2e 50%,#0d1a2e 100%)" : "#f5f3ef";
-  const rightBg  = dark ? "linear-gradient(160deg,#1a1035 0%,#160d2e 100%)" : "#ffffff";
+  const rightBg  = dark ? "linear-gradient(160deg,#1a1035 0%,#160d2e 100%)" : "#f5f3ef";
   const cardBg   = "transparent";
   const cardBdr  = "none";
   const textCol  = dark ? "#ffffff" : "#1a1625";
@@ -916,8 +916,8 @@ export default function Register() {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:pageBg, display:"flex", transition:"background 0.5s ease" }}>
-      <div style={{ display:"flex", minHeight:"100vh", width:"100%", transition:"all 0.4s" }}>
+    <div className={styles.page} style={{ minHeight:"100vh", background:pageBg, display:"flex", transition:"background 0.5s ease" }}>
+      <div style={{ display:"flex", minHeight:"100vh", width:"100%", background:pageBg, transition:"all 0.4s" }}>
         {panelSwapped
           ? <>{formPanel}{leftPanel}</>
           : <>{leftPanel}{formPanel}</>
