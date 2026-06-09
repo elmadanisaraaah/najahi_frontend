@@ -371,7 +371,7 @@ export default function Schools() {
         ::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.28); border-radius:4px; }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: bg, fontFamily: "'DM Sans',sans-serif", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div style={{ minHeight: "100vh", background: bg, fontFamily: "'DM Sans',sans-serif", display: "flex", flexDirection: "column", overflow: "hidden", overflowX: "hidden" }}>
 
         {/* Ambient blobs */}
         <div style={{ position:"fixed", top:"-90px", left:"-90px", width:"400px", height:"400px", borderRadius:"50%", background:`radial-gradient(circle,${dark?"rgba(124,58,237,0.14)":"rgba(124,58,237,0.06)"} 0%,transparent 70%)`, filter:"blur(65px)", pointerEvents:"none", zIndex:0, animation:"scBlob1 9s ease-in-out infinite" }} />
@@ -469,7 +469,7 @@ export default function Schools() {
                 onClick={() => send()}
                 disabled={!input.trim() || loading}
                 style={{
-                  width:35, height:35, borderRadius:10, border:"none",
+                  width:44, height:44, borderRadius:10, border:"none",
                   background: input.trim() && !loading
                     ? "linear-gradient(135deg,#7c3aed,#a78bfa)"
                     : "rgba(124,58,237,0.15)",

@@ -173,7 +173,7 @@ export default function Dashboard() {
         .dash-sub-btn:hover{transform:translateY(-1px) !important;opacity:0.9;}
       `}</style>
 
-      <div style={{ minHeight:"100vh", background:bg, fontFamily:"'DM Sans',sans-serif", position:"relative", overflow:"hidden", transition:"background 0.5s ease" }}>
+      <div style={{ minHeight:"100vh", background:bg, fontFamily:"'DM Sans',sans-serif", position:"relative", overflow:"hidden", overflowX:"hidden", transition:"background 0.5s ease" }}>
 
         {/* Blobs */}
         <div style={{ position:"absolute", top:"-100px", left:"-100px", width:"500px", height:"500px", borderRadius:"50%", background:`radial-gradient(circle,${dark?"rgba(124,58,237,0.25)":"rgba(124,58,237,0.14)"} 0%,transparent 70%)`, filter:"blur(60px)", pointerEvents:"none", animation:"dblob1 8s ease-in-out infinite" }}/>
@@ -214,7 +214,7 @@ export default function Dashboard() {
               </span>
               <button type="button"
                 onClick={async () => { await logout(); navigate("/login"); }}
-                style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 14px", background:dark?"rgba(239,68,68,0.1)":"rgba(239,68,68,0.08)", border:`1px solid ${dark?"rgba(239,68,68,0.25)":"rgba(239,68,68,0.18)"}`, borderRadius:9, color:"#ef4444", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+                style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 14px", minHeight:"36px", background:dark?"rgba(239,68,68,0.1)":"rgba(239,68,68,0.08)", border:`1px solid ${dark?"rgba(239,68,68,0.25)":"rgba(239,68,68,0.18)"}`, borderRadius:9, color:"#ef4444", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
                 onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.2)":"rgba(239,68,68,0.14)"}
                 onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.1)":"rgba(239,68,68,0.08)"}
               >

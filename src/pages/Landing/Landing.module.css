@@ -305,11 +305,34 @@
   .navLinks     { display: none; }
   .footerInner  { flex-direction: column; gap: 8px; text-align: center; }
 
-  .navbar       { overflow: hidden; }
-  .navInner     { overflow: hidden; padding: 10px 14px; gap: 10px; }
+  .navbar       { overflow-x: hidden; }
+  .navInner     { overflow-x: hidden; padding: 10px 14px; gap: 10px; }
   .navLangSwitcher { display: none; }
   .navLoginBtn  { display: none; }
+
+  .hero         { padding: 100px 16px 56px; }
+  .heroDesc     { font-size: 15px; margin-bottom: 28px; }
+  .heroCtas     { gap: 10px; }
+  .heroCtas .btn { min-height: 44px; }
+
+  .statsSection { padding: 0 16px 48px; }
+  .statCard     { padding: 20px 12px; }
+  .statVal      { font-size: 26px; }
+
+  .features     { padding: 0 16px 56px; }
+  .sectionHeader { margin-bottom: 32px; }
+  .sectionHeader h2 { font-size: clamp(24px, 6vw, 32px); }
+  .featureCard  { padding: 22px 18px; }
+
+  .ctaBanner    { margin: 0 12px 52px; }
+  .ctaBannerInner { padding: 44px 24px; }
+  .ctaBannerInner h2 { font-size: clamp(22px, 5vw, 28px); }
+  .ctaBannerInner p  { font-size: 14px; }
 }
 @media (max-width: 480px) {
   .navActions .btn:not(:last-child) { display: none; }
+  .hero  { padding: 88px 16px 44px; }
+  .heroDesc { font-size: 14px; }
+  .statsGrid { gap: 10px; }
+  .featuresGrid { gap: 14px; }
 }

@@ -498,7 +498,7 @@ export default function Solo() {
       <div style={{ minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", zIndex:1, display:"flex", flexDirection:"column" }}>
 
         {/* Navbar */}
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, position:"relative", zIndex:100 }}>
+        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, position:"relative", zIndex:100, overflowX:"hidden" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.8)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -514,7 +514,7 @@ export default function Solo() {
                   : <span style={{ color:"#7c3aed", fontSize:15, fontWeight:900, fontFamily:"'Fraunces',serif" }}>N</span>
                 }
               </div>
-              <span style={{ fontSize:14, fontWeight:700, color:"#fff", fontFamily:"'Fraunces',serif" }}>Étude solo</span>
+              {!isMobile && <span style={{ fontSize:14, fontWeight:700, color:"#fff", fontFamily:"'Fraunces',serif" }}>Étude solo</span>}
             </div>
           </div>
 
@@ -597,7 +597,7 @@ export default function Solo() {
                 {!isMobile && (musicEmbed && showPlayer ? "Musique active" : "Ma playlist")}
               </button>
               {showMusicPanel && (
-                <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:16, minWidth:320, zIndex:9999, animation:"soloFadeIn 0.2s ease" }}>
+                <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:16, width: isMobile ? "calc(100vw - 28px)" : 320, minWidth: isMobile ? "unset" : 320, zIndex:9999, animation:"soloFadeIn 0.2s ease" }}>
                   <div style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.7)", marginBottom:4 }}>
                     Colle ton lien
                   </div>

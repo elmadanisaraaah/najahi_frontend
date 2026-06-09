@@ -131,7 +131,7 @@ export default function Login() {
 
         .l-btn {
           width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
-          padding:13px 20px; background:linear-gradient(135deg,#7c3aed,#a78bfa);
+          padding:13px 20px; min-height:44px; background:linear-gradient(135deg,#7c3aed,#a78bfa);
           color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:600;
           font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.25s;
           box-shadow:0 4px 20px rgba(124,58,237,0.3); letter-spacing:0.2px;
@@ -207,7 +207,7 @@ export default function Login() {
             onClick={() => { window.location.href = apiUrl + "/api/auth/google"; }}
             style={{
               width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:10,
-              padding:"12px 20px", marginBottom:12,
+              padding:"12px 20px", marginBottom:12, minHeight:"44px",
               background:googleBg, border:googleBdr,
               borderRadius:12, fontSize:14, fontWeight:600,
               color:"#1a1625", cursor:"pointer", fontFamily:"'DM Sans',sans-serif",
