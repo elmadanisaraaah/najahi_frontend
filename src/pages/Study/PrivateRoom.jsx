@@ -84,6 +84,8 @@ function ParticipantTile({ participant, isLocal, camOn, stream, dark }) {
   );
 }
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 export default function PrivateRoom() {
   const { roomId } = useParams();
   const { theme }  = useTheme();
@@ -126,11 +128,18 @@ export default function PrivateRoom() {
   // ── Load room ──
   useEffect(() => {
     const token = getToken();
-    fetch(`/api/rooms/${roomId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+    fetch(`${API_URL}/api/rooms/${roomId}`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
-      .then(r => r.json())
-      .then(d => {
+      .then(async r => {
+        let d;
+        try { d = await r.json(); } catch { d = {}; }
+        if (!r.ok) {
+          const msg = d.error || (r.status === 404 ? "Salle introuvable" : "Erreur serveur");
+          setError(msg);
+          setLoading(false);
+          return;
+        }
         if (d.error) { setError(d.error); setLoading(false); return; }
         setRoom(d.room);
         setIsHost(String(d.room.host_id) === String(user?.id));
@@ -142,7 +151,7 @@ export default function PrivateRoom() {
         setParticipants(mems);
         setLoading(false);
       })
-      .catch(() => { setError("Erreur chargement"); setLoading(false); });
+      .catch(() => { setError("Erreur réseau — impossible de charger la salle"); setLoading(false); });
   }, [roomId]);
 
   // ── Socket ──
@@ -227,8 +236,8 @@ export default function PrivateRoom() {
     stream?.getTracks().forEach(t => t.stop());
     socketRef.current?.disconnect();
     try {
-      await fetch(`/api/rooms/${roomId}/leave`, {
-        method: "POST", headers: { Authorization: `Bearer ${token}` }
+      await fetch(`${API_URL}/api/rooms/${roomId}/leave`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}` },
       });
     } catch {}
     navigate("/app/study/rooms");
