@@ -463,8 +463,8 @@ export default function Solo() {
               onLoad={() => setImgLoaded(true)}
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:imgLoaded?1:0, transition:"opacity 1s ease" }}
             />
-            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.52)" }}/>
-            <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0.05) 50%,rgba(0,0,0,0.35) 100%)" }}/>
+            <div style={{ position:"absolute", inset:0, zIndex:1, background:"rgba(0,0,0,0.52)" }}/>
+            <div style={{ position:"absolute", inset:0, zIndex:2, background:"linear-gradient(180deg,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0.05) 50%,rgba(0,0,0,0.35) 100%)" }}/>
           </>
         )}
       </div>
@@ -498,7 +498,7 @@ export default function Solo() {
       <div style={{ minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", zIndex:1, display:"flex", flexDirection:"column" }}>
 
         {/* Navbar */}
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, position:"relative", zIndex:100, overflowX:"hidden" }}>
+        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, position:"relative", zIndex:100, overflow:"visible" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.8)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -521,7 +521,7 @@ export default function Solo() {
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
 
             {/* Wallpaper */}
-            <div style={{ position:"relative" }}>
+            <div style={{ position:"relative", zIndex:101 }}>
               <button type="button" className="solo-btn"
                 onClick={() => { setShowWpMenu(v=>!v); setShowSndMenu(false); setShowPresetMenu(false); setShowMusicPanel(false); }}
                 style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.85)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
@@ -553,7 +553,7 @@ export default function Solo() {
             </div>
 
             {/* Built-in sounds */}
-            <div style={{ position:"relative" }}>
+            <div style={{ position:"relative", zIndex:101 }}>
               <button type="button" className="solo-btn"
                 onClick={() => { setShowSndMenu(v=>!v); setShowWpMenu(false); setShowPresetMenu(false); setShowMusicPanel(false); }}
                 style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.85)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
@@ -589,7 +589,7 @@ export default function Solo() {
             </div>
 
             {/* Music link (Spotify / YouTube) */}
-            <div style={{ position:"relative" }}>
+            <div style={{ position:"relative", zIndex:101 }}>
               <button type="button" className="solo-btn"
                 onClick={() => { setShowMusicPanel(v=>!v); setShowWpMenu(false); setShowSndMenu(false); setShowPresetMenu(false); }}
                 style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background: musicEmbed&&showPlayer?"rgba(29,185,84,0.2)":"rgba(255,255,255,0.1)", border:`1px solid ${musicEmbed&&showPlayer?"rgba(29,185,84,0.4)":"rgba(255,255,255,0.15)"}`, borderRadius:8, color: musicEmbed&&showPlayer?"#1DB954":"rgba(255,255,255,0.85)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
@@ -650,7 +650,7 @@ export default function Solo() {
               )}
             </div>
 
-            <ThemeToggle/>
+            <div style={{ position:"relative", zIndex:101 }}><ThemeToggle/></div>
           </div>
         </nav>
 
@@ -680,7 +680,7 @@ export default function Solo() {
           </div>
 
           {/* Timer */}
-          <div style={{ position:"relative", width:220, height:220, animation:isRunning?"timerPulse 2s ease-in-out infinite":"none" }}>
+          <div style={{ position:"relative", zIndex:50, width:220, height:220, animation:isRunning?"timerPulse 2s ease-in-out infinite":"none" }}>
             <svg width="220" height="220" style={{ transform:"rotate(-90deg)" }}>
               <circle cx="110" cy="110" r="80" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
               <circle cx="110" cy="110" r="80" fill="none"
@@ -705,7 +705,7 @@ export default function Solo() {
           <div style={{ display:"flex", gap:14, alignItems:"center" }}>
 
             {/* Preset */}
-            <div style={{ position:"relative" }}>
+            <div style={{ position:"relative", zIndex:101 }}>
               <button type="button" className="solo-btn"
                 onClick={() => { setShowPresetMenu(v=>!v); setShowWpMenu(false); setShowSndMenu(false); setShowMusicPanel(false); }}
                 style={{ display:"flex", alignItems:"center", gap:5, padding:"9px 14px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:10, color:"rgba(255,255,255,0.85)", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
