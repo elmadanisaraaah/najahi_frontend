@@ -257,6 +257,7 @@ export default function Schools() {
   const navigate  = useNavigate();
   const dark = theme === "dark";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
   const [messages, setMessages] = useState([{
     role: "assistant",
@@ -285,7 +286,10 @@ export default function Schools() {
   const suggBd  = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.14)";
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -379,7 +383,7 @@ export default function Schools() {
         <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, backgroundImage:`linear-gradient(rgba(124,58,237,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,0.022) 1px,transparent 1px)`, backgroundSize:"44px 44px" }} />
 
         {/* ── Navbar ── */}
-        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 20px", background:navBg, backdropFilter:"blur(22px)", borderBottom:`1px solid ${navBdr}`, flexShrink:0 }}>
+        <nav style={{ position:"sticky", top:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "10px 20px", overflow:"hidden", background:navBg, backdropFilter:"blur(22px)", borderBottom:`1px solid ${navBdr}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button"
               onClick={() => navigate("/app/dashboard")}
@@ -388,14 +392,14 @@ export default function Schools() {
             </button>
 
             <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-              <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"grid", placeItems:"center", boxShadow:"0 2px 10px rgba(124,58,237,0.35)" }}>
+              <div style={{ width: isMobile ? 24 : 32, height: isMobile ? 24 : 32, borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"grid", placeItems:"center", boxShadow:"0 2px 10px rgba(124,58,237,0.35)" }}>
                 <GraduationCap size={16} color="#fff" />
               </div>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:textCol, fontFamily:"'Fraunces',serif", lineHeight:1.2 }}>
                   Guide des Écoles
                 </div>
-                <div style={{ fontSize:10, color:subCol, display:"flex", alignItems:"center", gap:4, marginTop:1 }}>
+                <div style={{ fontSize:10, color:subCol, display: isMobile ? "none" : "flex", alignItems:"center", gap:4, marginTop:1 }}>
                   <span style={{ width:5, height:5, borderRadius:"50%", background:"#10b981", display:"inline-block" }} />
                   Assistant IA — Écoles Marocaines
                 </div>

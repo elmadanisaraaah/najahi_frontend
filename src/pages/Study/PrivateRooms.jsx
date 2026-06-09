@@ -46,10 +46,14 @@ export default function PrivateRooms() {
   const [logoError, setLogoError]   = useState(false);
   const [mounted, setMounted]       = useState(false);
   const [isMobile, setIsMobile]     = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet]     = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -173,7 +177,7 @@ export default function PrivateRooms() {
         <ParticlesBackground dark={dark} />
 
         {/* Navbar */}
-        <nav style={{ position: "relative", zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: navBg, backdropFilter: "blur(18px)", borderBottom: `1px solid ${navBdr}` }}>
+        <nav style={{ position: "sticky", top: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "12px 24px", overflow: "hidden", background: navBg, backdropFilter: "blur(18px)", borderBottom: `1px solid ${navBdr}` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button type="button"
               onClick={() => {
@@ -185,7 +189,7 @@ export default function PrivateRooms() {
               <ArrowLeft size={13} /> {step === "choice" ? "Study" : "Retour"}
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 4, animation: "prglow 3s ease-in-out infinite alternate" }}>
+              <div style={{ width: isMobile ? 28 : 34, height: isMobile ? 28 : 34, borderRadius: 9, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 4, animation: "prglow 3s ease-in-out infinite alternate" }}>
                 {!logoError
                   ? <img src="/najahi_logo.png" alt="N" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setLogoError(true)} />
                   : <span style={{ color: "#7c3aed", fontSize: 15, fontWeight: 900, fontFamily: "'Fraunces',serif" }}>N</span>

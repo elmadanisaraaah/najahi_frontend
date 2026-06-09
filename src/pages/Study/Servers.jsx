@@ -195,11 +195,15 @@ export default function Servers() {
   const [logoError, setLogoError]         = useState(false);
   const [mounted, setMounted]             = useState(false);
   const [isMobile, setIsMobile]           = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet]           = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
   const socketRef = useRef(null);
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -255,7 +259,7 @@ export default function Servers() {
         <div style={{ position:"absolute", inset:0, pointerEvents:"none", backgroundImage:"linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)", backgroundSize:"48px 48px" }}/>
 
         {/* Navbar */}
-        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "12px 24px", background:navBg, backdropFilter:"blur(18px)", borderBottom:`1px solid ${navBd}`, overflow:"hidden" }}>
+        <nav style={{ position:"sticky", top:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "12px 24px", background:navBg, backdropFilter:"blur(18px)", borderBottom:`1px solid ${navBd}`, overflow:"hidden" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:subCol, fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
@@ -276,7 +280,7 @@ export default function Servers() {
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:99 }}>
+            <div style={{ display: isMobile ? "none" : "flex", alignItems:"center", gap:6, padding:"5px 12px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:99 }}>
               <div style={{ width:5, height:5, borderRadius:"50%", background:"#10b981", animation:"livePulse 2s infinite" }}/>
               <Users size={11} color={subCol}/>
               <span style={{ fontSize:12, fontWeight:700, color:textCol }}>{onlineCount}</span>

@@ -248,6 +248,7 @@ export default function Solo() {
   const navigate  = useNavigate();
 
   const [isMobile, setIsMobile]           = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet]           = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
   const [preset, setPreset]               = useState(0);
   const [customFocus, setCustomFocus]     = useState(25);
   const [customBreak, setCustomBreak]     = useState(5);
@@ -284,7 +285,10 @@ export default function Solo() {
   const getDuration  = (p) => p==="focus" ? getFocus() : p==="break" ? getBreak() : getLongBreak();
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -498,7 +502,7 @@ export default function Solo() {
       <div style={{ minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", zIndex:1, display:"flex", flexDirection:"column" }}>
 
         {/* Navbar */}
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "10px 14px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, position:"relative", zIndex:100, overflow:"visible" }}>
+        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 14px" : isTablet ? "0 20px" : "10px 20px", background:"rgba(0,0,0,0.45)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, zIndex:100, overflow:"visible" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button type="button" onClick={() => navigate("/app/study")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, color:"rgba(255,255,255,0.8)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -508,7 +512,7 @@ export default function Solo() {
               <ArrowLeft size={13}/> Retour
             </button>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:34, height:34, borderRadius:9, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:4, animation:"soloGlow 3s ease-in-out infinite alternate", flexShrink:0 }}>
+              <div style={{ width: isMobile ? 28 : 34, height: isMobile ? 28 : 34, borderRadius:9, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:4, animation:"soloGlow 3s ease-in-out infinite alternate", flexShrink:0 }}>
                 {!logoError
                   ? <img src="/najahi_logo.png" alt="N" style={{ width:"100%", height:"100%", objectFit:"contain" }} onError={() => setLogoError(true)}/>
                   : <span style={{ color:"#7c3aed", fontSize:15, fontWeight:900, fontFamily:"'Fraunces',serif" }}>N</span>

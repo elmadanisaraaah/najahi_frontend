@@ -184,6 +184,7 @@ export default function Profile() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -260,7 +261,10 @@ export default function Profile() {
   }
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -422,12 +426,13 @@ export default function Profile() {
 
       {/* ── Navbar ── */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 50,
+        position: "sticky", top: 0, zIndex: 100,
         background: isDark ? "rgba(13,13,31,0.85)" : "rgba(245,243,255,0.85)",
         backdropFilter: "blur(16px)",
         borderBottom: `1px solid ${border}`,
         display: "flex", alignItems: "center", gap: 14,
-        padding: isMobile ? "10px 14px" : "14px 24px",
+        height: isMobile ? 56 : isTablet ? 60 : "auto",
+        padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 24px",
         overflow: "hidden",
       }}>
         <button onClick={() => navigate("/app/dashboard")} style={{
@@ -440,7 +445,7 @@ export default function Profile() {
           <ArrowLeft size={16} />
         </button>
         <span style={{
-          fontSize: 18, fontWeight: 800, color: textMain,
+          fontSize: isMobile ? 15 : isTablet ? 16 : 18, fontWeight: 800, color: textMain,
           fontFamily: "'Fraunces', serif", flex: 1,
         }}>
           Mon Profil

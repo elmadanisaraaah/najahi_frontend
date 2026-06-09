@@ -83,6 +83,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const dark = theme === "dark";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
   const [activeIdx, setActiveIdx]   = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState(null);
@@ -93,7 +94,10 @@ export default function Dashboard() {
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -182,21 +186,21 @@ export default function Dashboard() {
         <ParticlesBackground dark={dark} />
 
         {/* Navbar */}
-        <nav style={{ position:"relative", zIndex:20, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap: isMobile ? 8 : 0, padding: isMobile ? "10px 14px" : "14px 28px", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
+        <nav style={{ position:"sticky", top:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 28px", overflow:"hidden", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:38, height:38, borderRadius:11, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:5, flexShrink:0, animation:"dglow 3s ease-in-out infinite alternate" }}>
+            <div style={{ width: isMobile ? 28 : 38, height: isMobile ? 28 : 38, borderRadius: isMobile ? 8 : 11, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:5, flexShrink:0, animation:"dglow 3s ease-in-out infinite alternate" }}>
               {!logoError
                 ? <img src="/najahi_logo.png" alt="N" style={{ width:"100%", height:"100%", objectFit:"contain" }} onError={() => setLogoError(true)}/>
                 : <span style={{ color:"#7c3aed", fontSize:17, fontWeight:900, fontFamily:"'Fraunces',serif" }}>N</span>
               }
             </div>
-            <span style={{ fontSize:18, fontWeight:700, color:textCol, fontFamily:"'Fraunces',serif", letterSpacing:"-0.3px", transition:"color 0.4s" }}>
+            <span style={{ fontSize: isMobile ? 15 : 18, fontWeight:700, color:textCol, fontFamily:"'Fraunces',serif", letterSpacing:"-0.3px", transition:"color 0.4s" }}>
               Najahi
             </span>
           </div>
 
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ display: isMobile ? "none" : "flex", gap:2, background:dark?"rgba(255,255,255,0.07)":"rgba(124,58,237,0.06)", border:`1px solid ${dark?"rgba(255,255,255,0.1)":"rgba(124,58,237,0.12)"}`, borderRadius:99, padding:"4px 6px" }}>
+            <div style={{ display: (isMobile || isTablet) ? "none" : "flex", gap:2, background:dark?"rgba(255,255,255,0.07)":"rgba(124,58,237,0.06)", border:`1px solid ${dark?"rgba(255,255,255,0.1)":"rgba(124,58,237,0.12)"}`, borderRadius:99, padding:"4px 6px" }}>
               {LANGS.map((lang, i) => (
                 <button key={lang} type="button" onClick={() => setLangIdx(i)}
                   style={{ padding:"4px 10px", borderRadius:99, border:"none", fontSize:11, fontWeight:700, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", transition:"all 0.2s", background:langIdx===i?"#7c3aed":"transparent", color:langIdx===i?"#fff":dark?"rgba(255,255,255,0.5)":"rgba(15,10,30,0.5)", letterSpacing:"0.3px" }}>
@@ -205,11 +209,11 @@ export default function Dashboard() {
               ))}
             </div>
             <ThemeToggle />
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ display: isMobile ? "none" : "flex", alignItems:"center", gap:8 }}>
               <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"grid", placeItems:"center", fontSize:13, fontWeight:700, color:"#fff", flexShrink:0, boxShadow:"0 0 0 2px rgba(124,58,237,0.3)" }}>
                 {(user?.prenom?.[0] || user?.email?.[0] || "U").toUpperCase()}
               </div>
-              <span style={{ fontSize:13, fontWeight:600, color:textCol, maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.4s", display: isMobile ? "none" : "block" }}>
+              <span style={{ fontSize:13, fontWeight:600, color:textCol, maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.4s", display: (isMobile || isTablet) ? "none" : "block" }}>
                 {displayName}
               </span>
               <button type="button"

@@ -265,9 +265,13 @@ export default function OrientationTest() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -465,8 +469,10 @@ export default function OrientationTest() {
 
         {/* Navbar */}
         <div style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
-          padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between",
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          height: isMobile ? 56 : isTablet ? 60 : "auto",
+          padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 24px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
           background: isDark ? "rgba(10,10,26,0.7)" : "rgba(245,243,255,0.7)", backdropFilter: "blur(16px)",
           borderBottom: `1px solid ${border}`,
         }}>
@@ -628,8 +634,10 @@ export default function OrientationTest() {
 
         {/* Navbar */}
         <div style={{
-          position: "sticky", top: 0, zIndex: 50,
-          padding: "13px 20px", display: "flex", alignItems: "center", justifyContent: "space-between",
+          position: "sticky", top: 0, zIndex: 100,
+          height: isMobile ? 56 : isTablet ? 60 : "auto",
+          padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "13px 20px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
           background: isDark ? "rgba(10,10,26,0.85)" : "rgba(245,243,255,0.85)", backdropFilter: "blur(16px)",
           borderBottom: `1px solid ${border}`,
         }}>
@@ -1039,10 +1047,11 @@ export default function OrientationTest() {
 
       {/* Sticky top bar */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 50,
+        position: "sticky", top: 0, zIndex: 100,
         background: isDark ? "rgba(10,10,26,0.88)" : "rgba(245,243,255,0.88)",
         backdropFilter: "blur(16px)", borderBottom: `1px solid ${border}`,
-        padding: "12px 20px",
+        height: isMobile ? 56 : isTablet ? 60 : "auto",
+        padding: isMobile ? "8px 16px" : isTablet ? "10px 20px" : "12px 20px",
         display: "flex", alignItems: "center", gap: 12,
       }}>
         <button onClick={goPrev} style={{

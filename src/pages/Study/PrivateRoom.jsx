@@ -95,6 +95,17 @@ export default function PrivateRoom() {
   const getToken   = () => accessToken || localStorage.getItem("najahi_token");
   const userName   = user?.prenom || user?.email?.split("@")[0] || "Anonyme";
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
+  useEffect(() => {
+    const handle = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, []);
+
   // Room
   const [room, setRoom]         = useState(null);
   const [loading, setLoading]   = useState(true);
@@ -303,7 +314,7 @@ export default function PrivateRoom() {
       <div style={{ minHeight:"100vh", background:"#0d0d14", fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
         {/* ── HEADER ── */}
-        <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 20px", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(20px)", borderBottom:"1px solid rgba(255,255,255,0.07)", flexShrink:0, zIndex:20 }}>
+        <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding: isMobile ? "8px 14px" : "10px 20px", height: isMobile ? 56 : "auto", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(20px)", borderBottom:"1px solid rgba(255,255,255,0.07)", flexShrink:0, zIndex:20 }}>
 
           {/* Left: Room name + code */}
           <div style={{ display:"flex", alignItems:"center", gap:14 }}>
@@ -319,12 +330,12 @@ export default function PrivateRoom() {
 
             {/* Code */}
             <button type="button" onClick={copyCode}
-              style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", background:"rgba(124,58,237,0.15)", border:"1px solid rgba(124,58,237,0.3)", borderRadius:8, color:"#a78bfa", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.12em", transition:"all 0.2s" }}>
+              style={{ display: isMobile ? "none" : "flex", alignItems:"center", gap:6, padding:"5px 12px", background:"rgba(124,58,237,0.15)", border:"1px solid rgba(124,58,237,0.3)", borderRadius:8, color:"#a78bfa", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.12em", transition:"all 0.2s" }}>
               {copied ? <Check size={12}/> : <Copy size={12}/>}
               {room?.code}
             </button>
 
-            {isHost && (
+            {isHost && !isMobile && (
               <span style={{ fontSize:10, fontWeight:700, color:"#f59e0b", background:"rgba(245,158,11,0.12)", padding:"3px 8px", borderRadius:99, border:"1px solid rgba(245,158,11,0.2)" }}>
                 Hôte
               </span>
@@ -335,7 +346,7 @@ export default function PrivateRoom() {
           <div style={{ display:"flex", alignItems:"center", gap:12, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"8px 16px" }}>
 
             {/* Mini ring */}
-            <div style={{ position:"relative", width:44, height:44 }}>
+            <div style={{ position:"relative", width:44, height:44, display: isMobile ? "none" : "block" }}>
               <svg width="44" height="44" style={{ transform:"rotate(-90deg)" }}>
                 <circle cx="22" cy="22" r="20" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3"/>
                 <circle cx="22" cy="22" r="20" fill="none"
@@ -355,7 +366,7 @@ export default function PrivateRoom() {
 
             {/* Time + phase */}
             <div>
-              <div style={{ fontSize:22, fontWeight:800, color:"#fff", fontVariantNumeric:"tabular-nums", letterSpacing:"-1px", lineHeight:1, textShadow:`0 0 16px ${phaseColor}` }}>
+              <div style={{ fontSize: isMobile ? 16 : 22, fontWeight:800, color:"#fff", fontVariantNumeric:"tabular-nums", letterSpacing:"-1px", lineHeight:1, textShadow:`0 0 16px ${phaseColor}` }}>
                 {fmt(timeLeft)}
               </div>
               <div style={{ fontSize:10, color:phaseColor, fontWeight:600, marginTop:2 }}>
@@ -364,7 +375,7 @@ export default function PrivateRoom() {
             </div>
 
             {/* Phase buttons */}
-            <div style={{ display:"flex", gap:4 }}>
+            <div style={{ display: isMobile ? "none" : "flex", gap:4 }}>
               {Object.entries(PHASE_COLORS).map(([key, color]) => (
                 <button key={key} type="button" className="phase-btn"
                   onClick={() => { if(!isHost) return; emitTimer("set_phase_"+key); setPhase(key); phaseRef.current=key; }}
@@ -393,13 +404,13 @@ export default function PrivateRoom() {
             </div>
 
             {/* Pom count */}
-            <div style={{ display:"flex", gap:4 }}>
+            <div style={{ display: isMobile ? "none" : "flex", gap:4 }}>
               {Array.from({length:4}).map((_,i) => (
                 <div key={i} style={{ width:6, height:6, borderRadius:"50%", background:i<(pomCount%4)?phaseColor:"rgba(255,255,255,0.1)", transition:"all 0.3s" }}/>
               ))}
             </div>
 
-            {!isHost && (
+            {!isHost && !isMobile && (
               <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", maxWidth:80, lineHeight:1.4 }}>
                 Timer contrôlé par l'hôte
               </div>
