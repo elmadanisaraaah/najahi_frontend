@@ -57,38 +57,38 @@ export default function PrivateRooms() {
   const totalMinutes = heures * 60 + minutes;
 
   const handleCreate = async () => {
-  if (!roomName.trim()) return setError("Donne un nom à ta salle");
-  if (totalMinutes < 5) return setError("La durée minimum est 5 minutes");
-  
-  const token = accessToken || localStorage.getItem("najahi_token");
-  console.log("TOKEN:", token); // debug
-  
-  if (!token) return setError("Tu n'es pas connecté — reconnecte-toi");
-  
-  setCreating(true); setError("");
-  try {
-    const res = await fetch(API_URL + "/api/rooms/create", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        name: roomName.trim(),
-        total_minutes: totalMinutes,
-        max_participants: maxPers,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) return setError(data.error || "Erreur création");
-    setCreatedRoom(data);
-    setStep("created");
-  } catch {
-    setError("Erreur réseau");
-  } finally {
-    setCreating(false);
-  }
-};
+    if (!roomName.trim()) { setError("Donne un nom à ta salle"); return; }
+    if (totalMinutes < 5) { setError("La durée minimum est 5 minutes"); return; }
+
+    const token = accessToken || localStorage.getItem("najahi_token");
+    if (!token) { setError("Tu n'es pas connecté — reconnecte-toi"); return; }
+
+    setCreating(true); setError("");
+    try {
+      const res = await fetch(API_URL + "/api/rooms/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: roomName.trim(),
+          total_minutes: totalMinutes,
+          max_participants: maxPers,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Erreur création"); return; }
+      const roomId = data.room_id;
+      if (!roomId) { setError("Erreur serveur: ID de salle manquant"); return; }
+      setCreatedRoom(data);
+      setStep("created");
+    } catch {
+      setError("Erreur réseau");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleJoin = async () => {
     const code = joinCode.trim().toUpperCase();
@@ -414,7 +414,7 @@ export default function PrivateRooms() {
 
                 {/* Enter */}
                 <button type="button" className="pr-btn"
-                  onClick={() => navigate(`/app/study/room/${createdRoom.room_id}`)}
+                  onClick={() => createdRoom?.room_id && navigate(`/app/study/room/${createdRoom.room_id}`)}
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "14px", background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, fontFamily: "'DM Sans',sans-serif", cursor: "pointer", transition: "all 0.25s", boxShadow: "0 4px 20px rgba(124,58,237,0.35)", marginBottom: 12 }}>
                   <Users size={16} /> Entrer dans la salle <ArrowRight size={15} />
                 </button>
