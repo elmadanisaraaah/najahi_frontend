@@ -55,6 +55,7 @@ const GLOBAL_CSS = `
   @keyframes spin      { to { transform: rotate(360deg); } }
   @keyframes fadeUp    { from { opacity:0; transform:translateY(22px) } to { opacity:1; transform:translateY(0) } }
   @keyframes slideRight{ from { opacity:0; transform:translateX(30px) } to { opacity:1; transform:translateX(0) } }
+  @keyframes modalIn   { from { opacity:0; transform:scale(0.92) translateY(16px) } to { opacity:1; transform:scale(1) translateY(0) } }
   input:focus, select:focus { outline: none; border-color: #7c3aed !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.15) !important; }
   .pfx-row:hover { background: rgba(124,58,237,0.05) !important; }
   .pfx-btn-icon:hover { opacity: 0.8; }
@@ -285,6 +286,7 @@ export default function Profile() {
   const [myRooms,          setMyRooms]          = useState(null);
   const [schoolsHistory,   setSchoolsHistory]   = useState(null);
   const [soloStats,        setSoloStats]        = useState(null);
+  const [showLogoutModal,  setShowLogoutModal]  = useState(false);
   const bulletinRef = useRef();
 
   // ── theme tokens ───────────────────────────────────────────────────────────
@@ -995,7 +997,7 @@ export default function Profile() {
       {/* Logout */}
       <div style={{ maxWidth: 720, margin: "0 auto", padding: isMobile ? "0 16px 40px" : "0 24px 48px" }}>
         <button
-          onClick={async () => { await logout(); navigate("/login"); }}
+          onClick={() => setShowLogoutModal(true)}
           style={{
             width: "100%", padding: "13px 20px",
             background: isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.07)",
@@ -1012,6 +1014,71 @@ export default function Profile() {
           Se déconnecter
         </button>
       </div>
+
+      {/* Logout confirmation modal */}
+      {showLogoutModal && (
+        <div
+          onClick={() => setShowLogoutModal(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 400,
+              background: isDark ? "#160d2e" : "#fff",
+              border: isDark ? "1px solid rgba(239,68,68,0.2)" : "1px solid rgba(239,68,68,0.15)",
+              borderRadius: 22, padding: isMobile ? "28px 22px" : "36px 32px",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
+              fontFamily: "'DM Sans',sans-serif",
+              animation: "modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both",
+            }}
+          >
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 40, marginBottom: 14 }}>⚠️</div>
+              <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 20, fontWeight: 700, color: isDark ? "#fff" : "#1a1625", marginBottom: 12 }}>
+                Déconnexion
+              </h2>
+              <p style={{ fontSize: 14, color: isDark ? "rgba(255,255,255,0.55)" : "rgba(26,22,37,0.6)", lineHeight: 1.65 }}>
+                Es-tu sûr de vouloir te déconnecter ? Tu devras te reconnecter pour accéder à ton espace Najahi.
+                Toutes tes données sont sauvegardées et seront disponibles à ta prochaine connexion.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                style={{
+                  flex: 1, padding: "12px 16px",
+                  background: isDark ? "rgba(255,255,255,0.07)" : "rgba(26,22,37,0.06)",
+                  border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(26,22,37,0.12)",
+                  borderRadius: 12, color: isDark ? "rgba(255,255,255,0.7)" : "rgba(26,22,37,0.65)",
+                  fontSize: 14, fontWeight: 600, cursor: "pointer",
+                  fontFamily: "'DM Sans',sans-serif", transition: "all 0.2s",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.12)" : "rgba(26,22,37,0.1)"}
+                onMouseLeave={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.07)" : "rgba(26,22,37,0.06)"}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={async () => { setShowLogoutModal(false); await logout(); navigate("/login"); }}
+                style={{
+                  flex: 1, padding: "12px 16px",
+                  background: "linear-gradient(135deg,#ef4444,#f87171)",
+                  border: "none", borderRadius: 12,
+                  color: "#fff", fontSize: 14, fontWeight: 700,
+                  cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
+                  transition: "all 0.2s",
+                  boxShadow: "0 4px 16px rgba(239,68,68,0.35)",
+                }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = "0 6px 22px rgba(239,68,68,0.55)"}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = "0 4px 16px rgba(239,68,68,0.35)"}
+              >
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Toast msg={toast.msg} type={toast.type} />
     </div>
