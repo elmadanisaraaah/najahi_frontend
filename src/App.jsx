@@ -20,6 +20,8 @@ import Profile from "./pages/Profile/Profile";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import PrivacyPolicy from "./pages/Legal/PrivacyPolicy";
 import TermsOfService from "./pages/Legal/TermsOfService";
+import Forum from "./pages/Forum/Forum";
+import PostDetail from "./pages/Forum/PostDetail";
 
 export default function App() {
   return (
@@ -45,6 +47,8 @@ export default function App() {
       <Route path="/app/admin" element={<AdminDashboard />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/app/forum" element={<Forum />} />
+      <Route path="/app/forum/:postId" element={<PostDetail />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     <InstallPrompt />

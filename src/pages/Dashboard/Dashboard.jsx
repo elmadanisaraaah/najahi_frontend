@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, LogOut, ChevronLeft, ChevronRight, Shield,
+  ArrowRight, LogOut, ChevronLeft, ChevronRight, Shield, MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -209,6 +209,13 @@ export default function Dashboard() {
               ))}
             </div>
             <ThemeToggle />
+            <button type="button" onClick={() => navigate("/app/forum")}
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.09)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:9, color:"#7c3aed", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background="rgba(124,58,237,0.18)"}
+              onMouseLeave={e => e.currentTarget.style.background="rgba(124,58,237,0.09)"}
+            >
+              <MessageSquare size={12} /> Communauté
+            </button>
             {user?.role === "admin" && (
               <button type="button" onClick={() => navigate("/app/admin")}
                 style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.12)", border:"1px solid rgba(124,58,237,0.3)", borderRadius:9, color:"#a78bfa", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
