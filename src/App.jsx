@@ -25,32 +25,34 @@ import PostDetail from "./pages/Forum/PostDetail";
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/app/dashboard" element={<Dashboard />} />
-      <Route path="/app/study" element={<Study />} />
-      <Route path="/app/study/solo" element={<Solo />} />
-      <Route path="/app/study/rooms" element={<PrivateRooms />} />
-      <Route path="/app/study/room/:roomId" element={<PrivateRoom />} />
-      <Route path="/app/servers" element={<Servers />} />
-      <Route path="/app/servers/public" element={<ServerRoom />} />
-      <Route path="/app/servers/:serverId" element={<ServerRoom />} />
-      <Route path="/app/orientation" element={<OrientationTest />} />
-      <Route path="/app/schools" element={<Schools />} />
-      <Route path="/app/profile" element={<Profile />} />
-      <Route path="/app/admin" element={<AdminDashboard />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/terms" element={<TermsOfService />} />
-      <Route path="/app/forum" element={<Forum />} />
-      <Route path="/app/forum/:postId" element={<PostDetail />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-    <InstallPrompt />
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/app/dashboard" element={<Dashboard />} />
+        <Route path="/app/study" element={<Study />} />
+        <Route path="/app/study/solo" element={<Solo />} />
+        <Route path="/app/study/rooms" element={<PrivateRooms />} />
+        <Route path="/app/study/room/:roomId" element={<PrivateRoom />} />
+        <Route path="/app/servers" element={<Servers />} />
+        <Route path="/app/servers/public" element={<ServerRoom />} />
+        <Route path="/app/servers/:serverId" element={<ServerRoom />} />
+        <Route path="/app/orientation" element={<OrientationTest />} />
+        <Route path="/app/schools" element={<Schools />} />
+        <Route path="/app/profile" element={<Profile />} />
+        <Route path="/app/admin" element={<AdminDashboard />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/app/forum" element={<Forum />} />
+        <Route path="/app/forum/:postId" element={<PostDetail />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <InstallPrompt />
+    </>
   );
 }
