@@ -581,7 +581,7 @@ export default function Solo() {
                 <Image size={13}/> {!isMobile && wallpaper.label}
               </button>
               {showWpMenu && (
-                <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:210, zIndex:9999, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
+                <div style={{ position:"absolute", top:"calc(100% + 8px)", right: isMobile ? "auto" : 0, left: isMobile ? "50%" : "auto", transform: isMobile ? "translateX(-50%)" : "none", background:"rgba(4,2,12,0.97)", backdropFilter:"blur(28px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:8, minWidth:210, maxWidth:"calc(100vw - 32px)", width: isMobile ? "calc(100vw - 32px)" : undefined, zIndex:9999, maxHeight:360, overflowY:"auto", animation:"soloFadeIn 0.2s ease" }}>
                   {WP_GROUPS.map(group => (
                     <div key={group.type}>
                       <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.3)", padding:"8px 10px 4px", letterSpacing:"1px" }}>{group.label}</div>
