@@ -61,7 +61,7 @@ export default function Login() {
       let recaptcha_token = null;
       try {
         recaptcha_token = await window.grecaptcha.execute(
-          import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh57mZSNqbm_-MJDR-2H",
+          import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LcNABgtAAAAAGe7BJzBpb95T4tcK5lKPqfvP6je",
           { action: "login" }
         );
       } catch {}
