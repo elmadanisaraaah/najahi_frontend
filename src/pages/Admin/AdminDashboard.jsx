@@ -379,6 +379,7 @@ export default function AdminDashboard() {
                         {/* Actions */}
                         <td style={{ padding:"10px 14px", whiteSpace:"nowrap" }}>
                           <div style={{ display:"flex", gap:6 }}>
+                            {u.id !== user?.id && (
                             <button
                               className="adm-btn"
                               onClick={() => changeRole(u.id, u.role === "admin" ? "student" : "admin")}
@@ -388,6 +389,7 @@ export default function AdminDashboard() {
                               <Shield size={11} />
                               {u.role === "admin" ? "→ Étudiant" : "→ Admin"}
                             </button>
+                            )}
                             <button
                               className="adm-btn"
                               onClick={() => setConfirmId(u.id)}
