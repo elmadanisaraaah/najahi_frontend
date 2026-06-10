@@ -58,10 +58,17 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
+      let recaptcha_token = null;
+      try {
+        recaptcha_token = await window.grecaptcha.execute(
+          import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh57mZSNqbm_-MJDR-2H",
+          { action: "login" }
+        );
+      } catch {}
       const timeout = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Le serveur met trop de temps à répondre. Réessaie.")), 10000)
       );
-      await Promise.race([login(form), timeout]);
+      await Promise.race([login({ ...form, recaptcha_token }), timeout]);
       navigate("/app/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Identifiants incorrects");

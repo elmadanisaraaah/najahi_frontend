@@ -438,9 +438,17 @@ export default function Register() {
   const handleSubmit = async () => {
     setLoading(true); setError("");
     try {
+      let recaptcha_token = null;
+      try {
+        recaptcha_token = await window.grecaptcha.execute(
+          import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh57mZSNqbm_-MJDR-2H",
+          { action: "register" }
+        );
+      } catch {}
       await register({
         ...form,
-        telephone: `${countryCode}${form.telephone.replace(/^0/, "")}`
+        telephone: `${countryCode}${form.telephone.replace(/^0/, "")}`,
+        recaptcha_token,
       });
       localStorage.setItem("najahi_email", form.email); // ← ajoute ça
       setSuccess(true);
