@@ -17,6 +17,8 @@ import Schools from "./pages/Schools/Schools";
 import OrientationTest from "./pages/Orientation/OrientationTest";
 import Profile from "./pages/Profile/Profile";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import PrivacyPolicy from "./pages/Legal/PrivacyPolicy";
+import TermsOfService from "./pages/Legal/TermsOfService";
 
 export default function App() {
   return (
@@ -40,6 +42,8 @@ export default function App() {
       <Route path="/app/schools" element={<Schools />} />
       <Route path="/app/profile" element={<Profile />} />
       <Route path="/app/admin" element={<AdminDashboard />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

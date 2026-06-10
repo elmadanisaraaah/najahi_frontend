@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import {
   Sun, Moon, ArrowRight, BrainCircuit,
@@ -166,7 +166,12 @@ export default function Landing() {
               style={{ borderRadius: 6, objectFit: 'contain' }}/>
             <span>Najahi — نجاحي</span>
           </div>
-          <p>© 2026 Najahi. Tous droits réservés.</p>
+          <div className={styles.footerLinks}>
+            <Link to="/privacy" className={styles.footerLink}>Politique de confidentialité</Link>
+            <span className={styles.footerDot}>·</span>
+            <Link to="/terms" className={styles.footerLink}>Conditions d'utilisation</Link>
+          </div>
+          <p>© 2026 Najahi — Tous droits réservés</p>
         </div>
       </footer>
     </div>

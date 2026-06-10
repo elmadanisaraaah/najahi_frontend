@@ -297,6 +297,10 @@
   font-size: 15px; font-weight: 700; color: var(--text);
 }
 .footer p { font-size: 13px; color: var(--text-muted); }
+.footerLinks { display: flex; align-items: center; gap: 8px; }
+.footerLink { font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footerLink:hover { color: #7c3aed; }
+.footerDot { font-size: 13px; color: var(--text-muted); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
