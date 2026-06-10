@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, LogOut, ChevronLeft, ChevronRight, Shield, MessageSquare,
+  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -78,7 +78,7 @@ function clamp(min, preferred, max) {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const dark = theme === "dark";
@@ -225,22 +225,6 @@ export default function Dashboard() {
                 <Shield size={12} /> Admin
               </button>
             )}
-            <div style={{ display: isMobile ? "none" : "flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"grid", placeItems:"center", fontSize:13, fontWeight:700, color:"#fff", flexShrink:0, boxShadow:"0 0 0 2px rgba(124,58,237,0.3)" }}>
-                {(user?.prenom?.[0] || user?.email?.[0] || "U").toUpperCase()}
-              </div>
-              <span style={{ fontSize:13, fontWeight:600, color:textCol, maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", transition:"color 0.4s", display: (isMobile || isTablet) ? "none" : "block" }}>
-                {displayName}
-              </span>
-              <button type="button"
-                onClick={async () => { await logout(); navigate("/login"); }}
-                style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 14px", minHeight:"36px", background:dark?"rgba(239,68,68,0.1)":"rgba(239,68,68,0.08)", border:`1px solid ${dark?"rgba(239,68,68,0.25)":"rgba(239,68,68,0.18)"}`, borderRadius:9, color:"#ef4444", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-                onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.2)":"rgba(239,68,68,0.14)"}
-                onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.1)":"rgba(239,68,68,0.08)"}
-              >
-                <LogOut size={12}/> Déconnexion
-              </button>
-            </div>
           </div>
         </nav>
 

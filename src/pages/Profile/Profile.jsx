@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import {
@@ -258,6 +259,7 @@ function Empty({ icon: Icon, title, sub, color = "#7c3aed", border }) {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
@@ -988,6 +990,27 @@ export default function Profile() {
           )}
         </Card>
 
+      </div>
+
+      {/* Logout */}
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: isMobile ? "0 16px 40px" : "0 24px 48px" }}>
+        <button
+          onClick={async () => { await logout(); navigate("/login"); }}
+          style={{
+            width: "100%", padding: "13px 20px",
+            background: isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.07)",
+            border: `1px solid ${isDark ? "rgba(239,68,68,0.3)" : "rgba(239,68,68,0.2)"}`,
+            borderRadius: 14, color: "#ef4444",
+            fontSize: 14, fontWeight: 700,
+            fontFamily: "'DM Sans',sans-serif",
+            cursor: "pointer", transition: "all 0.2s",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = isDark ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.13)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.07)"; }}
+        >
+          Se déconnecter
+        </button>
       </div>
 
       <Toast msg={toast.msg} type={toast.type} />
