@@ -73,8 +73,11 @@ const BUDGETS = [
   { id: "prive_premium",   label: "Privé premium",          emoji: "💎", desc: "40 000 MAD/an et plus" },
 ];
 
-const STEP_LABELS = ["Bac & Moyenne", "Domaine", "Personnalité", "Carrière", "Localisation", "Budget"];
-const TOTAL_STEPS = 6;
+const STEP_LABELS = [
+  "Bac & Moyenne", "Domaine", "Personnalité", "Carrière", "Localisation", "Budget",
+  "Matière forte", "Durée études", "Étranger ?", "Secteur", "Mode travail", "Technologie", "Maths",
+];
+const TOTAL_STEPS = 13;
 
 const LOADING_MESSAGES = [
   "🔍 Analyse de ton profil scolaire...",
@@ -290,6 +293,8 @@ export default function OrientationTest() {
     note_maths: "14", note_physique: "14", note_svt: "14", note_francais: "14",
     domaine: "", personnalite: [], carriere: "",
     ville: "", mobility: true, budget: "",
+    matiere_forte: "", duree_etudes: "", etudier_etranger: "",
+    secteur_travail: "", type_travail: "", niveau_tech: "", niveau_maths_auto: "",
   });
 
   // ── Pre-fill from profile ──────────────────────────────────────────────────
@@ -300,16 +305,18 @@ export default function OrientationTest() {
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         const filled = {};
-        if (d?.niveau)                   filled.bac     = d.niveau;
-        if (d?.moyenne_generale != null) filled.moyenne = String(d.moyenne_generale);
-        if (d?.ville)                    filled.ville   = d.ville;
+        if (d?.niveau)                   filled.bac      = d.niveau;
+        if (d?.moyenne_generale != null) filled.moyenne  = String(d.moyenne_generale);
+        if (d?.ville)                    filled.ville    = d.ville;
+        if (d?.filiere)                  filled.filiere  = d.filiere;
+        if (d?.note_bac != null)         filled.note_bac = String(d.note_bac);
         setProfileData(filled);
         if (Object.keys(filled).length > 0) {
           setForm((f) => ({
             ...f,
-            ...(filled.bac     ? { bac: filled.bac }         : {}),
-            ...(filled.moyenne ? { moyenne: filled.moyenne }  : {}),
-            ...(filled.ville   ? { ville: filled.ville }     : {}),
+            ...(filled.bac     ? { bac: filled.bac }        : {}),
+            ...(filled.moyenne ? { moyenne: filled.moyenne } : {}),
+            ...(filled.ville   ? { ville: filled.ville }    : {}),
           }));
         }
       })
@@ -333,7 +340,7 @@ export default function OrientationTest() {
   const skipSteps = new Set();
   if (profileData && profileData.bac)   skipSteps.add(1);
   if (profileData && profileData.ville) skipSteps.add(5);
-  const visibleSteps    = [1,2,3,4,5,6].filter(s => !skipSteps.has(s));
+  const visibleSteps    = [1,2,3,4,5,6,7,8,9,10,11,12,13].filter(s => !skipSteps.has(s));
   const EFFECTIVE_TOTAL = visibleSteps.length;
   const originalStep    = visibleSteps[step - 1] ?? step;
 
@@ -350,12 +357,19 @@ export default function OrientationTest() {
   }
 
   function canNext() {
-    if (originalStep === 1) return !!form.bac;
-    if (originalStep === 2) return !!form.domaine;
-    if (originalStep === 3) return form.personnalite.length > 0;
-    if (originalStep === 4) return !!form.carriere;
-    if (originalStep === 5) return !!form.ville;
-    if (originalStep === 6) return !!form.budget;
+    if (originalStep === 1)  return !!form.bac;
+    if (originalStep === 2)  return !!form.domaine;
+    if (originalStep === 3)  return form.personnalite.length > 0;
+    if (originalStep === 4)  return !!form.carriere;
+    if (originalStep === 5)  return !!form.ville;
+    if (originalStep === 6)  return !!form.budget;
+    if (originalStep === 7)  return !!form.matiere_forte;
+    if (originalStep === 8)  return !!form.duree_etudes;
+    if (originalStep === 9)  return !!form.etudier_etranger;
+    if (originalStep === 10) return !!form.secteur_travail;
+    if (originalStep === 11) return !!form.type_travail;
+    if (originalStep === 12) return !!form.niveau_tech;
+    if (originalStep === 13) return !!form.niveau_maths_auto;
     return true;
   }
 
@@ -367,18 +381,25 @@ export default function OrientationTest() {
 
     const t = localStorage.getItem("najahi_token");
     const payload = {
-      bac:           form.bac,
-      moyenne:       parseFloat(form.moyenne) || 14,
-      note_maths:    parseFloat(form.note_maths) || 14,
-      note_physique: parseFloat(form.note_physique) || 14,
-      note_svt:      parseFloat(form.note_svt) || 14,
-      note_francais: parseFloat(form.note_francais) || 14,
-      domaine:       form.domaine,
-      personnalite:  form.personnalite,
-      carriere:      form.carriere,
-      ville:         form.ville,
-      mobility:      form.mobility,
-      budget:        form.budget,
+      bac:               form.bac,
+      moyenne:           parseFloat(form.moyenne) || 14,
+      note_maths:        parseFloat(form.note_maths) || 14,
+      note_physique:     parseFloat(form.note_physique) || 14,
+      note_svt:          parseFloat(form.note_svt) || 14,
+      note_francais:     parseFloat(form.note_francais) || 14,
+      domaine:           form.domaine,
+      personnalite:      form.personnalite,
+      carriere:          form.carriere,
+      ville:             form.ville,
+      mobility:          form.mobility,
+      budget:            form.budget,
+      matiere_forte:     form.matiere_forte,
+      duree_etudes:      form.duree_etudes,
+      etudier_etranger:  form.etudier_etranger,
+      secteur_travail:   form.secteur_travail,
+      type_travail:      form.type_travail,
+      niveau_tech:       form.niveau_tech,
+      niveau_maths_auto: form.niveau_maths_auto,
     };
 
     try {
@@ -414,7 +435,12 @@ export default function OrientationTest() {
     setDirection(1);
     setResults(null);
     setError("");
-    const base = { bac: "", moyenne: "14", note_maths: "14", note_physique: "14", note_svt: "14", note_francais: "14", domaine: "", personnalite: [], carriere: "", ville: "", mobility: true, budget: "" };
+    const base = {
+      bac: "", moyenne: "14", note_maths: "14", note_physique: "14", note_svt: "14", note_francais: "14",
+      domaine: "", personnalite: [], carriere: "", ville: "", mobility: true, budget: "",
+      matiere_forte: "", duree_etudes: "", etudier_etranger: "",
+      secteur_travail: "", type_travail: "", niveau_tech: "", niveau_maths_auto: "",
+    };
     if (profileData) {
       if (profileData.bac)     base.bac     = profileData.bac;
       if (profileData.moyenne) base.moyenne = profileData.moyenne;
@@ -1036,6 +1062,264 @@ export default function OrientationTest() {
       </div>
     );
 
+    // Step 7 — Matière forte
+    if (originalStep === 7) return (
+      <div>
+        <h2 style={sH}>🎯 Dans quelle matière tu excelles le plus ?</h2>
+        <p style={sP}>Ta matière forte nous aide à cibler les meilleures filières</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(148px,1fr))", gap: 9 }}>
+          {[
+            { id: "maths",        label: "Maths",         emoji: "📐" },
+            { id: "physique",     label: "Physique",       emoji: "⚗️" },
+            { id: "chimie",       label: "Chimie",         emoji: "🧪" },
+            { id: "bio",          label: "Bio / SVT",      emoji: "🧬" },
+            { id: "informatique", label: "Informatique",   emoji: "💻" },
+            { id: "langues",      label: "Langues",        emoji: "🌐" },
+            { id: "eco",          label: "Économie",       emoji: "📊" },
+            { id: "histoire",     label: "Histoire / Géo", emoji: "🗺️" },
+          ].map((m) => {
+            const sel = form.matiere_forte === m.id;
+            return (
+              <button key={m.id}
+                onClick={() => setForm((f) => ({ ...f, matiere_forte: m.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "14px 12px", borderRadius: 13, cursor: "pointer", textAlign: "left",
+                  background: sel ? `linear-gradient(135deg, ${purple}30, ${purple}18)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <div style={{ fontSize: 24, marginBottom: 7 }}>{m.emoji}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{m.label}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // Step 8 — Durée études
+    if (originalStep === 8) return (
+      <div>
+        <h2 style={sH}>⏰ Combien d'années tu veux étudier ?</h2>
+        <p style={sP}>La durée préférée oriente vers les formations correspondantes</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[
+            { id: "2ans_bts",    label: "2 ans — BTS / DUT",                      emoji: "⚡", desc: "Formation courte et professionnalisante" },
+            { id: "3ans_licence",label: "3 ans — Licence universitaire",           emoji: "📚", desc: "Parcours universitaire classique" },
+            { id: "5ans_ing",    label: "5 ans — École d'ingénieurs / Grande école",emoji: "🎓", desc: "Ingénieur, business, architecture" },
+            { id: "7ans_med",    label: "7 ans — Médecine / Pharmacie",            emoji: "🏥", desc: "Professions médicales et de santé" },
+            { id: "flexible",    label: "Flexible — peu importe",                  emoji: "🔄", desc: "Ce qui correspond le mieux à mon profil" },
+          ].map((d) => {
+            const sel = form.duree_etudes === d.id;
+            return (
+              <button key={d.id}
+                onClick={() => setForm((f) => ({ ...f, duree_etudes: d.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "15px 17px", borderRadius: 13, cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 14,
+                  background: sel ? `linear-gradient(135deg, ${purple}28, ${purple}14)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <span style={{ fontSize: 22 }}>{d.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{d.label}</div>
+                  <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{d.desc}</div>
+                </div>
+                {sel && <CheckCircle size={16} color={purple} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // Step 9 — Étranger
+    if (originalStep === 9) return (
+      <div>
+        <h2 style={sH}>🌍 Tu veux étudier à l'étranger après ?</h2>
+        <p style={sP}>Certaines écoles ont de forts partenariats internationaux</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            { id: "oui",       label: "Oui, c'est un objectif",         emoji: "✈️", desc: "France, Canada, USA, Espagne, Allemagne..." },
+            { id: "non",       label: "Non, je reste au Maroc",          emoji: "🇲🇦", desc: "Construire ma carrière localement" },
+            { id: "peut_etre", label: "Peut-être, si l'opportunité se présente", emoji: "🤔", desc: "Ouvert selon les circonstances" },
+          ].map((e) => {
+            const sel = form.etudier_etranger === e.id;
+            return (
+              <button key={e.id}
+                onClick={() => setForm((f) => ({ ...f, etudier_etranger: e.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "16px 20px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 16,
+                  background: sel ? `linear-gradient(135deg, ${purple}28, ${purple}14)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <span style={{ fontSize: 28 }}>{e.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: textMain }}>{e.label}</div>
+                  <div style={{ fontSize: 12, color: textMuted, marginTop: 3 }}>{e.desc}</div>
+                </div>
+                {sel && <CheckCircle size={17} color={purple} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // Step 10 — Secteur de travail
+    if (originalStep === 10) return (
+      <div>
+        <h2 style={sH}>💼 Tu préfères quel secteur de travail ?</h2>
+        <p style={sP}>Ton secteur cible influence les meilleures filières pour toi</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(165px,1fr))", gap: 9 }}>
+          {[
+            { id: "public",         label: "Public",          emoji: "🏛️", desc: "Fonctionnaire, État" },
+            { id: "prive",          label: "Privé",            emoji: "🏢", desc: "Entreprises, multinationales" },
+            { id: "entrepreneuriat",label: "Entrepreneuriat",  emoji: "🚀", desc: "Créer ma propre entreprise" },
+            { id: "international",  label: "International",    emoji: "🌍", desc: "ONG, organisations mondiales" },
+            { id: "peu_importe",    label: "Peu importe",      emoji: "🔄", desc: "Ouvert à tout" },
+          ].map((s) => {
+            const sel = form.secteur_travail === s.id;
+            return (
+              <button key={s.id}
+                onClick={() => setForm((f) => ({ ...f, secteur_travail: s.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "14px 12px", borderRadius: 13, cursor: "pointer", textAlign: "left",
+                  background: sel ? `linear-gradient(135deg, ${purple}30, ${purple}18)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <div style={{ fontSize: 24, marginBottom: 7 }}>{s.emoji}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{s.label}</div>
+                <div style={{ fontSize: 11, color: textMuted, marginTop: 3 }}>{s.desc}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // Step 11 — Mode de travail
+    if (originalStep === 11) return (
+      <div>
+        <h2 style={sH}>🤝 Tu préfères travailler ?</h2>
+        <p style={sP}>Ton style de travail préféré pour la suite</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            { id: "seul",     label: "Seul(e)",                        emoji: "🧑‍💻", desc: "Indépendant, autonome, concentré" },
+            { id: "equipe",   label: "En équipe",                      emoji: "👥",  desc: "Collaboration, synergie, projets collectifs" },
+            { id: "les_deux", label: "Les deux selon le contexte",      emoji: "⚖️",  desc: "Flexible, adaptable aux situations" },
+          ].map((t) => {
+            const sel = form.type_travail === t.id;
+            return (
+              <button key={t.id}
+                onClick={() => setForm((f) => ({ ...f, type_travail: t.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "18px 22px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 16,
+                  background: sel ? `linear-gradient(135deg, ${purple}28, ${purple}14)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <span style={{ fontSize: 28 }}>{t.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: textMain }}>{t.label}</div>
+                  <div style={{ fontSize: 12, color: textMuted, marginTop: 3 }}>{t.desc}</div>
+                </div>
+                {sel && <CheckCircle size={17} color={purple} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // Step 12 — Niveau tech
+    if (originalStep === 12) return (
+      <div>
+        <h2 style={sH}>📱 Tu utilises beaucoup la technologie ?</h2>
+        <p style={sP}>Ton rapport avec le digital et les nouvelles technologies</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            { id: "passionne", label: "Oui, je suis passionné(e)",    emoji: "🔥", desc: "Dev, gaming, gadgets, nouvelles technos..." },
+            { id: "normal",    label: "Oui, utilisation normale",      emoji: "📲", desc: "J'utilise les outils courants sans passion particulière" },
+            { id: "pas_trop",  label: "Non, pas vraiment",             emoji: "📖", desc: "Je préfère d'autres domaines à la tech" },
+          ].map((n) => {
+            const sel = form.niveau_tech === n.id;
+            return (
+              <button key={n.id}
+                onClick={() => setForm((f) => ({ ...f, niveau_tech: n.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "18px 22px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 16,
+                  background: sel ? `linear-gradient(135deg, ${purple}28, ${purple}14)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <span style={{ fontSize: 28 }}>{n.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: textMain }}>{n.label}</div>
+                  <div style={{ fontSize: 12, color: textMuted, marginTop: 3 }}>{n.desc}</div>
+                </div>
+                {sel && <CheckCircle size={17} color={purple} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // Step 13 — Niveau maths
+    if (originalStep === 13) return (
+      <div>
+        <h2 style={sH}>🏆 Ton niveau actuel en maths ?</h2>
+        <p style={sP}>Une estimation honnête pour affiner les recommandations</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[
+            { id: "excellent", label: "Excellent — 17/20 et plus",   emoji: "🥇", desc: "Les maths sont ta matière forte absolue" },
+            { id: "bon",       label: "Bon — 14 à 16/20",            emoji: "🥈", desc: "À l'aise, quelques difficultés ponctuelles" },
+            { id: "moyen",     label: "Moyen — 11 à 13/20",          emoji: "🥉", desc: "Correct, d'autres matières sont meilleures" },
+            { id: "faible",    label: "Faible — moins de 11/20",     emoji: "📉", desc: "Les maths ne sont pas mon point fort" },
+          ].map((m) => {
+            const sel = form.niveau_maths_auto === m.id;
+            return (
+              <button key={m.id}
+                onClick={() => setForm((f) => ({ ...f, niveau_maths_auto: m.id }))}
+                className={`ori-card ${sel ? "ori-card-sel" : ""}`}
+                style={{
+                  padding: "15px 17px", borderRadius: 13, cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 14,
+                  background: sel ? `linear-gradient(135deg, ${purple}28, ${purple}14)` : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                  border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
+                  transition: "all 0.18s",
+                }}>
+                <span style={{ fontSize: 24 }}>{m.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: textMain }}>{m.label}</div>
+                  <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>{m.desc}</div>
+                </div>
+                {sel && <CheckCircle size={17} color={purple} />}
+              </button>
+            );
+          })}
+        </div>
+        {error && (
+          <div style={{ padding: "11px 15px", borderRadius: 10, marginTop: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 14 }}>
+            ⚠️ {error}
+          </div>
+        )}
+      </div>
+    );
+
     return null;
   };
 
@@ -1083,13 +1367,13 @@ export default function OrientationTest() {
 
         {/* Profile pre-fill banner */}
         {profileData && (profileData.bac || profileData.ville) && (
-          <div style={{ marginBottom: 12, padding: "9px 14px", borderRadius: 10, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+          <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
             <span style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
               <CheckCircle size={12} style={{ verticalAlign: "middle", marginRight: 4 }} />
-              Profil récupéré :{profileData.bac && ` ${profileData.bac}`}{profileData.moyenne && ` · ${profileData.moyenne}/20`}{profileData.ville && ` · ${profileData.ville}`}
+              ✓ Profil récupéré :{profileData.bac && ` ${profileData.bac}`}{profileData.moyenne && ` · ${profileData.moyenne}/20`}{profileData.ville && ` · ${profileData.ville}`}{profileData.filiere && ` · Filière: ${profileData.filiere}`}
             </span>
             <button onClick={() => navigate("/app/profile")} style={{ background: "none", border: "none", cursor: "pointer", color: "#10b981", fontSize: 12, fontWeight: 600, textDecoration: "underline", padding: 0 }}>
-              ← Mettre à jour mon profil
+              → Modifier dans le Profil
             </button>
           </div>
         )}

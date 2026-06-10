@@ -198,6 +198,8 @@ export default function Profile() {
   const [deletingId, setDeletingId] = useState(null);
   const [toast, setToast] = useState({ msg: "", type: "success" });
   const [orientResult, setOrientResult] = useState(undefined);
+  const [myRooms, setMyRooms] = useState(null);
+  const [schoolsHistory, setSchoolsHistory] = useState(null);
   const bulletinRef = useRef();
 
   // colors
@@ -260,6 +262,28 @@ export default function Profile() {
     }
   }
 
+  async function fetchMyRooms() {
+    try {
+      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/rooms/my-rooms", { headers: authH() });
+      if (!res.ok) { setMyRooms([]); return; }
+      const data = await res.json();
+      setMyRooms(data.rooms || []);
+    } catch {
+      setMyRooms([]);
+    }
+  }
+
+  async function fetchSchoolsHistory() {
+    try {
+      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/schools/my-history", { headers: authH() });
+      if (!res.ok) { setSchoolsHistory([]); return; }
+      const data = await res.json();
+      setSchoolsHistory(data.history || []);
+    } catch {
+      setSchoolsHistory([]);
+    }
+  }
+
   useEffect(() => {
     const onResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -272,6 +296,8 @@ export default function Profile() {
     fetchProfile();
     fetchBulletins();
     fetchOrientResult();
+    fetchMyRooms();
+    fetchSchoolsHistory();
   }, []);
 
   // ── save profile ───────────────────────────────────────────────────────────
@@ -894,6 +920,166 @@ export default function Profile() {
             </div>
           )}
         </div>
+      </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            SECTION 4 — Historique des salles privées
+        ══════════════════════════════════════════════════════════════════ */}
+        <div style={{
+          background: cardBg, border: `1px solid ${border}`, borderRadius: 20, padding: 24,
+          backdropFilter: "blur(16px)", animation: "fadeUp 0.5s 0.3s ease both",
+          boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
+          marginBottom: 20,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Users size={18} color="white" />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Historique des salles privées</div>
+              <div style={{ fontSize: 11, color: textMuted }}>
+                {myRooms === null ? "Chargement..." : `${myRooms.length} salle${myRooms.length !== 1 ? "s" : ""}`}
+              </div>
+            </div>
+          </div>
+
+          {myRooms === null ? (
+            <div style={{ textAlign: "center", padding: "24px 0" }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", border: "3px solid rgba(124,58,237,0.2)", borderTop: "3px solid #7c3aed", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+            </div>
+          ) : myRooms.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "28px 0", border: `2px dashed ${border}`, borderRadius: 14 }}>
+              <Users size={28} color={textMuted} style={{ marginBottom: 8, opacity: 0.4 }} />
+              <div style={{ fontSize: 14, color: textMuted }}>Aucune salle privée</div>
+              <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>Crée ou rejoins une salle pour commencer</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {myRooms.map((room) => (
+                <div key={room.id} style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12,
+                  background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
+                  border: `1px solid ${border}`, flexWrap: "wrap",
+                }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                    background: room.is_active ? "rgba(16,185,129,0.15)" : "rgba(124,58,237,0.12)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Users size={16} color={room.is_active ? "#10b981" : purple} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {room.name}
+                      {room.is_host && (
+                        <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.12)", padding: "2px 6px", borderRadius: 99, border: "1px solid rgba(245,158,11,0.2)" }}>
+                          Hôte
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11, color: textMuted, marginTop: 2, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <span>{fmtDate(room.created_at)}</span>
+                      <span>· {room.participant_count} participant{room.participant_count !== 1 ? "s" : ""}</span>
+                      <span>· {room.total_minutes} min</span>
+                    </div>
+                  </div>
+                  {room.is_active && (
+                    <button
+                      onClick={() => navigate(`/app/study/private/${room.id}`)}
+                      style={{
+                        padding: "7px 14px", fontSize: 12, fontWeight: 700, flexShrink: 0,
+                        background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
+                        color: "white", border: "none", borderRadius: 8, cursor: "pointer",
+                      }}
+                    >
+                      Rejoindre
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            SECTION 5 — Historique Guide des Écoles
+        ══════════════════════════════════════════════════════════════════ */}
+        <div style={{
+          background: cardBg, border: `1px solid ${border}`, borderRadius: 20, padding: 24,
+          backdropFilter: "blur(16px)", animation: "fadeUp 0.5s 0.4s ease both",
+          boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
+          marginBottom: 20,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: "linear-gradient(135deg, #3b82f6, #60a5fa)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <BookOpen size={18} color="white" />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Historique — Guide des Écoles</div>
+              <div style={{ fontSize: 11, color: textMuted }}>
+                {schoolsHistory === null ? "Chargement..." : `${schoolsHistory.length} conversation${schoolsHistory.length !== 1 ? "s" : ""} récentes`}
+              </div>
+            </div>
+          </div>
+
+          {schoolsHistory === null ? (
+            <div style={{ textAlign: "center", padding: "24px 0" }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", border: "3px solid rgba(59,130,246,0.2)", borderTop: "3px solid #3b82f6", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+            </div>
+          ) : schoolsHistory.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "28px 0", border: `2px dashed ${border}`, borderRadius: 14 }}>
+              <BookOpen size={28} color={textMuted} style={{ marginBottom: 8, opacity: 0.4 }} />
+              <div style={{ fontSize: 14, color: textMuted }}>Aucune conversation</div>
+              <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>Pose une question dans le Guide des Écoles</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {schoolsHistory.map((h, i) => (
+                <div key={i} style={{
+                  padding: "12px 14px", borderRadius: 12,
+                  background: isDark ? "rgba(59,130,246,0.06)" : "rgba(59,130,246,0.04)",
+                  border: `1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.1)"}`,
+                  display: "flex", alignItems: "flex-start", gap: 10,
+                }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8, flexShrink: 0, marginTop: 1,
+                    background: "rgba(59,130,246,0.15)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 12, fontWeight: 800, color: "#3b82f6",
+                  }}>
+                    {i + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: textMain, lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {h.question}
+                    </div>
+                    <div style={{ fontSize: 11, color: textMuted, marginTop: 3 }}>{fmtDate(h.created_at)}</div>
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => navigate("/app/schools")}
+                style={{
+                  marginTop: 4, padding: "10px", fontSize: 13, fontWeight: 700,
+                  background: isDark ? "rgba(59,130,246,0.12)" : "rgba(59,130,246,0.08)",
+                  color: "#3b82f6", border: "1px solid rgba(59,130,246,0.2)",
+                  borderRadius: 12, cursor: "pointer",
+                }}
+              >
+                Continuer à explorer les écoles →
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
 
       <Toast msg={toast.msg} type={toast.type} />
