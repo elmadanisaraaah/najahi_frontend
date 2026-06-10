@@ -338,8 +338,10 @@ export default function OrientationTest() {
 
   // ── Derived step data ──────────────────────────────────────────────────────
   const skipSteps = new Set();
-  if (profileData && profileData.bac)   skipSteps.add(1);
-  if (profileData && profileData.ville) skipSteps.add(5);
+  const profileHasBac = !!(profileData?.bac);
+  const profileHasMoyenne = !!(profileData?.moyenne && parseFloat(profileData.moyenne) > 0);
+  if (profileHasBac && profileHasMoyenne) skipSteps.add(1);
+  if (profileData?.ville) skipSteps.add(5);
   const visibleSteps    = [1,2,3,4,5,6,7,8,9,10,11,12,13].filter(s => !skipSteps.has(s));
   const EFFECTIVE_TOTAL = visibleSteps.length;
   const originalStep    = visibleSteps[step - 1] ?? step;

@@ -232,6 +232,8 @@ export default function Profile() {
         niveau: data.niveau || "",
         moyenne_generale: data.moyenne_generale ?? "",
         telephone: data.telephone || "",
+        filiere_actuelle: data.filiere_actuelle || "",
+        note_bac: data.note_bac ?? "",
       });
     } catch {
       showToast("Erreur lors du chargement du profil", "error");
@@ -311,10 +313,15 @@ export default function Profile() {
         ville: editData.ville,
         niveau: editData.niveau,
         telephone: editData.telephone,
+        filiere_actuelle: editData.filiere_actuelle,
       };
       if (editData.moyenne_generale !== "" && editData.moyenne_generale !== null) {
         const v = parseFloat(editData.moyenne_generale);
         if (!isNaN(v)) payload.moyenne_generale = Math.min(20, Math.max(0, v));
+      }
+      if (editData.note_bac !== "" && editData.note_bac !== null) {
+        const v = parseFloat(editData.note_bac);
+        if (!isNaN(v)) payload.note_bac = Math.min(20, Math.max(0, v));
       }
 
       const res = await fetch(API("/me"), {
@@ -336,6 +343,10 @@ export default function Profile() {
   // ── avatar ─────────────────────────────────────────────────────────────────
 
   async function uploadAvatar(file) {
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("Image trop grande (max 10 MB)", "error");
+      return;
+    }
     setAvatarUploading(true);
     try {
       const fd = new FormData();
@@ -496,102 +507,107 @@ export default function Profile() {
             ? "0 8px 40px rgba(124,58,237,0.12)"
             : "0 4px 24px rgba(0,0,0,0.07)",
         }}>
-          {/* Card header gradient */}
+          {/* Card header gradient — hero banner */}
           <div style={{
-            height: 80,
-            background: "linear-gradient(135deg, #7c3aed22, #a78bfa11)",
-            borderBottom: `1px solid ${border}`,
-          }} />
+            height: 130,
+            background: isDark
+              ? "linear-gradient(135deg, #4c1d95 0%, #7c3aed 45%, #1e3a5f 100%)"
+              : "linear-gradient(135deg, #7c3aed 0%, #a78bfa 45%, #818cf8 100%)",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute", top: -40, right: -40,
+              width: 180, height: 180, borderRadius: "50%",
+              background: "rgba(255,255,255,0.07)",
+            }} />
+            <div style={{
+              position: "absolute", bottom: -30, left: 60,
+              width: 120, height: 120, borderRadius: "50%",
+              background: "rgba(255,255,255,0.05)",
+            }} />
+            {/* Edit / Save buttons in top-right */}
+            <div style={{ position: "absolute", top: 14, right: 16, display: "flex", gap: 8 }}>
+              {editMode ? (
+                <>
+                  <button onClick={() => setEditMode(false)} style={{
+                    padding: "6px 14px", fontSize: 12, fontWeight: 600,
+                    background: "rgba(255,255,255,0.15)", color: "white",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    borderRadius: 10, cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 5,
+                    backdropFilter: "blur(8px)",
+                  }}>
+                    <X size={13} /> Annuler
+                  </button>
+                  <button onClick={saveProfile} disabled={saving} style={{
+                    padding: "6px 14px", fontSize: 12, fontWeight: 700,
+                    background: "rgba(255,255,255,0.9)", color: purple,
+                    border: "none", borderRadius: 10, cursor: saving ? "not-allowed" : "pointer",
+                    display: "flex", alignItems: "center", gap: 5,
+                    opacity: saving ? 0.7 : 1,
+                  }}>
+                    {saving ? <div style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid rgba(124,58,237,0.3)", borderTop: "2px solid #7c3aed", animation: "spin 0.8s linear infinite" }} /> : <Save size={13} />}
+                    Enregistrer
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setEditMode(true)} style={{
+                  padding: "6px 14px", fontSize: 12, fontWeight: 700,
+                  background: "rgba(255,255,255,0.15)", color: "white",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  borderRadius: 10, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 5,
+                  backdropFilter: "blur(8px)",
+                }}>
+                  <Pencil size={13} /> Modifier
+                </button>
+              )}
+            </div>
+          </div>
 
           <div style={{ padding: "0 24px 24px" }}>
             {/* Avatar + name row */}
             <div style={{
               display: "flex", alignItems: "flex-end", gap: 18, flexWrap: "wrap",
-              marginTop: isMobile ? -20 : -44, marginBottom: 20,
+              marginTop: isMobile ? -36 : -50, marginBottom: 16,
             }}>
               <AvatarZone
                 profile={profile}
                 onUpload={uploadAvatar}
                 uploading={avatarUploading}
               />
-              <div style={{ paddingBottom: 4 }}>
+              <div style={{ paddingBottom: 6 }}>
                 <div style={{
                   fontSize: 20, fontWeight: 800, color: textMain,
                   fontFamily: "'Fraunces', serif",
                 }}>{fullName}</div>
-                <div style={{ fontSize: 13, color: textMuted, marginTop: 2 }}>
-                  {profile?.email}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                  {profile?.niveau && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, color: purple,
+                      background: `${purple}18`, padding: "2px 10px",
+                      borderRadius: 99, border: `1px solid ${purple}33`,
+                    }}>{profile.niveau}</span>
+                  )}
+                  {profile?.ville && (
+                    <span style={{ fontSize: 12, color: textMuted, display: "flex", alignItems: "center", gap: 3 }}>
+                      <MapPin size={11} /> {profile.ville}
+                    </span>
+                  )}
                 </div>
-              </div>
-              <div style={{ marginLeft: "auto", paddingBottom: 4, display: "flex", gap: 8 }}>
-                {editMode ? (
-                  <>
-                    <button
-                      onClick={() => { setEditMode(false); }}
-                      style={{
-                        padding: "8px 16px", fontSize: 13, fontWeight: 600,
-                        background: "none", border: `1px solid ${border}`,
-                        borderRadius: 10, cursor: "pointer", color: textMuted,
-                        display: "flex", alignItems: "center", gap: 6,
-                      }}
-                    >
-                      <X size={14} /> Annuler
-                    </button>
-                    <button
-                      onClick={saveProfile}
-                      disabled={saving}
-                      style={{
-                        padding: "8px 16px", fontSize: 13, fontWeight: 700,
-                        background: purple, color: "white",
-                        border: "none", borderRadius: 10, cursor: saving ? "not-allowed" : "pointer",
-                        display: "flex", alignItems: "center", gap: 6,
-                        opacity: saving ? 0.7 : 1,
-                      }}
-                    >
-                      {saving ? (
-                        <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid white", animation: "spin 0.8s linear infinite" }} />
-                      ) : <Save size={14} />}
-                      Enregistrer
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setEditMode(true)}
-                    style={{
-                      padding: "8px 16px", fontSize: 13, fontWeight: 700,
-                      background: `${purple}18`, color: purple,
-                      border: `1px solid ${purple}44`,
-                      borderRadius: 10, cursor: "pointer",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}
-                  >
-                    <Pencil size={14} /> Modifier
-                  </button>
-                )}
               </div>
             </div>
 
             {/* Fields */}
-            <Field icon={User}         label="Prénom"     field="prenom"           value={profile?.prenom}          editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={User}         label="Nom"        field="nom"              value={profile?.nom}             editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={MapPin}       label="Ville"      field="ville"            value={profile?.ville}           editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} options={VILLES}  isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={GraduationCap} label="Type de Bac" field="niveau"         value={profile?.niveau}          editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} options={BAC_TYPES} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={BookOpen}     label="Note Bac"   field="moyenne_generale" value={profile?.moyenne_generale != null ? `${profile.moyenne_generale}/20` : null} editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} type="number" isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-
-            <div style={{
-              padding: "12px 0 0",
-              display: "flex", alignItems: "center", gap: 8,
-            }}>
-              <User size={16} color={purple} style={{ flexShrink: 0 }} />
-              <span style={{ width: 130, fontSize: 13, color: textMuted, flexShrink: 0 }}>Email</span>
-              <span style={{ fontSize: 14, fontWeight: 500, color: textMain }}>{profile?.email}</span>
-            </div>
-
-            {editMode && (
-              <div style={{ marginTop: 16 }}>
-                <Field icon={User} label="Téléphone" field="telephone" value={profile?.telephone} editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-              </div>
-            )}
+            <Field icon={User}         label="Prénom"       field="prenom"           value={profile?.prenom}          editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={User}         label="Nom"          field="nom"              value={profile?.nom}             editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={User}         label="Email"        field="email"            value={profile?.email}           editMode={false}    editData={editData} onChange={() => {}}                                     isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={User}         label="Téléphone"    field="telephone"        value={profile?.telephone}       editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={MapPin}       label="Ville"        field="ville"            value={profile?.ville}           editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} options={VILLES}    isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={GraduationCap} label="Type de Bac" field="niveau"           value={profile?.niveau}          editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} options={BAC_TYPES} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={BookOpen}     label="Note Bac"     field="moyenne_generale" value={profile?.moyenne_generale != null ? `${profile.moyenne_generale}/20` : null} editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} type="number" isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+            <Field icon={BookOpen}     label="Filière"      field="filiere_actuelle" value={profile?.filiere_actuelle} editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
           </div>
         </div>
 
