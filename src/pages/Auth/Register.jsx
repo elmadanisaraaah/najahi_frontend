@@ -337,6 +337,7 @@ export default function Register() {
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
   const [success, setSuccess]           = useState(false);
+  const [acceptTerms, setAcceptTerms]   = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm]   = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -436,6 +437,10 @@ export default function Register() {
   };
 
   const handleSubmit = async () => {
+    if (!acceptTerms) {
+      setError("Veuillez accepter les conditions d'utilisation");
+      return;
+    }
     setLoading(true); setError("");
     try {
       let recaptcha_token = null;
@@ -886,6 +891,33 @@ export default function Register() {
                 )}
 
               </div>
+
+              {/* Terms checkbox — step 2 only */}
+              {step === 2 && (
+                <div style={{ display:"flex", alignItems:"flex-start", gap:10, marginTop:14 }}>
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={acceptTerms}
+                    onChange={e => { setAcceptTerms(e.target.checked); if (e.target.checked) setError(""); }}
+                    style={{ marginTop:2, accentColor:"#7c3aed", width:15, height:15, cursor:"pointer", flexShrink:0 }}
+                  />
+                  <label htmlFor="acceptTerms" style={{ fontSize:12, color:subCol, lineHeight:1.55, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                    J'accepte les{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer"
+                      style={{ color:"#7c3aed", fontWeight:600, textDecoration:"none" }}
+                      onMouseEnter={e => e.target.style.textDecoration="underline"}
+                      onMouseLeave={e => e.target.style.textDecoration="none"}
+                    >Conditions d'utilisation</a>
+                    {" "}et la{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer"
+                      style={{ color:"#7c3aed", fontWeight:600, textDecoration:"none" }}
+                      onMouseEnter={e => e.target.style.textDecoration="underline"}
+                      onMouseLeave={e => e.target.style.textDecoration="none"}
+                    >Politique de confidentialité</a>
+                  </label>
+                </div>
+              )}
 
               {/* Nav buttons */}
               <div style={{ display:"flex", gap:10, marginTop:16, alignItems:"center" }}>

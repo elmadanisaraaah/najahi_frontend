@@ -317,6 +317,22 @@ export default function Login() {
               Plateforme scolaire marocaine
             </span>
           </div>
+
+          {/* Legal footer */}
+          <p style={{ textAlign:"center", marginTop:14, fontSize:11, color:subCol, lineHeight:1.6, transition:"color 0.4s" }}>
+            En continuant, vous acceptez nos{" "}
+            <a href="/terms" target="_blank" rel="noopener noreferrer"
+              style={{ color:"#7c3aed", fontWeight:500, textDecoration:"none" }}
+              onMouseEnter={e => e.target.style.textDecoration="underline"}
+              onMouseLeave={e => e.target.style.textDecoration="none"}
+            >Conditions d'utilisation</a>
+            {" "}et notre{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer"
+              style={{ color:"#7c3aed", fontWeight:500, textDecoration:"none" }}
+              onMouseEnter={e => e.target.style.textDecoration="underline"}
+              onMouseLeave={e => e.target.style.textDecoration="none"}
+            >Politique de confidentialité</a>
+          </p>
         </div>
       </div>
     </>
