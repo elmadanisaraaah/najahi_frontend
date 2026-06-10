@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, LogOut, ChevronLeft, ChevronRight
+  ArrowRight, LogOut, ChevronLeft, ChevronRight, Shield,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -209,6 +209,15 @@ export default function Dashboard() {
               ))}
             </div>
             <ThemeToggle />
+            {user?.role === "admin" && (
+              <button type="button" onClick={() => navigate("/app/admin")}
+                style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.12)", border:"1px solid rgba(124,58,237,0.3)", borderRadius:9, color:"#a78bfa", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.background="rgba(124,58,237,0.22)"}
+                onMouseLeave={e => e.currentTarget.style.background="rgba(124,58,237,0.12)"}
+              >
+                <Shield size={12} /> Admin
+              </button>
+            )}
             <div style={{ display: isMobile ? "none" : "flex", alignItems:"center", gap:8 }}>
               <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"grid", placeItems:"center", fontSize:13, fontWeight:700, color:"#fff", flexShrink:0, boxShadow:"0 0 0 2px rgba(124,58,237,0.3)" }}>
                 {(user?.prenom?.[0] || user?.email?.[0] || "U").toUpperCase()}

@@ -16,6 +16,7 @@ import ServerRoom from "./pages/Study/ServerRoom";
 import Schools from "./pages/Schools/Schools";
 import OrientationTest from "./pages/Orientation/OrientationTest";
 import Profile from "./pages/Profile/Profile";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
       <Route path="/app/orientation" element={<OrientationTest />} />
       <Route path="/app/schools" element={<Schools />} />
       <Route path="/app/profile" element={<Profile />} />
+      <Route path="/app/admin" element={<AdminDashboard />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
