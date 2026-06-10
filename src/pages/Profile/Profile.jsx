@@ -282,6 +282,7 @@ export default function Profile() {
   const [orientResult,     setOrientResult]     = useState(undefined);
   const [myRooms,          setMyRooms]          = useState(null);
   const [schoolsHistory,   setSchoolsHistory]   = useState(null);
+  const [soloStats,        setSoloStats]        = useState(null);
   const bulletinRef = useRef();
 
   // ── theme tokens ───────────────────────────────────────────────────────────
@@ -367,12 +368,22 @@ export default function Profile() {
     } catch { setSchoolsHistory([]); }
   }
 
+  async function fetchSoloStats() {
+    try {
+      const res  = await fetch(BASE_URL + "/api/study/solo/stats", { headers: authH() });
+      if (!res.ok) return;
+      const data = await res.json();
+      setSoloStats(data);
+    } catch { /* silent */ }
+  }
+
   useEffect(() => {
     fetchProfile();
     fetchBulletins();
     fetchOrientResult();
     fetchMyRooms();
     fetchSchoolsHistory();
+    fetchSoloStats();
   }, []);
 
   // ── save profile ───────────────────────────────────────────────────────────
@@ -736,8 +747,8 @@ export default function Profile() {
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 12, marginBottom: 16 }}>
             {[
-              { icon: Clock,  label: "Heures étudiées", value: "—" },
-              { icon: Users,  label: "Sessions",        value: "—" },
+              { icon: Clock, label: "Heures solo",  value: soloStats ? `${soloStats.total_hours}h` : "—" },
+              { icon: Users, label: "Sessions solo", value: soloStats ? soloStats.total_sessions : "—" },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} style={{
                 padding: "16px 14px", borderRadius: 14, textAlign:"center",
@@ -758,8 +769,10 @@ export default function Profile() {
             border:`1px solid ${border}`,
             marginBottom: 14,
           }}>
-            <span style={{ fontSize: 13, color: textMuted }}>Dernière session</span>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>—</span>
+            <span style={{ fontSize: 13, color: textMuted }}>Dernière session solo</span>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>
+              {soloStats?.last_session ? fmtDate(soloStats.last_session) : "—"}
+            </span>
           </div>
 
           <button onClick={() => navigate("/app/servers")} style={{

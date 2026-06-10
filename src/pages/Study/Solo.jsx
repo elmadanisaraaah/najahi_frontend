@@ -4,6 +4,8 @@ import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Image, Timer, ChevronDown, Check, Music, Link, X } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
 const PRESETS = [
   { label: "25/5",   focus: 25, break: 5,  longBreak: 15 },
   { label: "50/10",  focus: 50, break: 10, longBreak: 30 },
@@ -273,11 +275,13 @@ export default function Solo() {
   const [musicEmbed, setMusicEmbed]         = useState(null);
   const [showPlayer, setShowPlayer]         = useState(false);
 
-  const timerRef    = useRef(null);
-  const phaseRef    = useRef("focus");
-  const pomRef      = useRef(0);
-  const audioRef    = useRef(null);
-  const quoteIdxRef = useRef(0);
+  const timerRef      = useRef(null);
+  const phaseRef      = useRef("focus");
+  const pomRef        = useRef(0);
+  const audioRef      = useRef(null);
+  const quoteIdxRef   = useRef(0);
+  const sessionIdRef  = useRef(null);
+  const sessionStartRef = useRef(null);
 
   const getFocus     = () => preset===3 ? customFocus*60   : PRESETS[preset].focus*60;
   const getBreak     = () => preset===3 ? customBreak*60   : PRESETS[preset].break*60;
@@ -301,6 +305,44 @@ export default function Solo() {
     }, 3 * 60 * 1000);
     return () => clearInterval(t);
   }, []);
+
+  const startSoloSession = async () => {
+    const tkn = localStorage.getItem("najahi_token");
+    if (!tkn) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/study/solo/start`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tkn}`, "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        sessionIdRef.current = data.session_id;
+        sessionStartRef.current = Date.now();
+      }
+    } catch {}
+  };
+
+  const endSoloSession = (durationMinutes) => {
+    const sid = sessionIdRef.current;
+    if (!sid) return;
+    sessionIdRef.current = null;
+    sessionStartRef.current = null;
+    const tkn = localStorage.getItem("najahi_token");
+    if (!tkn) return;
+    fetch(`${API_BASE}/api/study/solo/end`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${tkn}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sid, duration_minutes: Math.max(0.01, durationMinutes) }),
+    }).catch(() => {});
+  };
+
+  const endSoloSessionElapsed = () => {
+    if (!sessionIdRef.current) return;
+    const elapsed = sessionStartRef.current
+      ? (Date.now() - sessionStartRef.current) / 60000
+      : 0;
+    endSoloSession(elapsed);
+  };
 
   const playBell = () => {
     try {
@@ -343,6 +385,11 @@ export default function Solo() {
   useEffect(() => { phaseRef.current = phase; }, [phase]);
   useEffect(() => { pomRef.current   = pomCount; }, [pomCount]);
 
+  // End active solo session when user leaves the page
+  useEffect(() => {
+    return () => { endSoloSessionElapsed(); };
+  }, []);
+
   useEffect(() => {
     clearInterval(timerRef.current);
     if (!isRunning) return;
@@ -356,6 +403,7 @@ export default function Solo() {
           const curPhase = phaseRef.current;
           const curPom   = pomRef.current;
           if (curPhase === "focus") {
+            endSoloSessionElapsed();
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 3000);
             quoteIdxRef.current = (quoteIdxRef.current + 1) % QUOTES.length;
@@ -366,12 +414,12 @@ export default function Solo() {
             const nextPhase = newPom % 4 === 0 ? "longBreak" : "break";
             setPhase(nextPhase);
             phaseRef.current = nextPhase;
-            setTimeout(() => { setTimeLeft(getDuration(nextPhase)); setIsRunning(true); }, 2500);
+            setTimeout(() => { setTimeLeft(getDuration(nextPhase)); setIsRunning(true); startSoloSession(); }, 2500);
             return 0;
           } else {
             setPhase("focus");
             phaseRef.current = "focus";
-            setTimeout(() => { setTimeLeft(getFocus()); setIsRunning(true); }, 2500);
+            setTimeout(() => { setTimeLeft(getFocus()); setIsRunning(true); startSoloSession(); }, 2500);
             return 0;
           }
         }
@@ -421,6 +469,7 @@ export default function Solo() {
   };
 
   const handleReset = () => {
+    endSoloSessionElapsed();
     clearInterval(timerRef.current);
     setIsRunning(false);
     setPhase("focus");
@@ -757,7 +806,15 @@ export default function Solo() {
 
             {/* Play */}
             <button type="button" className="play-btn"
-              onClick={() => setIsRunning(v=>!v)}
+              onClick={() => {
+                const going = !isRunning;
+                setIsRunning(going);
+                if (going && phase === "focus") {
+                  startSoloSession();
+                } else if (!going && phase === "focus") {
+                  endSoloSessionElapsed();
+                }
+              }}
               style={{ width:74, height:74, borderRadius:"50%", background:`linear-gradient(135deg,${phaseColor},${phaseColor}bb)`, border:"none", display:"grid", placeItems:"center", cursor:"pointer", color:"#fff", transition:"all 0.25s", boxShadow:`0 0 32px ${phaseColor}55, 0 8px 28px ${phaseColor}35` }}>
               {isRunning ? <Pause size={28}/> : <Play size={28} style={{ marginLeft:3 }}/>}
             </button>
