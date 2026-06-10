@@ -48,8 +48,6 @@ const FEATURES = [
   },
 ];
 
-const LANGS = ["FR", "AR", "EN"];
-
 function Particle({ style }) { return <div style={style} />; }
 
 function ParticlesBackground({ dark }) {
@@ -87,7 +85,6 @@ export default function Dashboard() {
 
   const [activeIdx, setActiveIdx]   = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState(null);
-  const [langIdx, setLangIdx]       = useState(0);
   const [logoError, setLogoError]   = useState(false);
   const [mounted, setMounted]       = useState(false);
   const autoRef = useRef(null);
@@ -200,14 +197,6 @@ export default function Dashboard() {
           </div>
 
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ display: (isMobile || isTablet) ? "none" : "flex", gap:2, background:dark?"rgba(255,255,255,0.07)":"rgba(124,58,237,0.06)", border:`1px solid ${dark?"rgba(255,255,255,0.1)":"rgba(124,58,237,0.12)"}`, borderRadius:99, padding:"4px 6px" }}>
-              {LANGS.map((lang, i) => (
-                <button key={lang} type="button" onClick={() => setLangIdx(i)}
-                  style={{ padding:"4px 10px", borderRadius:99, border:"none", fontSize:11, fontWeight:700, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", transition:"all 0.2s", background:langIdx===i?"#7c3aed":"transparent", color:langIdx===i?"#fff":dark?"rgba(255,255,255,0.5)":"rgba(15,10,30,0.5)", letterSpacing:"0.3px" }}>
-                  {lang}
-                </button>
-              ))}
-            </div>
             <ThemeToggle />
             <button type="button" onClick={() => navigate("/app/forum")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.09)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:9, color:"#7c3aed", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}

@@ -6,7 +6,6 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 import { useI18n } from '../../context/I18nContext'
-import LangSwitcher from '../../components/UI/LangSwitcher'
 import styles from './Landing.module.css'
 
 const STATS         = ['500+', '10k+', '98%', '24/7']
@@ -57,7 +56,6 @@ export default function Landing() {
           </div>
 
           <div className={styles.navActions}>
-            <div className={styles.navLangSwitcher}><LangSwitcher /></div>
             <button className={styles.themeBtn} onClick={toggle}>
               <span className={`${styles.themeIcon} ${theme === 'light' ? styles.iconActive : ''}`}>
                 <Sun size={17}/>
