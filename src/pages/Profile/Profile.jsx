@@ -353,7 +353,7 @@ export default function Profile() {
       fd.append("avatar", file);
       const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/profile/avatar", {
         method: "POST",
-        headers: authH(),
+        headers: { "Authorization": `Bearer ${localStorage.getItem("najahi_token")}` },
         body: fd,
       });
       if (!res.ok) {
