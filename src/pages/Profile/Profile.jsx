@@ -5,23 +5,22 @@ import ThemeToggle from "../../components/UI/ThemeToggle";
 import {
   ArrowLeft, Pencil, Save, X, Upload, Trash2, Download,
   FileText, User, MapPin, GraduationCap, BookOpen, Compass,
-  Clock, Users, CheckCircle, AlertCircle, Camera,
+  Clock, Users, AlertCircle, Camera, Phone, Calendar,
+  MessageSquare, TrendingUp,
 } from "lucide-react";
 
-const API = (path) => `${import.meta.env.VITE_API_URL || ""}/api/profile${path}`;
-const token = () => localStorage.getItem("najahi_token") || "";
-const authH = () => ({ Authorization: `Bearer ${token()}` });
+// ── constants ─────────────────────────────────────────────────────────────────
+
+const API     = (path) => `${import.meta.env.VITE_API_URL || ""}/api/profile${path}`;
+const token   = () => localStorage.getItem("najahi_token") || "";
+const authH   = () => ({ Authorization: `Bearer ${token()}` });
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 const BAC_TYPES = [
-  "Bac Sciences Maths A",
-  "Bac Sciences Maths B",
-  "Bac Sciences Physiques",
-  "Bac Sciences de la Vie",
-  "Bac Sciences Économiques",
-  "Bac Lettres & Sciences Humaines",
-  "Bac Technologie Électrique",
-  "BTS / DUT",
-  "Autre",
+  "Bac Sciences Maths A", "Bac Sciences Maths B", "Bac Sciences Physiques",
+  "Bac Sciences de la Vie", "Bac Sciences Économiques",
+  "Bac Lettres & Sciences Humaines", "Bac Technologie Électrique",
+  "BTS / DUT", "Autre",
 ];
 
 const VILLES = [
@@ -29,66 +28,135 @@ const VILLES = [
   "Tanger", "Oujda", "Meknès", "Kenitra", "Settat", "Autre",
 ];
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+const TYPE_EMOJI = {
+  engineering: "🏗️", business: "📊", health: "🏥",
+  architecture: "🏛️", preparatoire: "📖", university: "🎓",
+};
+const TYPE_LABEL = {
+  engineering: "Ingénierie", business: "Business",
+  health: "Médecine & Santé", architecture: "Architecture",
+  preparatoire: "Classes Prépa", university: "Université",
+};
 
-function initials(prenom, nom) {
-  return `${(prenom || "?")[0]}${(nom || "?")[0]}`.toUpperCase();
-}
+// ── helpers ───────────────────────────────────────────────────────────────────
 
-function fmtDate(iso) {
+const initials = (p, n) => `${(p || "?")[0]}${(n || "?")[0]}`.toUpperCase();
+
+const fmtDate = (iso) => {
   if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-  } catch { return iso; }
-}
+  try { return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" }); }
+  catch { return iso; }
+};
 
-function fmtSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
+// ── CSS injected once ─────────────────────────────────────────────────────────
+
+const GLOBAL_CSS = `
+  @keyframes spin      { to { transform: rotate(360deg); } }
+  @keyframes fadeUp    { from { opacity:0; transform:translateY(22px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes slideRight{ from { opacity:0; transform:translateX(30px) } to { opacity:1; transform:translateX(0) } }
+  input:focus, select:focus { outline: none; border-color: #7c3aed !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.15) !important; }
+  .pfx-row:hover { background: rgba(124,58,237,0.05) !important; }
+  .pfx-btn-icon:hover { opacity: 0.8; }
+  .pfx-bul-row:hover { background: rgba(124,58,237,0.06) !important; }
+`;
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
 function Toast({ msg, type }) {
   if (!msg) return null;
-  const bg = type === "error" ? "#ef4444" : "#10b981";
   return (
     <div style={{
-      position: "fixed", bottom: 28, right: 28, zIndex: 999,
-      background: bg, color: "white",
-      padding: "12px 22px", borderRadius: 12,
+      position: "fixed", bottom: 28, right: 24, zIndex: 9999,
+      background: type === "error" ? "#ef4444" : "#10b981",
+      color: "#fff", padding: "12px 22px", borderRadius: 14,
       fontSize: 14, fontWeight: 600,
-      boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-      animation: "slideInRight 0.3s ease",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+      animation: "slideRight 0.3s ease",
     }}>
       {msg}
     </div>
   );
 }
 
-// ── AvatarZone ────────────────────────────────────────────────────────────────
+// ── Spinner ───────────────────────────────────────────────────────────────────
 
-function AvatarZone({ profile, onUpload, uploading }) {
-  const fileRef = useRef();
+function Spinner({ size = 20, color = "#7c3aed" }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      border: `3px solid ${color}33`,
+      borderTop: `3px solid ${color}`,
+      animation: "spin 0.8s linear infinite",
+      flexShrink: 0,
+    }} />
+  );
+}
+
+// ── Section card wrapper ───────────────────────────────────────────────────────
+
+function Card({ children, delay = 0, style = {} }) {
+  return (
+    <div style={{
+      borderRadius: 20,
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      overflow: "hidden",
+      marginBottom: 16,
+      animation: `fadeUp 0.5s ${delay}s ease both`,
+      ...style,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ── Section header row ────────────────────────────────────────────────────────
+
+function SectionHeader({ icon: Icon, title, subtitle, accent, children }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+      <div style={{
+        width: 42, height: 42, borderRadius: 13, flexShrink: 0,
+        background: accent,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: `0 4px 16px ${accent}55`,
+      }}>
+        <Icon size={19} color="#fff" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>{title}</div>
+        {subtitle && <div style={{ fontSize: 11, marginTop: 1, opacity: 0.55 }}>{subtitle}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Avatar ────────────────────────────────────────────────────────────────────
+
+function Avatar({ profile, onUpload, uploading, size = 100 }) {
+  const ref = useRef();
   const src = profile?.avatar_url
-    ? (profile.avatar_url.startsWith("http") ? profile.avatar_url : `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${profile.avatar_url}`)
+    ? (profile.avatar_url.startsWith("http") ? profile.avatar_url : `${BASE_URL}${profile.avatar_url}`)
     : null;
 
   return (
-    <div style={{ position: "relative", width: 88, height: 88, flexShrink: 0 }}>
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <div
-        onClick={() => fileRef.current?.click()}
+        onClick={() => ref.current?.click()}
         style={{
-          width: 88, height: 88, borderRadius: "50%", cursor: "pointer",
-          background: src ? "transparent" : "linear-gradient(135deg, #7c3aed, #a78bfa)",
+          width: size, height: size, borderRadius: "50%",
+          background: src ? "transparent" : "linear-gradient(135deg, #6d28d9, #a78bfa)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 28, fontWeight: 800, color: "white",
-          overflow: "hidden",
-          boxShadow: "0 0 0 3px rgba(124,58,237,0.4)",
-          transition: "box-shadow 0.2s",
+          fontSize: size * 0.3, fontWeight: 800, color: "#fff",
+          overflow: "hidden", cursor: "pointer",
+          border: "4px solid rgba(255,255,255,0.9)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+          transition: "transform 0.2s",
           position: "relative",
         }}
+        onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+        onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
       >
         {src ? (
           <img src={src} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -96,144 +164,165 @@ function AvatarZone({ profile, onUpload, uploading }) {
           initials(profile?.prenom, profile?.nom)
         )}
         <div style={{
-          position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)",
+          position: "absolute", inset: 0,
+          background: "rgba(0,0,0,0.45)",
           display: "flex", alignItems: "center", justifyContent: "center",
           opacity: 0, transition: "opacity 0.2s",
         }}
-          className="avatar-overlay"
-          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
+          onMouseEnter={e => e.currentTarget.style.opacity = 1}
+          onMouseLeave={e => e.currentTarget.style.opacity = 0}
         >
-          <Camera size={20} color="white" />
+          <Camera size={22} color="#fff" />
         </div>
       </div>
+
       {uploading && (
         <div style={{
           position: "absolute", inset: 0, borderRadius: "50%",
-          background: "rgba(124,58,237,0.7)",
+          background: "rgba(109,40,217,0.7)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          <div style={{
-            width: 20, height: 20, borderRadius: "50%",
-            border: "3px solid rgba(255,255,255,0.3)",
-            borderTop: "3px solid white",
-            animation: "spin 0.8s linear infinite",
-          }} />
+          <Spinner size={22} color="#fff" />
         </div>
       )}
-      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
-        onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])} />
+      <input ref={ref} type="file" accept="image/*" style={{ display: "none" }}
+        onChange={e => e.target.files?.[0] && onUpload(e.target.files[0])} />
     </div>
   );
 }
 
-// ── Field Row ─────────────────────────────────────────────────────────────────
+// ── Info field row ────────────────────────────────────────────────────────────
 
-function Field({ icon: Icon, label, value, editMode, field, editData, onChange, type = "text", options, isDark, border, textMain, textMuted }) {
+function InfoField({ icon: Icon, label, field, value, editData, editMode, onChange, type = "text", options, border, textMain, textMuted, isDark, noSep }) {
   const inputBg = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
-  const displayed = value || "—";
-
   return (
-    <div style={{
+    <div className="pfx-row" style={{
       display: "flex", alignItems: "center", gap: 12,
-      padding: "12px 0",
-      borderBottom: `1px solid ${border}`,
+      padding: "13px 0",
+      borderBottom: noSep ? "none" : `1px solid ${border}`,
+      transition: "background 0.15s",
     }}>
-      <Icon size={16} color="#7c3aed" style={{ flexShrink: 0 }} />
-      <span style={{ width: 110, fontSize: 12, color: textMuted, flexShrink: 0 }}>{label}</span>
+      <Icon size={15} color="#7c3aed" style={{ flexShrink: 0 }} />
+      <span style={{ width: 120, fontSize: 12, color: textMuted, flexShrink: 0 }}>{label}</span>
       {editMode ? (
         options ? (
-          <select
-            value={editData[field] ?? ""}
-            onChange={(e) => onChange(field, e.target.value)}
+          <select value={editData[field] ?? ""} onChange={e => onChange(field, e.target.value)}
             style={{
-              flex: 1, padding: "6px 10px", fontSize: 14, fontWeight: 500,
+              flex: 1, padding: "7px 10px", fontSize: 14, fontWeight: 500,
               color: textMain, background: inputBg,
-              border: `1px solid ${border}`, borderRadius: 8, outline: "none",
+              border: `1px solid ${border}`, borderRadius: 9,
             }}
           >
             <option value="">Sélectionner…</option>
-            {options.map((o) => <option key={o} value={o}>{o}</option>)}
+            {options.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         ) : (
-          <input
-            type={type}
-            value={editData[field] ?? ""}
-            onChange={(e) => onChange(field, e.target.value)}
+          <input type={type} value={editData[field] ?? ""} onChange={e => onChange(field, e.target.value)}
             min={type === "number" ? 0 : undefined}
             max={type === "number" ? 20 : undefined}
             step={type === "number" ? 0.25 : undefined}
             style={{
-              flex: 1, padding: "6px 10px", fontSize: 14, fontWeight: 500,
+              flex: 1, padding: "7px 10px", fontSize: 14, fontWeight: 500,
               color: textMain, background: inputBg,
-              border: `1px solid ${border}`, borderRadius: 8, outline: "none",
+              border: `1px solid ${border}`, borderRadius: 9,
             }}
           />
         )
       ) : (
-        <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: textMain }}>{displayed}</span>
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: value ? textMain : textMuted }}>
+          {value || "—"}
+        </span>
       )}
     </div>
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+function Empty({ icon: Icon, title, sub, color = "#7c3aed", border }) {
+  return (
+    <div style={{
+      textAlign: "center", padding: "32px 16px",
+      border: `2px dashed ${border}`, borderRadius: 14,
+    }}>
+      <Icon size={30} style={{ color, opacity: 0.3, marginBottom: 10 }} />
+      <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6 }}>{title}</div>
+      {sub && <div style={{ fontSize: 12, opacity: 0.4, marginTop: 4 }}>{sub}</div>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function Profile() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
-  const [editData, setEditData] = useState({});
-  const [saving, setSaving] = useState(false);
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [bulletins, setBulletins] = useState([]);
-  const [bulletinLoading, setBulletinLoading] = useState(false);
-  const [bulletinUploading, setBulletinUploading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-  const [toast, setToast] = useState({ msg: "", type: "success" });
-  const [orientResult, setOrientResult] = useState(undefined);
-  const [myRooms, setMyRooms] = useState(null);
-  const [schoolsHistory, setSchoolsHistory] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+
+  // ── state ──────────────────────────────────────────────────────────────────
+  const [profile,          setProfile]          = useState(null);
+  const [loading,          setLoading]          = useState(true);
+  const [editMode,         setEditMode]         = useState(false);
+  const [editData,         setEditData]         = useState({});
+  const [saving,           setSaving]           = useState(false);
+  const [avatarUploading,  setAvatarUploading]  = useState(false);
+  const [bulletins,        setBulletins]        = useState([]);
+  const [bulletinUploading,setBulletinUploading]= useState(false);
+  const [deletingId,       setDeletingId]       = useState(null);
+  const [toast,            setToast]            = useState({ msg: "", type: "success" });
+  const [orientResult,     setOrientResult]     = useState(undefined);
+  const [myRooms,          setMyRooms]          = useState(null);
+  const [schoolsHistory,   setSchoolsHistory]   = useState(null);
   const bulletinRef = useRef();
 
-  // colors
-  const bg = isDark
-    ? "linear-gradient(160deg, #0d0d1f 0%, #110d2b 50%, #0d1a1f 100%)"
-    : "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0fdf4 100%)";
-  const cardBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)";
-  const border = isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.08)";
-  const textMain = isDark ? "#fff" : "#1a1a2e";
-  const textMuted = isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)";
-  const purple = "#7c3aed";
+  // ── theme tokens ───────────────────────────────────────────────────────────
+  const pageBg   = isDark
+    ? "linear-gradient(160deg,#07071a 0%,#0e0826 55%,#071220 100%)"
+    : "linear-gradient(160deg,#f5f3ff 0%,#faf7ff 55%,#eef2ff 100%)";
+  const cardBg   = isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.88)";
+  const cardShadow = isDark
+    ? "0 4px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)"
+    : "0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.9)";
+  const border   = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
+  const textMain = isDark ? "#f1f5f9" : "#1a1a2e";
+  const textMuted= isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)";
+  const purple   = "#7c3aed";
 
-  function showToast(msg, type = "success") {
+  const cardStyle = { background: cardBg, border: `1px solid ${border}`, boxShadow: cardShadow, color: textMain };
+
+  // ── toast helper ───────────────────────────────────────────────────────────
+  const showToast = (msg, type = "success") => {
     setToast({ msg, type });
-    setTimeout(() => setToast({ msg: "", type: "success" }), 3000);
-  }
+    setTimeout(() => setToast({ msg: "", type: "success" }), 3200);
+  };
 
-  // ── fetch ──────────────────────────────────────────────────────────────────
+  const setField = (f, v) => setEditData(d => ({ ...d, [f]: v }));
 
+  // ── data fetching ──────────────────────────────────────────────────────────
   async function fetchProfile() {
     try {
-      const res = await fetch(API("/me"), { headers: authH() });
+      const res  = await fetch(API("/me"), { headers: authH() });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setProfile(data);
       setEditData({
-        prenom: data.prenom || "",
-        nom: data.nom || "",
-        ville: data.ville || "",
-        niveau: data.niveau || "",
+        prenom:           data.prenom           || "",
+        nom:              data.nom              || "",
+        telephone:        data.telephone        || "",
+        ville:            data.ville            || "",
+        niveau:           data.niveau           || "",
         moyenne_generale: data.moyenne_generale ?? "",
-        telephone: data.telephone || "",
         filiere_actuelle: data.filiere_actuelle || "",
-        note_bac: data.note_bac ?? "",
+        note_bac:         data.note_bac         ?? "",
       });
     } catch {
       showToast("Erreur lors du chargement du profil", "error");
@@ -244,56 +333,40 @@ export default function Profile() {
 
   async function fetchBulletins() {
     try {
-      const res = await fetch(API("/bulletins"), { headers: authH() });
+      const res  = await fetch(API("/bulletins"), { headers: authH() });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setBulletins(data.bulletins || []);
-    } catch {
-      // silent
-    }
+    } catch { /* silent */ }
   }
 
   async function fetchOrientResult() {
     try {
-      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/orientation/my-result", { headers: authH() });
+      const res  = await fetch(BASE_URL + "/api/orientation/my-result", { headers: authH() });
       if (!res.ok) { setOrientResult(null); return; }
       const data = await res.json();
       setOrientResult(data.result || null);
-    } catch {
-      setOrientResult(null);
-    }
+    } catch { setOrientResult(null); }
   }
 
   async function fetchMyRooms() {
     try {
-      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/rooms/my-rooms", { headers: authH() });
+      const res  = await fetch(BASE_URL + "/api/rooms/my-rooms", { headers: authH() });
       if (!res.ok) { setMyRooms([]); return; }
       const data = await res.json();
       setMyRooms(data.rooms || []);
-    } catch {
-      setMyRooms([]);
-    }
+    } catch { setMyRooms([]); }
   }
 
   async function fetchSchoolsHistory() {
     try {
-      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/schools/my-history", { headers: authH() });
+      const res  = await fetch(BASE_URL + "/api/schools/my-history", { headers: authH() });
       if (!res.ok) { setSchoolsHistory([]); return; }
       const data = await res.json();
       setSchoolsHistory(data.history || []);
-    } catch {
-      setSchoolsHistory([]);
-    }
+    } catch { setSchoolsHistory([]); }
   }
 
-  useEffect(() => {
-    const onResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
   useEffect(() => {
     fetchProfile();
     fetchBulletins();
@@ -303,26 +376,21 @@ export default function Profile() {
   }, []);
 
   // ── save profile ───────────────────────────────────────────────────────────
-
   async function saveProfile() {
     setSaving(true);
     try {
       const payload = {
-        prenom: editData.prenom,
-        nom: editData.nom,
-        ville: editData.ville,
-        niveau: editData.niveau,
-        telephone: editData.telephone,
+        prenom:           editData.prenom,
+        nom:              editData.nom,
+        telephone:        editData.telephone,
+        ville:            editData.ville,
+        niveau:           editData.niveau,
         filiere_actuelle: editData.filiere_actuelle,
       };
-      if (editData.moyenne_generale !== "" && editData.moyenne_generale !== null) {
-        const v = parseFloat(editData.moyenne_generale);
-        if (!isNaN(v)) payload.moyenne_generale = Math.min(20, Math.max(0, v));
-      }
-      if (editData.note_bac !== "" && editData.note_bac !== null) {
-        const v = parseFloat(editData.note_bac);
-        if (!isNaN(v)) payload.note_bac = Math.min(20, Math.max(0, v));
-      }
+      const mg = parseFloat(editData.moyenne_generale);
+      if (!isNaN(mg)) payload.moyenne_generale = Math.min(20, Math.max(0, mg));
+      const nb = parseFloat(editData.note_bac);
+      if (!isNaN(nb)) payload.note_bac = Math.min(20, Math.max(0, nb));
 
       const res = await fetch(API("/me"), {
         method: "PUT",
@@ -340,26 +408,19 @@ export default function Profile() {
     }
   }
 
-  // ── avatar ─────────────────────────────────────────────────────────────────
-
+  // ── avatar upload ──────────────────────────────────────────────────────────
   async function uploadAvatar(file) {
-    if (file.size > 10 * 1024 * 1024) {
-      showToast("Image trop grande (max 10 MB)", "error");
-      return;
-    }
+    if (file.size > 10 * 1024 * 1024) { showToast("Image trop grande (max 10 MB)", "error"); return; }
     setAvatarUploading(true);
     try {
       const fd = new FormData();
       fd.append("avatar", file);
-      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/profile/avatar", {
+      const res = await fetch(BASE_URL + "/api/profile/avatar", {
         method: "POST",
         headers: { "Authorization": `Bearer ${localStorage.getItem("najahi_token")}` },
         body: fd,
       });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || "Erreur");
-      }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Erreur"); }
       await fetchProfile();
       showToast("Photo mise à jour ✓");
     } catch (e) {
@@ -370,27 +431,19 @@ export default function Profile() {
   }
 
   // ── bulletins ──────────────────────────────────────────────────────────────
-
   async function uploadBulletin(file) {
-    if (bulletins.length >= 5) {
-      showToast("Maximum 5 bulletins autorisés", "error");
-      return;
-    }
+    if (bulletins.length >= 5) { showToast("Maximum 5 bulletins autorisés", "error"); return; }
     setBulletinUploading(true);
     try {
       const fd = new FormData();
       fd.append("bulletin", file);
-      const res = await fetch(API("/upload-bulletin"), {
-        method: "POST",
-        headers: authH(),
-        body: fd,
-      });
+      const res  = await fetch(API("/upload-bulletin"), { method: "POST", headers: authH(), body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur");
       await fetchBulletins();
       showToast("Bulletin ajouté ✓");
     } catch (e) {
-      showToast(e.message || "Erreur lors de l'upload", "error");
+      showToast(e.message || "Erreur upload", "error");
     } finally {
       setBulletinUploading(false);
       if (bulletinRef.current) bulletinRef.current.value = "";
@@ -400,12 +453,9 @@ export default function Profile() {
   async function deleteBulletin(id) {
     setDeletingId(id);
     try {
-      const res = await fetch(API(`/bulletin/${id}`), {
-        method: "DELETE",
-        headers: authH(),
-      });
+      const res = await fetch(API(`/bulletin/${id}`), { method: "DELETE", headers: authH() });
       if (!res.ok) throw new Error();
-      setBulletins((b) => b.filter((x) => x.id !== id));
+      setBulletins(b => b.filter(x => x.id !== id));
       showToast("Bulletin supprimé");
     } catch {
       showToast("Erreur lors de la suppression", "error");
@@ -416,61 +466,42 @@ export default function Profile() {
 
   async function downloadBulletin(id, name) {
     try {
-      const res = await fetch(API(`/bulletin/${id}/download`), { headers: authH() });
+      const res  = await fetch(API(`/bulletin/${id}/download`), { headers: authH() });
       if (!res.ok) throw new Error();
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      a.click();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url; a.download = name; a.click();
       URL.revokeObjectURL(url);
     } catch {
       showToast("Erreur lors du téléchargement", "error");
     }
   }
 
-  // ── render ─────────────────────────────────────────────────────────────────
-
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: "100vh", background: bg,
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: "50%",
-          border: "3px solid rgba(124,58,237,0.2)",
-          borderTop: "3px solid #7c3aed",
-          animation: "spin 0.8s linear infinite",
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  // ── loading screen ─────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <style>{GLOBAL_CSS}</style>
+      <Spinner size={40} />
+    </div>
+  );
 
   const fullName = [profile?.prenom, profile?.nom].filter(Boolean).join(" ") || "Étudiant";
 
+  // ── render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: "100vh", background: bg, fontFamily: "'DM Sans', sans-serif" }}>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideInRight { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
-        input:focus, select:focus { border-color: #7c3aed !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
-        .bulletin-row:hover { background: rgba(124,58,237,0.06) !important; }
-      `}</style>
+    <div style={{ minHeight: "100vh", background: pageBg, fontFamily: "'DM Sans', sans-serif", color: textMain }}>
+      <style>{GLOBAL_CSS}</style>
 
-      {/* ── Navbar ── */}
+      {/* ── Sticky Navbar ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 100,
-        background: isDark ? "rgba(13,13,31,0.85)" : "rgba(245,243,255,0.85)",
-        backdropFilter: "blur(16px)",
+        background: isDark ? "rgba(7,7,26,0.82)" : "rgba(248,245,255,0.82)",
+        backdropFilter: "blur(18px)",
         borderBottom: `1px solid ${border}`,
-        display: "flex", alignItems: "center", gap: 14,
-        height: isMobile ? 56 : isTablet ? 60 : "auto",
-        padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 24px",
-        overflow: "hidden",
+        display: "flex", alignItems: "center", gap: 12,
+        height: isMobile ? 56 : 64,
+        padding: isMobile ? "0 16px" : "0 24px",
       }}>
         <button onClick={() => navigate("/app/dashboard")} style={{
           width: 36, height: 36, borderRadius: "50%",
@@ -481,537 +512,406 @@ export default function Profile() {
         }}>
           <ArrowLeft size={16} />
         </button>
-        <span style={{
-          fontSize: isMobile ? 15 : isTablet ? 16 : 18, fontWeight: 800, color: textMain,
-          fontFamily: "'Fraunces', serif", flex: 1,
-        }}>
+        <span style={{ flex: 1, fontSize: isMobile ? 16 : 18, fontWeight: 800, fontFamily: "'Fraunces', serif" }}>
           Mon Profil
         </span>
         <ThemeToggle />
       </div>
 
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: "28px 16px 60px" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: isMobile ? "20px 12px 60px" : "28px 20px 80px" }}>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 1 — Profile Info
-        ══════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          background: cardBg,
-          border: `1px solid ${border}`,
-          borderRadius: 20,
-          backdropFilter: "blur(16px)",
-          overflow: "hidden",
-          marginBottom: 20,
-          animation: "fadeUp 0.5s ease both",
-          boxShadow: isDark
-            ? "0 8px 40px rgba(124,58,237,0.12)"
-            : "0 4px 24px rgba(0,0,0,0.07)",
-        }}>
-          {/* Card header gradient — hero banner */}
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 1 — Hero Header
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0} style={{ ...cardStyle }}>
+          {/* Banner */}
           <div style={{
-            height: 130,
-            background: isDark
-              ? "linear-gradient(135deg, #4c1d95 0%, #7c3aed 45%, #1e3a5f 100%)"
-              : "linear-gradient(135deg, #7c3aed 0%, #a78bfa 45%, #818cf8 100%)",
-            position: "relative",
-            overflow: "hidden",
+            height: 160,
+            background: "linear-gradient(135deg, #5b21b6 0%, #7c3aed 45%, #818cf8 100%)",
+            position: "relative", overflow: "hidden",
           }}>
-            <div style={{
-              position: "absolute", top: -40, right: -40,
-              width: 180, height: 180, borderRadius: "50%",
-              background: "rgba(255,255,255,0.07)",
-            }} />
-            <div style={{
-              position: "absolute", bottom: -30, left: 60,
-              width: 120, height: 120, borderRadius: "50%",
-              background: "rgba(255,255,255,0.05)",
-            }} />
-            {/* Edit / Save buttons in top-right */}
-            <div style={{ position: "absolute", top: 14, right: 16, display: "flex", gap: 8 }}>
-              {editMode ? (
-                <>
-                  <button onClick={() => setEditMode(false)} style={{
-                    padding: "6px 14px", fontSize: 12, fontWeight: 600,
-                    background: "rgba(255,255,255,0.15)", color: "white",
-                    border: "1px solid rgba(255,255,255,0.3)",
-                    borderRadius: 10, cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: 5,
-                    backdropFilter: "blur(8px)",
-                  }}>
-                    <X size={13} /> Annuler
-                  </button>
-                  <button onClick={saveProfile} disabled={saving} style={{
-                    padding: "6px 14px", fontSize: 12, fontWeight: 700,
-                    background: "rgba(255,255,255,0.9)", color: purple,
-                    border: "none", borderRadius: 10, cursor: saving ? "not-allowed" : "pointer",
-                    display: "flex", alignItems: "center", gap: 5,
-                    opacity: saving ? 0.7 : 1,
-                  }}>
-                    {saving ? <div style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid rgba(124,58,237,0.3)", borderTop: "2px solid #7c3aed", animation: "spin 0.8s linear infinite" }} /> : <Save size={13} />}
-                    Enregistrer
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => setEditMode(true)} style={{
-                  padding: "6px 14px", fontSize: 12, fontWeight: 700,
-                  background: "rgba(255,255,255,0.15)", color: "white",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  borderRadius: 10, cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 5,
-                  backdropFilter: "blur(8px)",
+            <div style={{ position:"absolute", top:-50, right:-50, width:240, height:240, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }} />
+            <div style={{ position:"absolute", bottom:-60, left:40,  width:160, height:160, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }} />
+            <div style={{ position:"absolute", top:20,   left:"50%", width:80,  height:80,  borderRadius:"50%", background:"rgba(255,255,255,0.03)", transform:"translateX(-50%)" }} />
+          </div>
+
+          {/* Avatar + identity */}
+          <div style={{ padding: "0 24px 28px", textAlign: "center" }}>
+            <div style={{ display:"flex", justifyContent:"center", marginTop: -50, marginBottom: 14 }}>
+              <Avatar profile={profile} onUpload={uploadAvatar} uploading={avatarUploading} size={100} />
+            </div>
+
+            <div style={{ fontFamily:"'Fraunces', serif", fontSize: isMobile ? 22 : 26, fontWeight: 800, lineHeight: 1.2, marginBottom: 6 }}>
+              {fullName}
+            </div>
+            <div style={{ fontSize: 13, color: textMuted, marginBottom: 14, display:"flex", alignItems:"center", justifyContent:"center", gap: 6 }}>
+              <User size={13} />
+              {profile?.email || "—"}
+            </div>
+
+            {/* Tags row */}
+            <div style={{ display:"flex", gap: 8, justifyContent:"center", flexWrap:"wrap" }}>
+              {profile?.ville && (
+                <span style={{
+                  display:"flex", alignItems:"center", gap: 4,
+                  fontSize: 12, fontWeight: 600, color: purple,
+                  background: `${purple}14`, padding:"4px 12px",
+                  borderRadius: 99, border:`1px solid ${purple}28`,
                 }}>
-                  <Pencil size={13} /> Modifier
-                </button>
+                  <MapPin size={11} /> {profile.ville}
+                </span>
+              )}
+              {profile?.niveau && (
+                <span style={{
+                  display:"flex", alignItems:"center", gap: 4,
+                  fontSize: 12, fontWeight: 600,
+                  color: isDark ? "#a78bfa" : "#6d28d9",
+                  background: isDark ? "rgba(167,139,250,0.12)" : "rgba(109,40,217,0.08)",
+                  padding:"4px 12px", borderRadius: 99,
+                  border:`1px solid ${isDark?"rgba(167,139,250,0.25)":"rgba(109,40,217,0.2)"}`,
+                }}>
+                  <GraduationCap size={11} /> {profile.niveau}
+                </span>
+              )}
+              {profile?.created_at && (
+                <span style={{
+                  display:"flex", alignItems:"center", gap: 4,
+                  fontSize: 12, fontWeight: 500, color: textMuted,
+                  background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                  padding:"4px 12px", borderRadius: 99,
+                  border:`1px solid ${border}`,
+                }}>
+                  <Calendar size={11} /> Inscrit le {fmtDate(profile.created_at)}
+                </span>
               )}
             </div>
           </div>
+        </Card>
 
-          <div style={{ padding: "0 24px 24px" }}>
-            {/* Avatar + name row */}
-            <div style={{
-              display: "flex", alignItems: "flex-end", gap: 18, flexWrap: "wrap",
-              marginTop: isMobile ? -36 : -50, marginBottom: 16,
-            }}>
-              <AvatarZone
-                profile={profile}
-                onUpload={uploadAvatar}
-                uploading={avatarUploading}
-              />
-              <div style={{ paddingBottom: 6 }}>
-                <div style={{
-                  fontSize: 20, fontWeight: 800, color: textMain,
-                  fontFamily: "'Fraunces', serif",
-                }}>{fullName}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-                  {profile?.niveau && (
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, color: purple,
-                      background: `${purple}18`, padding: "2px 10px",
-                      borderRadius: 99, border: `1px solid ${purple}33`,
-                    }}>{profile.niveau}</span>
-                  )}
-                  {profile?.ville && (
-                    <span style={{ fontSize: 12, color: textMuted, display: "flex", alignItems: "center", gap: 3 }}>
-                      <MapPin size={11} /> {profile.ville}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Fields */}
-            <Field icon={User}         label="Prénom"       field="prenom"           value={profile?.prenom}          editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={User}         label="Nom"          field="nom"              value={profile?.nom}             editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={User}         label="Email"        field="email"            value={profile?.email}           editMode={false}    editData={editData} onChange={() => {}}                                     isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={User}         label="Téléphone"    field="telephone"        value={profile?.telephone}       editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={MapPin}       label="Ville"        field="ville"            value={profile?.ville}           editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} options={VILLES}    isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={GraduationCap} label="Type de Bac" field="niveau"           value={profile?.niveau}          editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} options={BAC_TYPES} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={BookOpen}     label="Note Bac"     field="moyenne_generale" value={profile?.moyenne_generale != null ? `${profile.moyenne_generale}/20` : null} editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} type="number" isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-            <Field icon={BookOpen}     label="Filière"      field="filiere_actuelle" value={profile?.filiere_actuelle} editMode={editMode} editData={editData} onChange={(f,v) => setEditData(d => ({...d,[f]:v}))} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 2 — Dashboard mini cards
-        ══════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 16,
-          marginBottom: 20,
-          animation: "fadeUp 0.5s 0.1s ease both",
-        }}>
-          {/* Study With Me card */}
-          <div style={{
-            background: cardBg,
-            border: `1px solid ${border}`,
-            borderRadius: 20,
-            padding: 22,
-            backdropFilter: "blur(16px)",
-            boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <BookOpen size={18} color="white" />
-              </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Study With Me 📚</div>
-                <div style={{ fontSize: 11, color: textMuted }}>Statistiques de travail</div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-              {[
-                { icon: Clock, label: "Heures", value: "—" },
-                { icon: Users, label: "Sessions", value: "—" },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} style={{
-                  flex: 1, padding: "10px 12px", borderRadius: 12,
-                  background: isDark ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.06)",
-                  border: `1px solid rgba(124,58,237,0.15)`,
-                  textAlign: "center",
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 2 — Info personnelles
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0.07} style={{ ...cardStyle, padding: "22px 24px" }}>
+          <SectionHeader
+            icon={User}
+            title="Informations personnelles"
+            subtitle="Profil académique et contact"
+            accent="linear-gradient(135deg, #7c3aed, #a78bfa)"
+          >
+            {editMode ? (
+              <div style={{ display:"flex", gap: 8 }}>
+                <button onClick={() => setEditMode(false)} style={{
+                  padding:"7px 14px", fontSize:12, fontWeight:600, borderRadius:10,
+                  background:"none", border:`1px solid ${border}`,
+                  cursor:"pointer", color: textMuted, display:"flex", alignItems:"center", gap:5,
                 }}>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: purple }}>{value}</div>
-                  <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{label}</div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ fontSize: 12, color: textMuted, marginBottom: 14 }}>
-              Dernière session : <span style={{ color: textMain, fontWeight: 600 }}>—</span>
-            </div>
-
-            <button
-              onClick={() => navigate("/app/servers")}
-              style={{
-                width: "100%", padding: "10px", fontSize: 13, fontWeight: 700,
-                background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
-                color: "white", border: "none", borderRadius: 12, cursor: "pointer",
-              }}
-            >
-              Rejoindre un stream →
-            </button>
-          </div>
-
-          {/* Orientation card */}
-          <div style={{
-            background: cardBg,
-            border: `1px solid ${border}`,
-            borderRadius: 20,
-            padding: 22,
-            backdropFilter: "blur(16px)",
-            boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: "linear-gradient(135deg, #059669, #34d399)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Compass size={18} color="white" />
-              </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Test d'Orientation 🧭</div>
-                <div style={{ fontSize: 11, color: textMuted }}>Recommandations IA</div>
-              </div>
-            </div>
-
-            {orientResult ? (
-              <>
-                <div style={{
-                  padding: "14px", borderRadius: 12,
-                  background: isDark ? "rgba(5,150,105,0.08)" : "rgba(5,150,105,0.05)",
-                  border: "1px solid rgba(5,150,105,0.15)",
-                  marginBottom: 14,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 20 }}>
-                      {{"engineering":"🏗️","business":"📊","health":"🏥","architecture":"🏛️","preparatoire":"📖","university":"🎓"}[orientResult.filiere] || "🎓"}
-                    </span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: textMain, lineHeight: 1.3 }}>
-                        {orientResult.ecole}
-                      </div>
-                      <span style={{
-                        display: "inline-block", marginTop: 4,
-                        fontSize: 10, fontWeight: 700, color: purple,
-                        background: `${purple}18`, padding: "2px 8px",
-                        borderRadius: 99, border: `1px solid ${purple}33`,
-                      }}>
-                        {{"engineering":"Ingénierie","business":"Business","health":"Médecine & Santé","architecture":"Architecture","preparatoire":"Classes Prépa","university":"Université"}[orientResult.filiere] || orientResult.filiere}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ marginBottom: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 11, color: textMuted }}>Compatibilité</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#059669" }}>{orientResult.confidence}%</span>
-                    </div>
-                    <div style={{ height: 6, borderRadius: 99, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${orientResult.confidence}%`, background: "linear-gradient(90deg, #059669, #34d399)", borderRadius: 99, transition: "width 1s ease" }} />
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, color: textMuted }}>
-                    Testé le {orientResult.created_at ? new Date(orientResult.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate("/app/orientation")}
-                  style={{
-                    width: "100%", padding: "10px", fontSize: 13, fontWeight: 700,
-                    background: isDark ? "rgba(5,150,105,0.15)" : "rgba(5,150,105,0.1)",
-                    color: "#059669", border: "1px solid rgba(5,150,105,0.25)",
-                    borderRadius: 12, cursor: "pointer",
-                  }}
-                >
-                  Refaire le test →
+                  <X size={13} /> Annuler
                 </button>
-              </>
+                <button onClick={saveProfile} disabled={saving} style={{
+                  padding:"7px 16px", fontSize:12, fontWeight:700, borderRadius:10,
+                  background: purple, color:"#fff", border:"none",
+                  cursor: saving ? "not-allowed" : "pointer",
+                  display:"flex", alignItems:"center", gap:5,
+                  opacity: saving ? 0.7 : 1,
+                }}>
+                  {saving ? <Spinner size={12} color="#fff" /> : <Save size={13} />}
+                  Enregistrer
+                </button>
+              </div>
             ) : (
-              <>
-                <div style={{
-                  padding: "14px", borderRadius: 12,
-                  background: isDark ? "rgba(5,150,105,0.08)" : "rgba(5,150,105,0.05)",
-                  border: "1px solid rgba(5,150,105,0.15)",
-                  marginBottom: 14,
-                  display: "flex", alignItems: "center", gap: 10,
-                }}>
-                  <AlertCircle size={18} color="#059669" style={{ flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: textMain }}>
-                      Aucun test effectué
+              <button onClick={() => setEditMode(true)} style={{
+                padding:"7px 16px", fontSize:12, fontWeight:700, borderRadius:10,
+                background:`${purple}16`, color: purple,
+                border:`1px solid ${purple}36`,
+                cursor:"pointer", display:"flex", alignItems:"center", gap:5,
+              }}>
+                <Pencil size={13} /> Modifier
+              </button>
+            )}
+          </SectionHeader>
+
+          <InfoField icon={User}          label="Prénom"       field="prenom"           value={profile?.prenom}          editData={editData} editMode={editMode} onChange={setField} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+          <InfoField icon={User}          label="Nom"          field="nom"              value={profile?.nom}             editData={editData} editMode={editMode} onChange={setField} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+          <InfoField icon={Phone}         label="Téléphone"    field="telephone"        value={profile?.telephone}       editData={editData} editMode={editMode} onChange={setField} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+          <InfoField icon={MapPin}        label="Ville"        field="ville"            value={profile?.ville}           editData={editData} editMode={editMode} onChange={setField} options={VILLES}    isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+          <InfoField icon={GraduationCap} label="Type de Bac"  field="niveau"           value={profile?.niveau}          editData={editData} editMode={editMode} onChange={setField} options={BAC_TYPES} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+          <InfoField icon={TrendingUp}    label="Note Bac"     field="moyenne_generale" value={profile?.moyenne_generale != null ? `${profile.moyenne_generale}/20` : null} editData={editData} editMode={editMode} onChange={setField} type="number" isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} />
+          <InfoField icon={BookOpen}      label="Filière"      field="filiere_actuelle" value={profile?.filiere_actuelle} editData={editData} editMode={editMode} onChange={setField} isDark={isDark} border={border} textMain={textMain} textMuted={textMuted} noSep />
+        </Card>
+
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 3 — Orientation result
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0.12} style={{ ...cardStyle, padding: "22px 24px" }}>
+          <SectionHeader
+            icon={Compass}
+            title="Test d'Orientation"
+            subtitle="Recommandation IA personnalisée"
+            accent="linear-gradient(135deg, #059669, #34d399)"
+          />
+
+          {orientResult ? (
+            <>
+              <div style={{
+                padding: 16, borderRadius: 14,
+                background: isDark ? "rgba(5,150,105,0.08)" : "rgba(5,150,105,0.05)",
+                border: "1px solid rgba(5,150,105,0.18)",
+                marginBottom: 14,
+              }}>
+                <div style={{ display:"flex", alignItems:"center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 28 }}>{TYPE_EMOJI[orientResult.filiere] || "🎓"}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, fontFamily:"'Fraunces', serif", lineHeight: 1.3 }}>
+                      {orientResult.ecole}
                     </div>
-                    <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>
-                      Découvre l'école qui te correspond
-                    </div>
+                    <span style={{
+                      display:"inline-block", marginTop: 4,
+                      fontSize: 10, fontWeight: 700, color: "#059669",
+                      background: "rgba(5,150,105,0.12)", padding:"2px 9px",
+                      borderRadius: 99, border:"1px solid rgba(5,150,105,0.25)",
+                    }}>
+                      {TYPE_LABEL[orientResult.filiere] || orientResult.filiere}
+                    </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => navigate("/app/orientation")}
-                  style={{
-                    width: "100%", padding: "10px", fontSize: 13, fontWeight: 700,
-                    background: "linear-gradient(135deg, #059669, #34d399)",
-                    color: "white", border: "none", borderRadius: 12, cursor: "pointer",
-                  }}
-                >
-                  Faire le test →
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 3 — Bulletins
-        ══════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          background: cardBg,
-          border: `1px solid ${border}`,
-          borderRadius: 20,
-          padding: 24,
-          backdropFilter: "blur(16px)",
-          animation: "fadeUp 0.5s 0.2s ease both",
-          boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
-        }}>
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: "linear-gradient(135deg, #dc2626, #f87171)",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: textMuted }}>Compatibilité</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#059669" }}>{orientResult.confidence}%</span>
+                </div>
+                <div style={{ height: 8, borderRadius: 99, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)", overflow:"hidden" }}>
+                  <div style={{
+                    height:"100%", borderRadius: 99, transition:"width 1.2s ease",
+                    width:`${orientResult.confidence}%`,
+                    background:"linear-gradient(90deg,#059669,#34d399)",
+                  }} />
+                </div>
+                <div style={{ fontSize: 11, color: textMuted, marginTop: 8 }}>
+                  Testé le {fmtDate(orientResult.created_at)}
+                </div>
+              </div>
+              <button onClick={() => navigate("/app/orientation")} style={{
+                width:"100%", padding: "11px", fontSize: 13, fontWeight: 700,
+                background: isDark ? "rgba(5,150,105,0.14)" : "rgba(5,150,105,0.09)",
+                color:"#059669", border:"1px solid rgba(5,150,105,0.25)",
+                borderRadius: 12, cursor:"pointer",
               }}>
-                <FileText size={18} color="white" />
+                Refaire le test →
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{
+                display:"flex", alignItems:"center", gap: 12,
+                padding: 16, borderRadius: 14, marginBottom: 14,
+                background: isDark ? "rgba(5,150,105,0.06)" : "rgba(5,150,105,0.04)",
+                border:"1px solid rgba(5,150,105,0.15)",
+              }}>
+                <AlertCircle size={20} color="#059669" style={{ flexShrink:0 }} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>Aucun test effectué</div>
+                  <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>Découvre l'école qui te correspond</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Bulletins Scolaires</div>
-                <div style={{ fontSize: 11, color: textMuted }}>{bulletins.length} / 5 bulletins</div>
-              </div>
-            </div>
+              <button onClick={() => navigate("/app/orientation")} style={{
+                width:"100%", padding: "11px", fontSize: 13, fontWeight: 700,
+                background:"linear-gradient(135deg,#059669,#34d399)",
+                color:"#fff", border:"none", borderRadius: 12, cursor:"pointer",
+              }}>
+                Faire le test d'orientation →
+              </button>
+            </>
+          )}
+        </Card>
 
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 4 — Study stats
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0.17} style={{ ...cardStyle, padding: "22px 24px" }}>
+          <SectionHeader
+            icon={Clock}
+            title="Statistiques d'étude"
+            subtitle="Study With Me · Sessions de travail"
+            accent="linear-gradient(135deg, #7c3aed, #a78bfa)"
+          />
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 12, marginBottom: 16 }}>
+            {[
+              { icon: Clock,  label: "Heures étudiées", value: "—" },
+              { icon: Users,  label: "Sessions",        value: "—" },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} style={{
+                padding: "16px 14px", borderRadius: 14, textAlign:"center",
+                background: isDark ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.06)",
+                border:`1px solid rgba(124,58,237,0.15)`,
+              }}>
+                <Icon size={18} color={purple} style={{ marginBottom: 8, opacity: 0.8 }} />
+                <div style={{ fontSize: 26, fontWeight: 800, color: purple, fontFamily:"'Fraunces', serif" }}>{value}</div>
+                <div style={{ fontSize: 11, color: textMuted, marginTop: 4 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            padding: "12px 14px", borderRadius: 12,
+            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
+            border:`1px solid ${border}`,
+            marginBottom: 14,
+          }}>
+            <span style={{ fontSize: 13, color: textMuted }}>Dernière session</span>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>—</span>
+          </div>
+
+          <button onClick={() => navigate("/app/servers")} style={{
+            width:"100%", padding: "11px", fontSize: 13, fontWeight: 700,
+            background:"linear-gradient(135deg,#7c3aed,#a78bfa)",
+            color:"#fff", border:"none", borderRadius: 12, cursor:"pointer",
+          }}>
+            Rejoindre un stream d'étude →
+          </button>
+        </Card>
+
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 5 — Bulletins
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0.22} style={{ ...cardStyle, padding: "22px 24px" }}>
+          <SectionHeader
+            icon={FileText}
+            title="Bulletins Scolaires"
+            subtitle={`${bulletins.length} / 5 bulletins`}
+            accent="linear-gradient(135deg, #dc2626, #f87171)"
+          >
             <button
               onClick={() => bulletinRef.current?.click()}
               disabled={bulletinUploading || bulletins.length >= 5}
               style={{
-                padding: "9px 18px", fontSize: 13, fontWeight: 700,
-                background: bulletins.length >= 5 ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)") : "linear-gradient(135deg, #7c3aed, #a78bfa)",
-                color: bulletins.length >= 5 ? textMuted : "white",
-                border: "none", borderRadius: 12,
+                padding:"8px 16px", fontSize: 12, fontWeight: 700,
+                background: bulletins.length >= 5
+                  ? (isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)")
+                  : "linear-gradient(135deg,#7c3aed,#a78bfa)",
+                color: bulletins.length >= 5 ? textMuted : "#fff",
+                border:"none", borderRadius: 10,
                 cursor: (bulletinUploading || bulletins.length >= 5) ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", gap: 7,
+                display:"flex", alignItems:"center", gap: 6,
                 opacity: bulletinUploading ? 0.7 : 1,
               }}
             >
-              {bulletinUploading ? (
-                <div style={{ width: 13, height: 13, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid white", animation: "spin 0.8s linear infinite" }} />
-              ) : <Upload size={13} />}
-              {bulletins.length >= 5 ? "Limite atteinte" : "Ajouter un bulletin"}
+              {bulletinUploading ? <Spinner size={12} color="#fff" /> : <Upload size={13} />}
+              {bulletins.length >= 5 ? "Limite atteinte" : "Ajouter"}
             </button>
-            <input
-              ref={bulletinRef}
-              type="file"
-              accept="application/pdf,.pdf"
-              style={{ display: "none" }}
-              onChange={(e) => e.target.files?.[0] && uploadBulletin(e.target.files[0])}
-            />
-          </div>
+            <input ref={bulletinRef} type="file" accept="application/pdf,.pdf" style={{ display:"none" }}
+              onChange={e => e.target.files?.[0] && uploadBulletin(e.target.files[0])} />
+          </SectionHeader>
 
-          {/* Progress bar */}
-          <div style={{
-            height: 4, borderRadius: 4, marginBottom: 20,
-            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-          }}>
+          {/* progress bar */}
+          <div style={{ height: 5, borderRadius: 5, marginBottom: 18, background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)" }}>
             <div style={{
-              height: "100%", borderRadius: 4,
-              width: `${(bulletins.length / 5) * 100}%`,
-              background: "linear-gradient(90deg, #7c3aed, #a78bfa)",
-              transition: "width 0.4s ease",
+              height:"100%", borderRadius: 5, transition:"width 0.4s ease",
+              width:`${(bulletins.length / 5) * 100}%`,
+              background:"linear-gradient(90deg,#7c3aed,#a78bfa)",
             }} />
           </div>
 
-          {/* List */}
           {bulletins.length === 0 ? (
-            <div style={{
-              textAlign: "center", padding: "36px 0",
-              border: `2px dashed ${border}`, borderRadius: 14,
-            }}>
-              <FileText size={36} color={textMuted} style={{ marginBottom: 12, opacity: 0.4 }} />
-              <div style={{ fontSize: 14, color: textMuted }}>Aucun bulletin ajouté</div>
-              <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>
-                Formats acceptés : PDF · Max 10 MB · Max 5 bulletins
-              </div>
-            </div>
+            <Empty icon={FileText} title="Aucun bulletin ajouté" sub="PDF · max 10 MB · max 5 fichiers" color="#dc2626" border={border} />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {bulletins.map((b) => (
-                <div
-                  key={b.id}
-                  className="bulletin-row"
-                  style={{
-                    display: "flex", alignItems: "center", gap: 12,
-                    padding: "12px 14px", borderRadius: 12,
-                    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
-                    border: `1px solid ${border}`,
-                    transition: "background 0.2s",
-                  }}
-                >
+            <div style={{ display:"flex", flexDirection:"column", gap: 8 }}>
+              {bulletins.map(b => (
+                <div key={b.id} className="pfx-bul-row" style={{
+                  display:"flex", alignItems:"center", gap: 12,
+                  padding:"12px 14px", borderRadius: 12,
+                  background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                  border:`1px solid ${border}`, transition:"background 0.15s",
+                }}>
                   <div style={{
-                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                    background: "rgba(220,38,38,0.12)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                    background:"rgba(220,38,38,0.1)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
                   }}>
                     <FileText size={16} color="#dc2626" />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 13, fontWeight: 600, color: textMain,
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {b.original_name}
                     </div>
-                    <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>
-                      {fmtDate(b.uploaded_at)}
-                    </div>
+                    <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{fmtDate(b.uploaded_at)}</div>
                   </div>
-                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                    <button
-                      onClick={() => downloadBulletin(b.id, b.original_name)}
-                      title="Télécharger"
-                      style={{
-                        width: 32, height: 32, borderRadius: 8, border: `1px solid ${border}`,
-                        background: "none", cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: textMuted, transition: "all 0.15s",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = purple; e.currentTarget.style.borderColor = purple; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = textMuted; e.currentTarget.style.borderColor = border; }}
+                  <div style={{ display:"flex", gap: 6, flexShrink: 0 }}>
+                    <button onClick={() => downloadBulletin(b.id, b.original_name)}
+                      style={{ width:32, height:32, borderRadius:8, border:`1px solid ${border}`, background:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color: textMuted }}
+                      onMouseEnter={e => { e.currentTarget.style.color=purple; e.currentTarget.style.borderColor=purple; }}
+                      onMouseLeave={e => { e.currentTarget.style.color=textMuted; e.currentTarget.style.borderColor=border; }}
                     >
                       <Download size={14} />
                     </button>
-                    <button
-                      onClick={() => deleteBulletin(b.id)}
-                      disabled={deletingId === b.id}
-                      title="Supprimer"
-                      style={{
-                        width: 32, height: 32, borderRadius: 8, border: "1px solid rgba(220,38,38,0.25)",
-                        background: "none", cursor: deletingId === b.id ? "not-allowed" : "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "#dc2626", transition: "all 0.15s",
-                        opacity: deletingId === b.id ? 0.5 : 1,
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.1)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                    <button onClick={() => deleteBulletin(b.id)} disabled={deletingId === b.id}
+                      style={{ width:32, height:32, borderRadius:8, border:"1px solid rgba(220,38,38,0.25)", background:"none", cursor: deletingId===b.id?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#dc2626", opacity: deletingId===b.id?0.5:1 }}
+                      onMouseEnter={e => e.currentTarget.style.background="rgba(220,38,38,0.1)"}
+                      onMouseLeave={e => e.currentTarget.style.background="none"}
                     >
-                      {deletingId === b.id ? (
-                        <div style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid rgba(220,38,38,0.3)", borderTop: "2px solid #dc2626", animation: "spin 0.8s linear infinite" }} />
-                      ) : <Trash2 size={14} />}
+                      {deletingId === b.id ? <Spinner size={12} color="#dc2626" /> : <Trash2 size={14} />}
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
-      </div>
+        </Card>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 4 — Historique des salles privées
-        ══════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          background: cardBg, border: `1px solid ${border}`, borderRadius: 20, padding: 24,
-          backdropFilter: "blur(16px)", animation: "fadeUp 0.5s 0.3s ease both",
-          boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
-          marginBottom: 20,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Users size={18} color="white" />
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Historique des salles privées</div>
-              <div style={{ fontSize: 11, color: textMuted }}>
-                {myRooms === null ? "Chargement..." : `${myRooms.length} salle${myRooms.length !== 1 ? "s" : ""}`}
-              </div>
-            </div>
-          </div>
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 6 — Room history
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0.27} style={{ ...cardStyle, padding: "22px 24px" }}>
+          <SectionHeader
+            icon={Users}
+            title="Salles privées"
+            subtitle={myRooms === null ? "Chargement…" : `${myRooms.length} salle${myRooms.length !== 1 ? "s" : ""}`}
+            accent="linear-gradient(135deg, #7c3aed, #a78bfa)"
+          />
 
           {myRooms === null ? (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ width: 24, height: 24, borderRadius: "50%", border: "3px solid rgba(124,58,237,0.2)", borderTop: "3px solid #7c3aed", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+            <div style={{ display:"flex", justifyContent:"center", padding:"24px 0" }}>
+              <Spinner />
             </div>
           ) : myRooms.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "28px 0", border: `2px dashed ${border}`, borderRadius: 14 }}>
-              <Users size={28} color={textMuted} style={{ marginBottom: 8, opacity: 0.4 }} />
-              <div style={{ fontSize: 14, color: textMuted }}>Aucune salle privée</div>
-              <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>Crée ou rejoins une salle pour commencer</div>
-            </div>
+            <Empty icon={Users} title="Aucune salle privée" sub="Crée ou rejoins une salle pour commencer" border={border} />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {myRooms.map((room) => (
+            <div style={{ display:"flex", flexDirection:"column", gap: 8 }}>
+              {myRooms.map(room => (
                 <div key={room.id} style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12,
-                  background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
-                  border: `1px solid ${border}`, flexWrap: "wrap",
+                  display:"flex", alignItems:"center", gap: 12,
+                  padding:"12px 14px", borderRadius: 12,
+                  background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                  border:`1px solid ${border}`, flexWrap:"wrap",
                 }}>
                   <div style={{
-                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                    background: room.is_active ? "rgba(16,185,129,0.15)" : "rgba(124,58,237,0.12)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                    background: room.is_active ? "rgba(16,185,129,0.15)" : `${purple}14`,
+                    display:"flex", alignItems:"center", justifyContent:"center",
                   }}>
                     <Users size={16} color={room.is_active ? "#10b981" : purple} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {room.name}
                       {room.is_host && (
-                        <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: "#f59e0b", background: "rgba(245,158,11,0.12)", padding: "2px 6px", borderRadius: 99, border: "1px solid rgba(245,158,11,0.2)" }}>
+                        <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color:"#f59e0b", background:"rgba(245,158,11,0.12)", padding:"2px 7px", borderRadius: 99, border:"1px solid rgba(245,158,11,0.22)" }}>
                           Hôte
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: textMuted, marginTop: 2, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 11, color: textMuted, marginTop: 3, display:"flex", gap: 8, flexWrap:"wrap" }}>
                       <span>{fmtDate(room.created_at)}</span>
                       <span>· {room.participant_count} participant{room.participant_count !== 1 ? "s" : ""}</span>
                       <span>· {room.total_minutes} min</span>
                     </div>
                   </div>
                   {room.is_active && (
-                    <button
-                      onClick={() => navigate(`/app/study/private/${room.id}`)}
-                      style={{
-                        padding: "7px 14px", fontSize: 12, fontWeight: 700, flexShrink: 0,
-                        background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
-                        color: "white", border: "none", borderRadius: 8, cursor: "pointer",
-                      }}
-                    >
+                    <button onClick={() => navigate(`/app/study/private/${room.id}`)} style={{
+                      padding:"7px 14px", fontSize: 12, fontWeight: 700, flexShrink: 0,
+                      background:"linear-gradient(135deg,#7c3aed,#a78bfa)",
+                      color:"#fff", border:"none", borderRadius: 9, cursor:"pointer",
+                    }}>
                       Rejoindre
                     </button>
                   )}
@@ -1019,82 +919,61 @@ export default function Profile() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 5 — Historique Guide des Écoles
-        ══════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          background: cardBg, border: `1px solid ${border}`, borderRadius: 20, padding: 24,
-          backdropFilter: "blur(16px)", animation: "fadeUp 0.5s 0.4s ease both",
-          boxShadow: isDark ? "0 4px 24px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.05)",
-          marginBottom: 20,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: "linear-gradient(135deg, #3b82f6, #60a5fa)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <BookOpen size={18} color="white" />
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: textMain }}>Historique — Guide des Écoles</div>
-              <div style={{ fontSize: 11, color: textMuted }}>
-                {schoolsHistory === null ? "Chargement..." : `${schoolsHistory.length} conversation${schoolsHistory.length !== 1 ? "s" : ""} récentes`}
-              </div>
-            </div>
-          </div>
+        {/* ══════════════════════════════════════════════════════════════
+            CARD 7 — Schools chat history
+        ══════════════════════════════════════════════════════════════ */}
+        <Card delay={0.32} style={{ ...cardStyle, padding: "22px 24px" }}>
+          <SectionHeader
+            icon={MessageSquare}
+            title="Guide des Écoles"
+            subtitle={schoolsHistory === null ? "Chargement…" : `${schoolsHistory.length} question${schoolsHistory.length !== 1 ? "s" : ""} récentes`}
+            accent="linear-gradient(135deg, #3b82f6, #60a5fa)"
+          />
 
           {schoolsHistory === null ? (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ width: 24, height: 24, borderRadius: "50%", border: "3px solid rgba(59,130,246,0.2)", borderTop: "3px solid #3b82f6", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+            <div style={{ display:"flex", justifyContent:"center", padding:"24px 0" }}>
+              <Spinner color="#3b82f6" />
             </div>
           ) : schoolsHistory.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "28px 0", border: `2px dashed ${border}`, borderRadius: 14 }}>
-              <BookOpen size={28} color={textMuted} style={{ marginBottom: 8, opacity: 0.4 }} />
-              <div style={{ fontSize: 14, color: textMuted }}>Aucune conversation</div>
-              <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>Pose une question dans le Guide des Écoles</div>
-            </div>
+            <Empty icon={MessageSquare} title="Aucune conversation" sub="Pose une question dans le Guide des Écoles" color="#3b82f6" border={border} />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap: 8 }}>
               {schoolsHistory.map((h, i) => (
                 <div key={i} style={{
-                  padding: "12px 14px", borderRadius: 12,
+                  display:"flex", alignItems:"flex-start", gap: 12,
+                  padding:"12px 14px", borderRadius: 12,
                   background: isDark ? "rgba(59,130,246,0.06)" : "rgba(59,130,246,0.04)",
-                  border: `1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.1)"}`,
-                  display: "flex", alignItems: "flex-start", gap: 10,
+                  border:`1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.1)"}`,
                 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 8, flexShrink: 0, marginTop: 1,
-                    background: "rgba(59,130,246,0.15)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 12, fontWeight: 800, color: "#3b82f6",
+                    background:"rgba(59,130,246,0.15)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize: 11, fontWeight: 800, color:"#3b82f6",
                   }}>
                     {i + 1}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: textMain, lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {h.question}
                     </div>
                     <div style={{ fontSize: 11, color: textMuted, marginTop: 3 }}>{fmtDate(h.created_at)}</div>
                   </div>
                 </div>
               ))}
-              <button
-                onClick={() => navigate("/app/schools")}
-                style={{
-                  marginTop: 4, padding: "10px", fontSize: 13, fontWeight: 700,
-                  background: isDark ? "rgba(59,130,246,0.12)" : "rgba(59,130,246,0.08)",
-                  color: "#3b82f6", border: "1px solid rgba(59,130,246,0.2)",
-                  borderRadius: 12, cursor: "pointer",
-                }}
-              >
+              <button onClick={() => navigate("/app/schools")} style={{
+                marginTop: 4, width:"100%", padding:"10px", fontSize: 13, fontWeight: 700,
+                background: isDark ? "rgba(59,130,246,0.1)" : "rgba(59,130,246,0.07)",
+                color:"#3b82f6", border:"1px solid rgba(59,130,246,0.2)",
+                borderRadius: 12, cursor:"pointer",
+              }}>
                 Continuer à explorer les écoles →
               </button>
             </div>
           )}
-        </div>
+        </Card>
 
       </div>
 
