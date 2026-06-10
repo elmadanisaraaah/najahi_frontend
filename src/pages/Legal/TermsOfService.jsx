@@ -9,7 +9,7 @@ const SECTIONS = [
     title: "1. Présentation de Najahi",
     content: `Najahi (نجاحي) est une plateforme scolaire marocaine en ligne permettant aux élèves et étudiants de réaliser des tests d'orientation, d'explorer les établissements d'enseignement supérieur marocains, et de participer à des sessions d'étude collaboratives.
 
-La plateforme est développée et exploitée par Oussama Daouf et Sara Elmadani (ci-après « les Créateurs »). En utilisant Najahi, vous acceptez les présentes conditions dans leur intégralité. Si vous n'acceptez pas ces conditions, veuillez cesser d'utiliser la plateforme.`,
+La plateforme est développée et exploitée par Sara Elmadani (ci-après « la Créatrice »). En utilisant Najahi, vous acceptez les présentes conditions dans leur intégralité. Si vous n'acceptez pas ces conditions, veuillez cesser d'utiliser la plateforme.`,
   },
   {
     title: "2. Accès à la plateforme",
@@ -21,7 +21,7 @@ Nous nous réservons le droit de suspendre ou supprimer tout compte en cas de no
   },
   {
     title: "3. Propriété intellectuelle",
-    content: `© 2026 Najahi — Oussama Daouf & Sara Elmadani. Tous droits réservés.
+    content: `© 2026 Najahi — Sara Elmadani. Tous droits réservés.
 
 L'ensemble des éléments constituant la plateforme Najahi — notamment le code source, le design, les textes, les graphiques, le logo, les algorithmes d'orientation, et les contenus éditoriaux — sont la propriété exclusive des Créateurs et sont protégés par les lois marocaines et internationales relatives à la propriété intellectuelle.
 
@@ -145,7 +145,7 @@ export default function TermsOfService() {
           {/* Footer note */}
           <div style={{ marginTop:32, padding:"20px 24px", background:"rgba(16,185,129,0.07)", border:"1px solid rgba(16,185,129,0.2)", borderRadius:14, textAlign:"center" }}>
             <p style={{ fontSize:13, color:muted, margin:0 }}>
-              © 2026 Najahi — Oussama Daouf & Sara Elmadani · Tous droits réservés
+              © 2026 Najahi — Sara Elmadani · Tous droits réservés
               <br />
               <a href="mailto:saraelmadanijop@gmail.com" style={{ color:"#10b981", textDecoration:"none", fontWeight:600 }}>saraelmadanijop@gmail.com</a>
             </p>

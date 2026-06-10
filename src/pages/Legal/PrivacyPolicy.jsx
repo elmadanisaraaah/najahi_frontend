@@ -9,7 +9,7 @@ const SECTIONS = [
     title: "1. Qui sommes-nous ?",
     content: `Najahi (نجاحي) est une plateforme scolaire marocaine conçue pour accompagner les élèves et étudiants dans leur orientation, leurs études et leur réussite académique.
 
-Développée par Oussama Daouf et Sara Elmadani, Najahi est accessible via le web à l'adresse najahi-frontend.vercel.app.
+Développée par Sara Elmadani, Najahi est accessible via le web à l'adresse najahi-frontend.vercel.app.
 
 Pour toute question relative à vos données personnelles, contactez-nous à : saraelmadanijop@gmail.com`,
   },
@@ -159,7 +159,7 @@ export default function PrivacyPolicy() {
           {/* Footer note */}
           <div style={{ marginTop:32, padding:"20px 24px", background:"rgba(124,58,237,0.07)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:14, textAlign:"center" }}>
             <p style={{ fontSize:13, color:muted, margin:0 }}>
-              © 2026 Najahi — Oussama Daouf & Sara Elmadani · Tous droits réservés
+              © 2026 Najahi — Sara Elmadani · Tous droits réservés
               <br />
               <a href="mailto:saraelmadanijop@gmail.com" style={{ color:"#7c3aed", textDecoration:"none", fontWeight:600 }}>saraelmadanijop@gmail.com</a>
             </p>
