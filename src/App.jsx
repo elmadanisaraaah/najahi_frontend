@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import InstallPrompt from "./components/PWA/InstallPrompt";
 import Register from "./pages/Auth/Register";
 import Login from "./pages/Auth/Login";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -46,5 +47,6 @@ export default function App() {
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    <InstallPrompt />
   );
 }
