@@ -1,10 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageSquare, Heart, Eye, Plus, Search, X, ChevronRight, BookOpen } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 const API = import.meta.env.VITE_API_URL || "";
+
+const ALL_SUGGESTIONS = [
+  "ENSA", "ENSIAS", "EMI", "INPT", "EHTP", "ENCG", "ISCAE",
+  "Médecine", "Pharmacie", "CPGE", "Al Akhawayn", "UIR", "UM6P",
+  "Orientation", "Vie étudiante", "Bourses & Aides", "Témoignages",
+  "Stage", "Emploi", "Logement",
+];
 
 const CATEGORY_COLORS = {
   ensa: "#7c3aed", ensias: "#7c3aed", emi: "#7c3aed", inpt: "#7c3aed", ehtp: "#7c3aed",
@@ -88,11 +95,14 @@ function PostCard({ post, onClick, dark }) {
   );
 }
 
-function NewPostModal({ categories, onClose, onCreated, dark }) {
+function NewPostModal({ onClose, onCreated, dark }) {
   const { user } = useAuth();
   const [form, setForm] = useState({ title: "", content: "", category: "", school: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sugg, setSugg] = useState([]);
+  const [showSugg, setShowSugg] = useState(false);
+  const catRef = useRef(null);
 
   const tc = dark ? "#fff" : "#1a1625";
   const sc = dark ? "rgba(255,255,255,0.45)" : "rgba(26,22,37,0.5)";
@@ -140,12 +150,45 @@ function NewPostModal({ categories, onClose, onCreated, dark }) {
             <input style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="De quoi veux-tu parler ?" onFocus={focus} onBlur={blur} maxLength={300} />
           </div>
 
-          <div>
+          <div style={{ position: "relative" }} ref={catRef}>
             <label style={{ fontSize: 12.5, fontWeight: 600, color: sc, display: "block", marginBottom: 6 }}>Catégorie *</label>
-            <select style={{ ...inputStyle, appearance: "none", cursor: "pointer" }} value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} onFocus={focus} onBlur={blur}>
-              <option value="">Sélectionner une catégorie</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-            </select>
+            <input
+              style={inputStyle}
+              value={form.category}
+              onChange={e => {
+                const v = e.target.value;
+                setForm(p => ({ ...p, category: v }));
+                const q = v.trim().toLowerCase();
+                setSugg(q ? ALL_SUGGESTIONS.filter(s => s.toLowerCase().includes(q)).slice(0, 5) : ALL_SUGGESTIONS.slice(0, 5));
+                setShowSugg(true);
+              }}
+              onFocus={e => {
+                focus(e);
+                const q = form.category.trim().toLowerCase();
+                setSugg(q ? ALL_SUGGESTIONS.filter(s => s.toLowerCase().includes(q)).slice(0, 5) : ALL_SUGGESTIONS.slice(0, 5));
+                setShowSugg(true);
+              }}
+              onBlur={e => {
+                blur(e);
+                setTimeout(() => setShowSugg(false), 150);
+              }}
+              placeholder="ex: ENSA, Orientation, Médecine…"
+              autoComplete="off"
+              maxLength={100}
+            />
+            {showSugg && sugg.length > 0 && (
+              <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 300, background: dark ? "#1a0f3a" : "#fff", border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(124,58,237,0.2)", borderRadius: 10, overflow: "hidden", boxShadow: "0 8px 28px rgba(0,0,0,0.22)" }}>
+                {sugg.map(s => (
+                  <div key={s} onMouseDown={() => { setForm(p => ({ ...p, category: s })); setSugg([]); setShowSugg(false); }}
+                    style={{ padding: "9px 14px", fontSize: 13, color: dark ? "#fff" : "#1a1625", cursor: "pointer", transition: "background 0.1s" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(124,58,237,0.12)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    {s}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -223,11 +266,6 @@ export default function Forum() {
   const sideBg  = dark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.92)";
   const sideBdr = dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(124,58,237,0.1)";
 
-  const groups = categories.reduce((acc, c) => {
-    acc[c.group] = acc[c.group] || [];
-    acc[c.group].push(c);
-    return acc;
-  }, {});
 
   return (
     <>
@@ -291,21 +329,19 @@ export default function Forum() {
             <button onClick={() => pickCategory("")} style={{ width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: 10, border: "none", background: !activeCategory ? "rgba(124,58,237,0.15)" : "transparent", color: !activeCategory ? "#7c3aed" : tc, fontSize: 13, fontWeight: !activeCategory ? 700 : 500, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", marginBottom: 4, transition: "all 0.15s" }}>
               Toutes les discussions
             </button>
-            {Object.entries(groups).map(([group, cats]) => (
-              <div key={group} style={{ marginTop: 12 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: sc, letterSpacing: "0.8px", textTransform: "uppercase", paddingLeft: 8, marginBottom: 4 }}>{group}</p>
-                {cats.map(c => {
-                  const color = CATEGORY_COLORS[c.id] || "#7c3aed";
-                  const active = activeCategory === c.id;
-                  return (
-                    <button key={c.id} onClick={() => pickCategory(c.id)} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", borderRadius: 9, border: "none", background: active ? color + "18" : "transparent", color: active ? color : tc, fontSize: 13, fontWeight: active ? 700 : 400, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", transition: "all 0.15s" }}>
-                      <span>{c.label}</span>
-                      {c.count > 0 && <span style={{ fontSize: 11, color: active ? color : sc, background: active ? color + "20" : dark ? "rgba(255,255,255,0.07)" : "rgba(26,22,37,0.06)", padding: "1px 7px", borderRadius: 99 }}>{c.count}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+            {categories.length === 0 && (
+              <p style={{ fontSize: 12, color: sc, paddingLeft: 8, fontStyle: "italic" }}>Aucune catégorie active</p>
+            )}
+            {categories.map(c => {
+              const color = CATEGORY_COLORS[c.id?.toLowerCase()] || "#7c3aed";
+              const active = activeCategory === c.id;
+              return (
+                <button key={c.id} onClick={() => pickCategory(c.id)} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", borderRadius: 9, border: "none", background: active ? color + "18" : "transparent", color: active ? color : tc, fontSize: 13, fontWeight: active ? 700 : 400, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", transition: "all 0.15s" }}>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "75%" }}>{c.label}</span>
+                  <span style={{ fontSize: 11, color: active ? color : sc, background: active ? color + "20" : dark ? "rgba(255,255,255,0.07)" : "rgba(26,22,37,0.06)", padding: "1px 7px", borderRadius: 99, flexShrink: 0 }}>{c.count}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Post list */}
@@ -356,7 +392,6 @@ export default function Forum() {
 
       {showModal && (
         <NewPostModal
-          categories={categories}
           dark={dark}
           onClose={() => setShowModal(false)}
           onCreated={id => { setShowModal(false); navigate(`/app/forum/${id}`); }}
