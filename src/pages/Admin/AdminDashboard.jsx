@@ -5,8 +5,15 @@ import {
   Users, Activity, Compass, MessageSquare, BookOpen, TrendingUp,
   Search, ChevronLeft, ChevronRight, Trash2, CheckCircle, XCircle,
   LogOut, RefreshCw, LayoutDashboard, Settings, AlertTriangle,
-  ChevronDown, Menu, Shield, GraduationCap,
+  ChevronDown, Menu, Shield, GraduationCap, CalendarDays, Plus, Pencil, X,
 } from "lucide-react";
+
+const CAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/concours${path}`;
+
+const CONCOURS_CATS = [
+  "Ingénierie","Télécommunications","Commerce & Management","Santé",
+  "Architecture","Classes Préparatoires","Université Internationale","Université Privée",
+];
 
 const API = (path) => `${import.meta.env.VITE_API_URL || ""}/api/admin${path}`;
 const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("najahi_token") || ""}` });
@@ -414,6 +421,180 @@ function OrientationsSection({ orientations, orientLoading }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Concours Modal (create / edit)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EMPTY_FORM = { name:"", school:"", category:"", registration_start:"", registration_end:"", exam_date:"", results_date:"", description:"", official_link:"" };
+
+function ConcoursModal({ mode, initial, onSave, onClose, saving }) {
+  const [form, setForm] = useState(initial || EMPTY_FORM);
+  const [err,  setErr]  = useState("");
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.school.trim() || !form.category) {
+      setErr("Nom, établissement et catégorie sont requis"); return;
+    }
+    setErr("");
+    onSave(form);
+  };
+
+  const iStyle = { width:"100%", padding:"9px 11px", borderRadius:9, border:"1px solid #e5e7eb", background:"#fafafa", color:"#1a1a2e", fontSize:13, fontFamily:"'DM Sans',sans-serif", outline:"none", boxSizing:"border-box" };
+  const lStyle = { fontSize:12, fontWeight:700, color:"#6b7280", display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.4px" };
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9100, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background:"#fff", borderRadius:20, padding:"28px 30px", maxWidth:580, width:"100%", maxHeight:"90vh", overflowY:"auto", boxShadow:"0 24px 60px rgba(0,0,0,0.18)", animation:"adm-fadeUp 0.22s ease" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22 }}>
+          <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:19, fontWeight:800, color:"#1a1a2e", margin:0 }}>
+            {mode === "create" ? "Ajouter un concours" : "Modifier le concours"}
+          </h3>
+          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"#9ca3af", display:"flex" }}><X size={18}/></button>
+        </div>
+
+        {err && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", color:"#ef4444", borderRadius:9, padding:"9px 13px", fontSize:13, marginBottom:16 }}>{err}</div>}
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lStyle}>Nom du concours *</label>
+            <input style={iStyle} value={form.name} onChange={e => set("name", e.target.value)} placeholder="ex: CNC - Concours National Commun" maxLength={200} />
+          </div>
+          <div>
+            <label style={lStyle}>Établissement *</label>
+            <input style={iStyle} value={form.school} onChange={e => set("school", e.target.value)} placeholder="ex: ENSA Rabat" maxLength={150} />
+          </div>
+          <div>
+            <label style={lStyle}>Catégorie *</label>
+            <select style={{ ...iStyle, cursor:"pointer" }} value={form.category} onChange={e => set("category", e.target.value)}>
+              <option value="">Sélectionner…</option>
+              {CONCOURS_CATS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={lStyle}>Début inscriptions</label>
+            <input type="date" style={iStyle} value={form.registration_start || ""} onChange={e => set("registration_start", e.target.value)} />
+          </div>
+          <div>
+            <label style={lStyle}>Fin inscriptions</label>
+            <input type="date" style={iStyle} value={form.registration_end || ""} onChange={e => set("registration_end", e.target.value)} />
+          </div>
+          <div>
+            <label style={lStyle}>Date d'examen</label>
+            <input type="date" style={iStyle} value={form.exam_date || ""} onChange={e => set("exam_date", e.target.value)} />
+          </div>
+          <div>
+            <label style={lStyle}>Date des résultats</label>
+            <input type="date" style={iStyle} value={form.results_date || ""} onChange={e => set("results_date", e.target.value)} />
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lStyle}>Description</label>
+            <textarea style={{ ...iStyle, minHeight:70, resize:"vertical", lineHeight:1.55 }} value={form.description || ""} onChange={e => set("description", e.target.value)} placeholder="Brève description du concours…" />
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lStyle}>Lien officiel</label>
+            <input style={iStyle} value={form.official_link || ""} onChange={e => set("official_link", e.target.value)} placeholder="https://…" type="url" />
+          </div>
+        </div>
+
+        <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:22 }}>
+          <button onClick={onClose} style={{ padding:"10px 22px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+            Annuler
+          </button>
+          <button onClick={handleSave} disabled={saving} style={{ padding:"10px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans',sans-serif", opacity:saving?0.7:1 }}>
+            {saving ? <Spinner size={14} color="#fff"/> : null}
+            {mode === "create" ? "Créer" : "Enregistrer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Concours Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CAT_DOT = {
+  "Ingénierie":"#7c3aed","Télécommunications":"#3b82f6","Commerce & Management":"#f59e0b",
+  "Santé":"#ef4444","Architecture":"#10b981","Classes Préparatoires":"#06b6d4",
+  "Université Internationale":"#8b5cf6","Université Privée":"#a78bfa",
+};
+
+function ConcoursSection({ concours, loading, onAdd, onEdit, onDelete }) {
+  return (
+    <div>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:26, gap:12 }}>
+        <div>
+          <h2 style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:800, color:"#1a1a2e", margin:0, letterSpacing:"-0.5px" }}>Calendrier des Concours</h2>
+          <p style={{ fontSize:13, color:"#6b7280", margin:"5px 0 0" }}>{concours.length} concours enregistré{concours.length !== 1 ? "s" : ""}</p>
+        </div>
+        <button onClick={onAdd} style={{ display:"flex", alignItems:"center", gap:7, padding:"10px 18px", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", border:"none", borderRadius:11, fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 4px 16px rgba(124,58,237,0.35)", whiteSpace:"nowrap", flexShrink:0, fontFamily:"'DM Sans',sans-serif" }}>
+          <Plus size={14}/> Ajouter un concours
+        </button>
+      </div>
+
+      <div style={{ background:"#fff", borderRadius:16, boxShadow:"0 1px 3px rgba(0,0,0,0.05),0 4px 16px rgba(0,0,0,0.04)", border:"1px solid #f0eeff", overflow:"hidden" }}>
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead>
+              <tr style={{ background:"#fafafa", borderBottom:"2px solid #f0eeff" }}>
+                {["Concours","Établissement","Catégorie","Fin inscriptions","Date examen","Actions"].map(h => (
+                  <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:10.5, fontWeight:700, color:"#9ca3af", whiteSpace:"nowrap", letterSpacing:"0.6px", textTransform:"uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} style={{ padding:48, textAlign:"center" }}><div style={{ display:"flex", justifyContent:"center" }}><Spinner/></div></td></tr>
+              ) : concours.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding:48, textAlign:"center", color:"#9ca3af" }}>Aucun concours enregistré</td></tr>
+              ) : concours.map(c => {
+                const dot = CAT_DOT[c.category] || "#7c3aed";
+                const fmtD = iso => iso ? new Date(iso).toLocaleDateString("fr-FR",{day:"2-digit",month:"short",year:"2-digit"}) : "—";
+                return (
+                  <tr key={c.id} style={{ borderBottom:"1px solid #f9f8ff" }}
+                    onMouseEnter={e => e.currentTarget.style.background="#fdfcff"}
+                    onMouseLeave={e => e.currentTarget.style.background="transparent"}
+                  >
+                    <td style={{ padding:"12px 16px", fontWeight:700, color:"#1a1a2e", maxWidth:220, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c.name}</td>
+                    <td style={{ padding:"12px 16px", color:"#6b7280", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c.school}</td>
+                    <td style={{ padding:"12px 16px" }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:99, fontSize:11, fontWeight:700, background:dot+"14", color:dot }}>
+                        <span style={{ width:6, height:6, borderRadius:"50%", background:dot, flexShrink:0 }}/>
+                        {c.category}
+                      </span>
+                    </td>
+                    <td style={{ padding:"12px 16px", color:"#9ca3af", whiteSpace:"nowrap", fontSize:12.5 }}>{fmtD(c.registration_end)}</td>
+                    <td style={{ padding:"12px 16px", whiteSpace:"nowrap", fontSize:12.5 }}>
+                      {c.exam_date ? (
+                        <span style={{ fontWeight:700, color: c.days_until_exam !== null && c.days_until_exam < 30 ? "#ef4444" : c.days_until_exam !== null && c.days_until_exam < 60 ? "#f59e0b" : "#1a1a2e" }}>
+                          {fmtD(c.exam_date)}{c.days_until_exam !== null && c.days_until_exam >= 0 && ` (J-${c.days_until_exam})`}
+                        </span>
+                      ) : "—"}
+                    </td>
+                    <td style={{ padding:"12px 16px" }}>
+                      <div style={{ display:"flex", gap:6 }}>
+                        <button onClick={() => onEdit(c)} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:8, border:"1px solid rgba(124,58,237,0.25)", background:"rgba(124,58,237,0.07)", color:"#7c3aed", fontSize:11.5, fontWeight:600, cursor:"pointer" }}>
+                          <Pencil size={11}/> Modifier
+                        </button>
+                        <button onClick={() => onDelete(c.id)} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:8, border:"1px solid rgba(239,68,68,0.25)", background:"rgba(239,68,68,0.06)", color:"#ef4444", fontSize:11.5, fontWeight:600, cursor:"pointer" }}>
+                          <Trash2 size={11}/> Supprimer
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Placeholder
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -440,6 +621,7 @@ const NAV = [
   { id: "overview",     icon: LayoutDashboard, label: "Vue d'ensemble", emoji: "📊" },
   { id: "users",        icon: Users,           label: "Utilisateurs",   emoji: "👥" },
   { id: "orientations", icon: Compass,         label: "Orientations",   emoji: "🧭" },
+  { id: "concours",     icon: CalendarDays,    label: "Concours",       emoji: "📅" },
   { id: "forum",        icon: MessageSquare,   label: "Forum",          emoji: "💬" },
   { id: "schools",      icon: BookOpen,        label: "Écoles",         emoji: "📚" },
   { id: "settings",     icon: Settings,        label: "Paramètres",     emoji: "⚙️" },
@@ -473,11 +655,16 @@ export default function AdminDashboard() {
   const [searchInput,   setSearchInput]   = useState("");
   const [activity,      setActivity]      = useState([]);
   const [actLoading,    setActLoading]    = useState(true);
-  const [orientations,  setOrientations]  = useState([]);
-  const [orientLoading, setOrientLoading] = useState(false);
-  const [deletingId,    setDeletingId]    = useState(null);
-  const [confirmId,     setConfirmId]     = useState(null);
-  const [toast,         setToast]         = useState({ msg: "", type: "success" });
+  const [orientations,      setOrientations]      = useState([]);
+  const [orientLoading,     setOrientLoading]     = useState(false);
+  const [concoursList,      setConcoursList]      = useState([]);
+  const [concoursLoading,   setConcoursLoading]   = useState(false);
+  const [concoursModal,     setConcoursModal]     = useState(null); // null | "create" | concoursObj
+  const [concoursSaving,    setConcoursSaving]    = useState(false);
+  const [confirmConcoursId, setConfirmConcoursId] = useState(null);
+  const [deletingId,        setDeletingId]        = useState(null);
+  const [confirmId,         setConfirmId]         = useState(null);
+  const [toast,             setToast]             = useState({ msg: "", type: "success" });
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -511,8 +698,44 @@ export default function AdminDashboard() {
     catch {} finally { setOrientLoading(false); }
   };
 
+  const fetchConcours = async () => {
+    setConcoursLoading(true);
+    try { const r = await fetch(CAPI("")); if (r.ok) setConcoursList(await r.json()); }
+    catch {} finally { setConcoursLoading(false); }
+  };
+
+  const saveConcours = async (form) => {
+    setConcoursSaving(true);
+    const isEdit = concoursModal && concoursModal !== "create";
+    const url    = isEdit ? CAPI(`/${concoursModal.id}`) : CAPI("");
+    const method = isEdit ? "PUT" : "POST";
+    try {
+      const r = await fetch(url, { method, headers: { ...authH(), "Content-Type":"application/json" }, body: JSON.stringify(form) });
+      const d = await r.json();
+      if (r.ok) {
+        if (isEdit) setConcoursList(prev => prev.map(c => c.id === d.id ? d : c));
+        else        setConcoursList(prev => [...prev, d]);
+        setConcoursModal(null);
+        showToast(isEdit ? "Concours mis à jour" : "Concours créé !");
+      } else {
+        showToast(d.error || "Erreur", "error");
+      }
+    } catch { showToast("Erreur réseau", "error"); }
+    finally { setConcoursSaving(false); }
+  };
+
+  const deleteConcours = async (id) => {
+    try {
+      const r = await fetch(CAPI(`/${id}`), { method:"DELETE", headers: authH() });
+      if (r.ok) { setConcoursList(prev => prev.filter(c => c.id !== id)); showToast("Concours supprimé"); }
+      else { const d = await r.json(); showToast(d.error || "Erreur", "error"); }
+    } catch { showToast("Erreur réseau", "error"); }
+    finally { setConfirmConcoursId(null); }
+  };
+
   useEffect(() => { fetchStats(); fetchUsers(1, ""); fetchActivity(); }, []);
   useEffect(() => { if (activeTab === "orientations" && orientations.length === 0) fetchOrientations(); }, [activeTab]);
+  useEffect(() => { if (activeTab === "concours" && concoursList.length === 0) fetchConcours(); }, [activeTab]);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setUsersPage(1); fetchUsers(1, searchInput); }, 400);
@@ -610,6 +833,38 @@ export default function AdminDashboard() {
         ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); border-radius: 99px; }
       `}</style>
 
+      {/* Concours modal (create / edit) */}
+      {concoursModal && (
+        <ConcoursModal
+          mode={concoursModal === "create" ? "create" : "edit"}
+          initial={concoursModal === "create" ? undefined : concoursModal}
+          onSave={saveConcours}
+          onClose={() => setConcoursModal(null)}
+          saving={concoursSaving}
+        />
+      )}
+
+      {/* Concours delete confirm */}
+      {confirmConcoursId && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+          <div style={{ background:"#fff", borderRadius:20, padding:"30px 32px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 24px 60px rgba(0,0,0,0.18)", animation:"adm-fadeUp 0.22s ease" }}>
+            <div style={{ width:54, height:54, borderRadius:"50%", background:"rgba(239,68,68,0.1)", display:"grid", placeItems:"center", margin:"0 auto 18px" }}>
+              <AlertTriangle size={24} color="#ef4444"/>
+            </div>
+            <div style={{ fontSize:18, fontWeight:800, color:"#1a1a2e", marginBottom:8, fontFamily:"'Fraunces',serif" }}>Supprimer ce concours ?</div>
+            <div style={{ fontSize:13, color:"#6b7280", marginBottom:26, lineHeight:1.6 }}>Les abonnements liés seront également supprimés. Cette action est irréversible.</div>
+            <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+              <button onClick={() => setConfirmConcoursId(null)} style={{ padding:"10px 22px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                Annuler
+              </button>
+              <button onClick={() => deleteConcours(confirmConcoursId)} style={{ padding:"10px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#ef4444,#dc2626)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans',sans-serif" }}>
+                <Trash2 size={14}/> Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirm modal */}
       {confirmId && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
@@ -695,6 +950,14 @@ export default function AdminDashboard() {
             )}
             {activeTab === "orientations" && (
               <OrientationsSection orientations={orientations} orientLoading={orientLoading} />
+            )}
+            {activeTab === "concours" && (
+              <ConcoursSection
+                concours={concoursList} loading={concoursLoading}
+                onAdd={() => setConcoursModal("create")}
+                onEdit={c => setConcoursModal(c)}
+                onDelete={id => setConfirmConcoursId(id)}
+              />
             )}
             {activeTab === "forum"    && <ComingSoon title="Forum"      emoji="💬" />}
             {activeTab === "schools"  && <ComingSoon title="Écoles"     emoji="📚" />}
