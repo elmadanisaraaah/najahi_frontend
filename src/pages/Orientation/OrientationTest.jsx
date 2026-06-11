@@ -67,14 +67,14 @@ const VILLES = [
 ];
 
 const BUDGETS = [
-  { id: "public",          label: "Public uniquement",      emoji: "🏛️", desc: "Frais < 1 000 MAD/an" },
-  { id: "semi_public",     label: "Semi-public / Boursier", emoji: "📜", desc: "Avec bourse ou aide financière" },
-  { id: "prive_abordable", label: "Privé abordable",        emoji: "💳", desc: "15 000 – 40 000 MAD/an" },
-  { id: "prive_premium",   label: "Privé premium",          emoji: "💎", desc: "40 000 MAD/an et plus" },
+  { id: "public",          label: "Public / Gratuit",                    emoji: "🏛️", desc: "ENCG, ENSA, Médecine — frais quasi nuls (< 1 000 MAD/an)" },
+  { id: "semi_public",     label: "Semi-public ou bourse",               emoji: "📜", desc: "UM6P, ISCAE — aide financière possible" },
+  { id: "prive_abordable", label: "Privé national (EMSI, HEM, ESCA…)",   emoji: "🏫", desc: "15 000 – 40 000 MAD/an" },
+  { id: "prive_premium",   label: "International / Double diplôme",       emoji: "🌍", desc: "UIR, UIR aéro, partenariats mondiaux — 40k+ MAD/an" },
 ];
 
 const STEP_LABELS = [
-  "Bac & Moyenne", "Domaine", "Personnalité", "Carrière", "Localisation", "Budget",
+  "Bac & Moyenne", "Domaine", "Personnalité", "Carrière", "Localisation", "Type d'école",
   "Matière forte", "Durée études", "Étranger ?", "Secteur", "Mode travail", "Technologie", "Maths",
 ];
 const TOTAL_STEPS = 13;
@@ -523,7 +523,7 @@ export default function OrientationTest() {
             Un test d'orientation intelligent basé sur ton profil, tes passions et tes ambitions.
           </p>
           <p style={{ fontSize: 13, color: textMuted, marginBottom: 36, fontWeight: 600, letterSpacing: 0.5 }}>
-            6 étapes · 5 minutes · Résultats IA personnalisés
+            ~10 étapes · 8 minutes · Top 5 résultats personnalisés par IA
           </p>
 
           {profileData && (profileData.bac || profileData.ville) && (
@@ -546,8 +546,8 @@ export default function OrientationTest() {
           <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 36, flexWrap: "wrap" }}>
             {[
               { emoji: "🏫", label: "50+ écoles analysées" },
-              { emoji: "🤖", label: "IA Groq llama-70b" },
-              { emoji: "🏆", label: "Top 3 recommandations" },
+              { emoji: "🤖", label: "IA · Groq llama-70b" },
+              { emoji: "🏆", label: "Top 5 recommandations" },
             ].map((f) => (
               <div key={f.label} style={{
                 padding: "9px 16px", borderRadius: 12,
@@ -730,6 +730,18 @@ export default function OrientationTest() {
                   {top.pourquoi}
                 </p>
 
+                {/* Website link */}
+                {top.website && (
+                  <a href={top.website} target="_blank" rel="noopener noreferrer" style={{
+                    display: "inline-flex", alignItems: "center", gap: 5, marginTop: 10, marginBottom: 2,
+                    fontSize: 12, fontWeight: 700, color: topColor, textDecoration: "none",
+                    padding: "4px 10px", borderRadius: 8,
+                    background: `${topColor}14`, border: `1px solid ${topColor}30`,
+                  }}>
+                    🔗 Site officiel →
+                  </a>
+                )}
+
                 {/* Conseils collapsible */}
                 {top.conseils_admission && top.conseils_admission.length > 0 && (
                   <Collapsible label="Conseils d'admission" color={topColor}>
@@ -763,6 +775,7 @@ export default function OrientationTest() {
           {/* ALTERNATIVES */}
           {results.slice(1).map((school, idx) => {
             const color = TYPE_COLORS[school.type] || purple;
+            const medals = ["🥈 2ème choix", "🥉 3ème choix", "4ème choix", "5ème choix"];
             return (
               <div key={school.id} style={{
                 background: cardBg, border: `1px solid ${border}`,
@@ -777,7 +790,7 @@ export default function OrientationTest() {
                       background: `${color}20`, color, fontSize: 11, fontWeight: 700,
                       marginBottom: 8, textTransform: "uppercase",
                     }}>
-                      {idx === 0 ? "🥈 2ème choix" : "🥉 3ème choix"} · {TYPE_LABELS[school.type] || school.type}
+                      {medals[idx] || `${idx + 2}ème choix`} · {TYPE_LABELS[school.type] || school.type}
                     </div>
                     <h3 style={{ fontSize: 15, fontWeight: 700, color: textMain, marginBottom: 7, lineHeight: 1.3 }}>
                       {school.name}
@@ -791,6 +804,16 @@ export default function OrientationTest() {
                       ))}
                     </div>
                     <p style={{ fontSize: 13, color: textMuted, lineHeight: 1.55 }}>{school.pourquoi}</p>
+                    {school.website && (
+                      <a href={school.website} target="_blank" rel="noopener noreferrer" style={{
+                        display: "inline-flex", alignItems: "center", gap: 4, marginTop: 8,
+                        fontSize: 11, fontWeight: 700, color, textDecoration: "none",
+                        padding: "3px 8px", borderRadius: 7,
+                        background: `${color}12`, border: `1px solid ${color}28`,
+                      }}>
+                        🔗 Site officiel
+                      </a>
+                    )}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                     <AnimatedRing target={school.match_pct} color={color} size={76} />
@@ -1027,11 +1050,11 @@ export default function OrientationTest() {
       </div>
     );
 
-    // Step 6 — Budget
+    // Step 6 — Budget / Type d'école
     if (originalStep === 6) return (
       <div>
-        <h2 style={sH}>Ton budget pour les études</h2>
-        <p style={sP}>Cela nous aide à filtrer les options réalistes pour toi</p>
+        <h2 style={sH}>Quel type d'école tu vises ?</h2>
+        <p style={sP}>Choisis selon tes préférences et ta disponibilité financière</p>
         {error && (
           <div style={{ padding: "11px 15px", borderRadius: 10, marginBottom: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 14 }}>
             ⚠️ {error}

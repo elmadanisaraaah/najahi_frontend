@@ -52,6 +52,7 @@ const FEATURES = [
 
 const NAV_ITEMS = [
   { icon: Home,          label: "Tableau de bord",  to: "/app/dashboard" },
+  { icon: User,          label: "Mon Profil",        to: "/app/profile" },
   { icon: BookOpen,      label: "Étude Solo",        to: "/app/study/solo" },
   { icon: Users,         label: "Salles privées",    to: "/app/study/rooms" },
   { icon: Server,        label: "Serveurs",          to: "/app/servers" },
@@ -62,7 +63,6 @@ const NAV_ITEMS = [
   { icon: Target,        label: "Calculateur",       to: "/app/calculateur" },
   { icon: BarChart3,     label: "Statistiques",      to: "/app/stats" },
   { icon: Star,          label: "Témoignages",       to: "/app/temoignages" },
-  { icon: User,          label: "Mon Profil",        to: "/app/profile" },
 ];
 
 function Particle({ style }) { return <div style={style} />; }
@@ -134,6 +134,8 @@ export default function Dashboard() {
     return true;
   });
 
+  const NOTIF_CACHE = "najahi_notif_cache";
+
   const fetchNotifs = useCallback(async () => {
     const tok = nToken();
     if (!tok) return;
@@ -141,16 +143,35 @@ export default function Dashboard() {
       const r = await fetch(NAPI("?limit=10"), { headers: { Authorization: `Bearer ${tok}` } });
       if (!r.ok) return;
       const d = await r.json();
-      setNotifications(d.notifications || []);
-      setUnreadCount(d.unread_count || 0);
+      const notifs = d.notifications || [];
+      const unread = d.unread_count || 0;
+      setNotifications(notifs);
+      setUnreadCount(unread);
+      try { sessionStorage.setItem(NOTIF_CACHE, JSON.stringify({ notifs, unread, at: Date.now() })); } catch (_) {}
     } catch (_) {}
   }, []);
 
+  // Load from cache immediately on mount, then fetch fresh; poll every 5 min
   useEffect(() => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(NOTIF_CACHE) || "null");
+      if (cached && Date.now() - cached.at < 300000) {
+        setNotifications(cached.notifs);
+        setUnreadCount(cached.unread);
+        return; // skip initial fetch if cache is fresh
+      }
+    } catch (_) {}
     fetchNotifs();
-    const iv = setInterval(fetchNotifs, 60000);
+    const iv = setInterval(fetchNotifs, 300000);
     return () => clearInterval(iv);
   }, [fetchNotifs]);
+
+  // Mark all as read when dropdown opens
+  useEffect(() => {
+    if (!notifOpen || unreadCount === 0) return;
+    const timer = setTimeout(() => markAllNotifRead(), 900);
+    return () => clearTimeout(timer);
+  }, [notifOpen]);
 
   // Close notif dropdown on outside click
   useEffect(() => {
@@ -190,7 +211,11 @@ export default function Dashboard() {
     if (!tok) return;
     try {
       await fetch(NAPI("/read-all"), { method: "PUT", headers: { Authorization: `Bearer ${tok}` } });
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setNotifications(prev => {
+        const updated = prev.map(n => ({ ...n, is_read: true }));
+        try { sessionStorage.setItem(NOTIF_CACHE, JSON.stringify({ notifs: updated, unread: 0, at: Date.now() })); } catch (_) {}
+        return updated;
+      });
       setUnreadCount(0);
     } catch (_) {}
   }
