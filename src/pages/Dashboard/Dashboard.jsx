@@ -97,6 +97,16 @@ export default function Dashboard() {
   const NAPI = (p) => `${import.meta.env.VITE_API_URL}/api/notifications${p}`;
   const nToken = () => localStorage.getItem("najahi_token");
 
+  // Push notification banner
+  const [pushBanner, setPushBanner] = useState(() => {
+    if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return false;
+    if (Notification.permission === "denied") return false;
+    const dismissed = localStorage.getItem("najahi_push_dismissed");
+    if (dismissed && Date.now() < parseInt(dismissed, 10)) return false;
+    if (localStorage.getItem("najahi_push_subscribed")) return false;
+    return true;
+  });
+
   const fetchNotifs = useCallback(async () => {
     const tok = nToken();
     if (!tok) return;
@@ -161,6 +171,43 @@ export default function Dashboard() {
     if (diff < 3600000)  return `${Math.floor(diff / 60000)}min`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
     return `${Math.floor(diff / 86400000)}j`;
+  }
+
+  function _urlB64ToUint8(b64) {
+    const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+    const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
+
+  async function subscribePush() {
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") { setPushBanner(false); return; }
+      const reg = await navigator.serviceWorker.register("/sw-push.js");
+      await navigator.serviceWorker.ready;
+      const key = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!key) { console.warn("VITE_VAPID_PUBLIC_KEY not set"); setPushBanner(false); return; }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: _urlB64ToUint8(key),
+      });
+      const j = sub.toJSON();
+      const tok = nToken();
+      await fetch(NAPI("/push-subscribe"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` },
+        body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys?.p256dh, auth: j.keys?.auth }),
+      });
+      localStorage.setItem("najahi_push_subscribed", "1");
+    } catch (err) {
+      console.error("Push subscribe:", err);
+    }
+    setPushBanner(false);
+  }
+
+  function dismissPushBanner() {
+    localStorage.setItem("najahi_push_dismissed", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    setPushBanner(false);
   }
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
@@ -412,6 +459,26 @@ export default function Dashboard() {
             )}
           </div>
         </nav>
+
+        {/* Push permission banner */}
+        {pushBanner && (
+          <div style={{ position:"relative", zIndex:50, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10, padding:"10px 20px", background: dark ? "rgba(124,58,237,0.14)" : "rgba(124,58,237,0.07)", borderBottom:`1px solid ${dark ? "rgba(124,58,237,0.22)" : "rgba(124,58,237,0.16)"}` }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:15 }}>🔔</span>
+              <span style={{ fontSize:13, color: dark ? "#c4b5fd" : "#6d28d9", fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
+                Active les notifications pour ne rater aucun concours ni résultat
+              </span>
+            </div>
+            <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+              <button onClick={subscribePush} style={{ padding:"5px 14px", borderRadius:8, border:"none", background:"#7c3aed", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                Activer
+              </button>
+              <button onClick={dismissPushBanner} style={{ padding:"5px 10px", borderRadius:8, border:`1px solid ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`, background:"none", color: dark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.38)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                Plus tard
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 67px)", padding: isMobile ? "20px 12px" : "40px 24px", textAlign:"center" }}>
