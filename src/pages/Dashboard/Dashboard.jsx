@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
   ArrowRight, ChevronLeft, ChevronRight, Bell, Menu, X,
+  Home, Server, MessageSquare, CalendarDays, Target, BarChart3,
+  Star, Shield, User, LogOut,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -49,18 +51,18 @@ const FEATURES = [
 ];
 
 const NAV_ITEMS = [
-  { emoji: "🏠", label: "Tableau de bord",  to: "/app/dashboard" },
-  { emoji: "📚", label: "Étude Solo",        to: "/app/study/solo" },
-  { emoji: "👥", label: "Salles privées",    to: "/app/study/rooms" },
-  { emoji: "🏫", label: "Serveurs",          to: "/app/servers" },
-  { emoji: "🧭", label: "Orientation",       to: "/app/orientation" },
-  { emoji: "🏛️", label: "Guide des Écoles", to: "/app/schools" },
-  { emoji: "💬", label: "Communauté",        to: "/app/forum" },
-  { emoji: "📅", label: "Concours",          to: "/app/concours" },
-  { emoji: "🎯", label: "Calculateur",       to: "/app/calculateur" },
-  { emoji: "📊", label: "Statistiques",      to: "/app/stats" },
-  { emoji: "⭐", label: "Témoignages",       to: "/app/temoignages" },
-  { emoji: "👤", label: "Mon Profil",        to: "/app/profile" },
+  { icon: Home,          label: "Tableau de bord",  to: "/app/dashboard" },
+  { icon: BookOpen,      label: "Étude Solo",        to: "/app/study/solo" },
+  { icon: Users,         label: "Salles privées",    to: "/app/study/rooms" },
+  { icon: Server,        label: "Serveurs",          to: "/app/servers" },
+  { icon: FlaskConical,  label: "Orientation",       to: "/app/orientation" },
+  { icon: School,        label: "Guide des Écoles",  to: "/app/schools" },
+  { icon: MessageSquare, label: "Communauté",        to: "/app/forum" },
+  { icon: CalendarDays,  label: "Concours",          to: "/app/concours" },
+  { icon: Target,        label: "Calculateur",       to: "/app/calculateur" },
+  { icon: BarChart3,     label: "Statistiques",      to: "/app/stats" },
+  { icon: Star,          label: "Témoignages",       to: "/app/temoignages" },
+  { icon: User,          label: "Mon Profil",        to: "/app/profile" },
 ];
 
 function Particle({ style }) { return <div style={style} />; }
@@ -641,18 +643,21 @@ export default function Dashboard() {
 
           {/* Nav links */}
           <div style={{ flex:1, padding:"8px 8px", overflowY:"auto" }}>
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.to}
-                type="button"
-                className="drawer-item"
-                onClick={() => { setDrawerOpen(false); navigate(item.to); }}
-                style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", borderRadius:10, border:"none", background:"transparent", cursor:"pointer", textAlign:"left", marginBottom:1, color:textCol, fontFamily:"'DM Sans',sans-serif" }}
-              >
-                <span style={{ fontSize:16, flexShrink:0, width:22, textAlign:"center" }}>{item.emoji}</span>
-                <span style={{ fontSize:13.5, fontWeight:500 }}>{item.label}</span>
-              </button>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const NavIcon = item.icon;
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  className="drawer-item"
+                  onClick={() => { setDrawerOpen(false); navigate(item.to); }}
+                  style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", borderRadius:10, border:"none", background:"transparent", cursor:"pointer", textAlign:"left", marginBottom:1, color:textCol, fontFamily:"'DM Sans',sans-serif" }}
+                >
+                  <NavIcon size={15} style={{ flexShrink:0, width:20, opacity:0.7 }} />
+                  <span style={{ fontSize:13.5, fontWeight:500 }}>{item.label}</span>
+                </button>
+              );
+            })}
             {user?.role === "admin" && (
               <button
                 type="button"
@@ -660,7 +665,7 @@ export default function Dashboard() {
                 onClick={() => { setDrawerOpen(false); navigate("/app/admin"); }}
                 style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", borderRadius:10, border:"none", background:"transparent", cursor:"pointer", textAlign:"left", marginBottom:1, color:"#a78bfa", fontFamily:"'DM Sans',sans-serif" }}
               >
-                <span style={{ fontSize:16, flexShrink:0, width:22, textAlign:"center" }}>🛡️</span>
+                <Shield size={15} style={{ flexShrink:0, width:20 }} />
                 <span style={{ fontSize:13.5, fontWeight:600 }}>Admin</span>
               </button>
             )}
@@ -675,7 +680,7 @@ export default function Dashboard() {
               onMouseEnter={e => { e.currentTarget.style.background="rgba(239,68,68,0.12)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.38)"; }}
               onMouseLeave={e => { e.currentTarget.style.background="rgba(239,68,68,0.06)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.22)"; }}
             >
-              <span style={{ fontSize:16, width:22, textAlign:"center" }}>🚪</span>
+              <LogOut size={15} style={{ flexShrink:0 }} />
               Se déconnecter
             </button>
           </div>

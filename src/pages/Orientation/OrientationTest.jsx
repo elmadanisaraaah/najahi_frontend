@@ -305,7 +305,7 @@ export default function OrientationTest() {
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         const filled = {};
-        if (d?.niveau)                   filled.bac      = d.niveau;
+        if (d?.type_bac || d?.niveau)     filled.bac      = d.type_bac || d.niveau;
         if (d?.moyenne_generale != null) filled.moyenne  = String(d.moyenne_generale);
         if (d?.ville)                    filled.ville    = d.ville;
         if (d?.filiere)                  filled.filiere  = d.filiere;

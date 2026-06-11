@@ -395,6 +395,21 @@ export default function Calculateur() {
   const [animated, setAnimated]   = useState(false);
   const [inAnim, setInAnim]       = useState(true);
 
+  // Pre-fill bac type and note from profile
+  useEffect(() => {
+    const token = localStorage.getItem("najahi_token");
+    if (!token) return;
+    const base = import.meta.env.VITE_API_URL || "";
+    fetch(`${base}/api/profile/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (!d) return;
+        if (d.type_bac) setBacType(d.type_bac);
+        if (d.note_bac != null && parseFloat(d.note_bac) > 0) setNoteBAC(parseFloat(d.note_bac));
+      })
+      .catch(() => {});
+  }, []);
+
   // Animate bar fills when entering results
   useEffect(() => {
     if (step === 4) {
