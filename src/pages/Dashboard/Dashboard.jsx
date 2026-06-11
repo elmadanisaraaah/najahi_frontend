@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare,
+  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare, CalendarDays,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -204,6 +204,13 @@ export default function Dashboard() {
               onMouseLeave={e => e.currentTarget.style.background="rgba(124,58,237,0.09)"}
             >
               <MessageSquare size={12} /> Communauté
+            </button>
+            <button type="button" onClick={() => navigate("/app/concours")}
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(16,185,129,0.09)", border:"1px solid rgba(16,185,129,0.22)", borderRadius:9, color:"#10b981", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background="rgba(16,185,129,0.18)"}
+              onMouseLeave={e => e.currentTarget.style.background="rgba(16,185,129,0.09)"}
+            >
+              <CalendarDays size={12} /> Concours
             </button>
             {user?.role === "admin" && (
               <button type="button" onClick={() => navigate("/app/admin")}
