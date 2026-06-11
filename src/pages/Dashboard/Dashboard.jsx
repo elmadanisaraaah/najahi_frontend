@@ -272,11 +272,11 @@ export default function Dashboard() {
 
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             {/* Bell */}
-            <div ref={notifRef} style={{ position:"relative" }}>
+            <div ref={notifRef} style={{ position:"relative", zIndex:100 }}>
               <button
                 type="button"
                 onClick={() => setNotifOpen(o => !o)}
-                style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, borderRadius:10, border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.2)"}`, background: notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent", cursor:"pointer", transition:"all 0.18s" }}
+                style={{ position:"relative", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, borderRadius:10, border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.2)"}`, background: notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent", cursor:"pointer", transition:"all 0.18s" }}
                 onMouseEnter={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.07)"}
                 onMouseLeave={e => e.currentTarget.style.background = notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent"}
               >
@@ -291,13 +291,13 @@ export default function Dashboard() {
               {/* Dropdown */}
               {notifOpen && (
                 <div style={{
-                  position:"absolute", top:"calc(100% + 10px)", right:0,
+                  position:"fixed", top:60, right:16,
                   width: Math.min(360, window.innerWidth - 32),
                   background: dark ? "rgba(18,16,40,0.97)" : "#fff",
                   backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
                   border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.18)"}`,
                   borderRadius:16, boxShadow:"0 16px 48px rgba(0,0,0,0.24)",
-                  zIndex:999, overflow:"hidden",
+                  zIndex:99999, overflow:"hidden",
                   animation:"notifSlide 0.18s ease",
                 }}>
                   <style>{`@keyframes notifSlide { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }`}</style>
