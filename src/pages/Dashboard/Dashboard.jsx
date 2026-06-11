@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare, CalendarDays, Target,
+  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare, CalendarDays, Target, Bell,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -88,6 +88,80 @@ export default function Dashboard() {
   const [logoError, setLogoError]   = useState(false);
   const [mounted, setMounted]       = useState(false);
   const autoRef = useRef(null);
+
+  // Notifications bell
+  const [notifOpen,    setNotifOpen]    = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount,  setUnreadCount]  = useState(0);
+  const notifRef = useRef(null);
+  const NAPI = (p) => `${import.meta.env.VITE_API_URL}/api/notifications${p}`;
+  const nToken = () => localStorage.getItem("najahi_token");
+
+  const fetchNotifs = useCallback(async () => {
+    const tok = nToken();
+    if (!tok) return;
+    try {
+      const r = await fetch(NAPI("?limit=10"), { headers: { Authorization: `Bearer ${tok}` } });
+      if (!r.ok) return;
+      const d = await r.json();
+      setNotifications(d.notifications || []);
+      setUnreadCount(d.unread_count || 0);
+    } catch (_) {}
+  }, []);
+
+  useEffect(() => {
+    fetchNotifs();
+    const iv = setInterval(fetchNotifs, 60000);
+    return () => clearInterval(iv);
+  }, [fetchNotifs]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handler = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [notifOpen]);
+
+  async function markNotifRead(id) {
+    const tok = nToken();
+    if (!tok) return;
+    try {
+      await fetch(NAPI(`/${id}/read`), { method: "PUT", headers: { Authorization: `Bearer ${tok}` } });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (_) {}
+  }
+
+  async function markAllNotifRead() {
+    const tok = nToken();
+    if (!tok) return;
+    try {
+      await fetch(NAPI("/read-all"), { method: "PUT", headers: { Authorization: `Bearer ${tok}` } });
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+    } catch (_) {}
+  }
+
+  function handleNotifClick(n) {
+    if (!n.is_read) markNotifRead(n.id);
+    setNotifOpen(false);
+    if (n.link) navigate(n.link);
+  }
+
+  const NOTIF_TYPE_EMOJI = { info:"ℹ️", success:"✅", warning:"⚠️", concours:"📅", orientation:"🧭", forum:"💬" };
+
+  function fmtNotifAgo(iso) {
+    if (!iso) return "";
+    const str = iso.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : iso + "Z";
+    const diff = Date.now() - new Date(str).getTime();
+    if (diff < 60000)    return "À l'instant";
+    if (diff < 3600000)  return `${Math.floor(diff / 60000)}min`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
+    return `${Math.floor(diff / 86400000)}j`;
+  }
 
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
   useEffect(() => {
@@ -197,6 +271,100 @@ export default function Dashboard() {
           </div>
 
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            {/* Bell */}
+            <div ref={notifRef} style={{ position:"relative" }}>
+              <button
+                type="button"
+                onClick={() => setNotifOpen(o => !o)}
+                style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, borderRadius:10, border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.2)"}`, background: notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent", cursor:"pointer", transition:"all 0.18s" }}
+                onMouseEnter={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.07)"}
+                onMouseLeave={e => e.currentTarget.style.background = notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent"}
+              >
+                <Bell size={16} color={dark ? "#e2e8f0" : "#7c3aed"} />
+                {unreadCount > 0 && (
+                  <span style={{ position:"absolute", top:-4, right:-4, minWidth:16, height:16, borderRadius:99, background:"#ef4444", color:"#fff", fontSize:9, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 4px", fontFamily:"'DM Sans',sans-serif", border:"2px solid " + (dark ? "#0f0c29" : "#fff") }}>
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown */}
+              {notifOpen && (
+                <div style={{
+                  position:"absolute", top:"calc(100% + 10px)", right:0,
+                  width: Math.min(360, window.innerWidth - 32),
+                  background: dark ? "rgba(18,16,40,0.97)" : "#fff",
+                  backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
+                  border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.18)"}`,
+                  borderRadius:16, boxShadow:"0 16px 48px rgba(0,0,0,0.24)",
+                  zIndex:999, overflow:"hidden",
+                  animation:"notifSlide 0.18s ease",
+                }}>
+                  <style>{`@keyframes notifSlide { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }`}</style>
+
+                  {/* Dropdown header */}
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px 10px", borderBottom:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}` }}>
+                    <span style={{ fontWeight:800, fontSize:14, color: dark ? "#f3f4f6" : "#1e1b4b", fontFamily:"'DM Sans',sans-serif" }}>
+                      Notifications {unreadCount > 0 && <span style={{ marginLeft:4, background:"#7c3aed", color:"#fff", borderRadius:99, padding:"1px 7px", fontSize:10 }}>{unreadCount}</span>}
+                    </span>
+                    {unreadCount > 0 && (
+                      <button onClick={markAllNotifRead} style={{ fontSize:11, fontWeight:700, color:"#7c3aed", background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", padding:"2px 6px", borderRadius:6 }}>
+                        Tout lire
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Notification items */}
+                  <div style={{ maxHeight:360, overflowY:"auto" }}>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding:"32px 16px", textAlign:"center" }}>
+                        <Bell size={32} color={dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)"} style={{ marginBottom:8 }} />
+                        <p style={{ margin:0, fontSize:13, color: dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)", fontFamily:"'DM Sans',sans-serif" }}>Aucune notification</p>
+                      </div>
+                    ) : notifications.map(n => (
+                      <div key={n.id}
+                        onClick={() => handleNotifClick(n)}
+                        style={{
+                          display:"flex", alignItems:"flex-start", gap:10,
+                          padding:"11px 14px",
+                          background: !n.is_read ? (dark ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.05)") : "transparent",
+                          borderBottom:`1px solid ${dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}`,
+                          cursor: n.link ? "pointer" : "default",
+                          transition:"background 0.15s",
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.05)" : "rgba(124,58,237,0.04)"}
+                        onMouseLeave={e => e.currentTarget.style.background = !n.is_read ? (dark ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.05)") : "transparent"}
+                      >
+                        <span style={{ fontSize:18, flexShrink:0, lineHeight:1.2 }}>{NOTIF_TYPE_EMOJI[n.type] || "ℹ️"}</span>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontWeight: n.is_read ? 500 : 700, fontSize:12.5, color: dark ? "#e2e8f0" : "#1e1b4b", fontFamily:"'DM Sans',sans-serif", lineHeight:1.3, marginBottom:2 }}>
+                            {n.title}
+                          </div>
+                          <div style={{ fontSize:11.5, color: dark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)", fontFamily:"'DM Sans',sans-serif", lineHeight:1.4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+                            {n.message}
+                          </div>
+                        </div>
+                        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
+                          <span style={{ fontSize:10, color: dark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)", fontFamily:"'DM Sans',sans-serif", whiteSpace:"nowrap" }}>{fmtNotifAgo(n.created_at)}</span>
+                          {!n.is_read && <span style={{ width:6, height:6, borderRadius:"50%", background:"#7c3aed", display:"block" }} />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div style={{ padding:"10px 16px", borderTop:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}`, textAlign:"center" }}>
+                    <button
+                      onClick={() => { setNotifOpen(false); navigate("/app/notifications"); }}
+                      style={{ fontSize:12, fontWeight:700, color:"#7c3aed", background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}
+                    >
+                      Voir toutes les notifications →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <ThemeToggle />
             <button type="button" onClick={() => navigate("/app/forum")}
               style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.09)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:9, color:"#7c3aed", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}

@@ -24,6 +24,7 @@ import Forum from "./pages/Forum/Forum";
 import PostDetail from "./pages/Forum/PostDetail";
 import Concours from "./pages/Concours/Concours";
 import Calculateur from "./pages/Calculateur/Calculateur";
+import Notifications from "./pages/Notifications/Notifications";
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/app/forum/:postId" element={<PostDetail />} />
         <Route path="/app/concours" element={<Concours />} />
         <Route path="/app/calculateur" element={<Calculateur />} />
+        <Route path="/app/notifications" element={<Notifications />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <InstallPrompt />
