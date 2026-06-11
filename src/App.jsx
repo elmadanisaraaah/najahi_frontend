@@ -26,6 +26,7 @@ import Concours from "./pages/Concours/Concours";
 import Calculateur from "./pages/Calculateur/Calculateur";
 import Notifications from "./pages/Notifications/Notifications";
 import Stats from "./pages/Stats/Stats";
+import Temoignages from "./pages/Temoignages/Temoignages";
 
 export default function App() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="/app/calculateur" element={<Calculateur />} />
         <Route path="/app/notifications" element={<Notifications />} />
         <Route path="/app/stats" element={<Stats />} />
+        <Route path="/app/temoignages" element={<Temoignages />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <InstallPrompt />

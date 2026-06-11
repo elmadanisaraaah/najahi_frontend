@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare, CalendarDays, Target, Bell, BarChart3,
+  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare, CalendarDays, Target, Bell, BarChart3, Star,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -393,6 +393,13 @@ export default function Dashboard() {
               onMouseLeave={e => e.currentTarget.style.background="rgba(245,158,11,0.09)"}
             >
               <BarChart3 size={12} /> Stats
+            </button>
+            <button type="button" onClick={() => navigate("/app/temoignages")}
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(245,158,11,0.09)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:9, color:"#d97706", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background="rgba(245,158,11,0.18)"}
+              onMouseLeave={e => e.currentTarget.style.background="rgba(245,158,11,0.09)"}
+            >
+              <Star size={12} /> Témoignages
             </button>
             {user?.role === "admin" && (
               <button type="button" onClick={() => navigate("/app/admin")}

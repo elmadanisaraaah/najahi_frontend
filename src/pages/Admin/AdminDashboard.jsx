@@ -5,10 +5,11 @@ import {
   Users, Activity, Compass, MessageSquare, BookOpen, TrendingUp,
   Search, ChevronLeft, ChevronRight, Trash2, CheckCircle, XCircle,
   LogOut, RefreshCw, LayoutDashboard, Settings, AlertTriangle,
-  ChevronDown, Menu, Shield, GraduationCap, CalendarDays, Plus, Pencil, X,
+  ChevronDown, Menu, Shield, GraduationCap, CalendarDays, Plus, Pencil, X, Star,
 } from "lucide-react";
 
 const CAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/concours${path}`;
+const TAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/temoignages${path}`;
 
 const CONCOURS_CATS = [
   "Ingénierie","Télécommunications","Commerce & Management","Santé",
@@ -595,6 +596,90 @@ function ConcoursSection({ concours, loading, onAdd, onEdit, onDelete }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Temoignages section
+// ─────────────────────────────────────────────────────────────────────────────
+
+function StarsDisplay({ rating }) {
+  return (
+    <span style={{ display:"inline-flex", gap:2 }}>
+      {[1,2,3,4,5].map(i => (
+        <Star key={i} size={12} fill={i<=rating?"#f59e0b":"none"} color={i<=rating?"#f59e0b":"#d1d5db"} />
+      ))}
+    </span>
+  );
+}
+
+function TemoignagesSection({ pending, loading, onApprove, onDelete, onRefresh }) {
+  return (
+    <div>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+        <div>
+          <h2 style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:800, color:"#1a1a2e", margin:0, letterSpacing:"-0.5px" }}>
+            Témoignages en attente
+          </h2>
+          <p style={{ fontSize:13, color:"#6b7280", margin:"5px 0 0" }}>
+            {loading ? "Chargement…" : `${pending.length} témoignage${pending.length!==1?"s":""} en attente de validation`}
+          </p>
+        </div>
+        <button onClick={onRefresh} style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:12, fontWeight:600, cursor:"pointer" }}>
+          <RefreshCw size={13}/> Actualiser
+        </button>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign:"center", padding:"60px", color:"#9ca3af" }}>
+          <Spinner size={28} color="#7c3aed" />
+        </div>
+      ) : pending.length === 0 ? (
+        <div style={{ background:"#fff", borderRadius:16, padding:"72px 32px", textAlign:"center", border:"1px solid #f0eeff" }}>
+          <div style={{ fontSize:44, marginBottom:14 }}>✅</div>
+          <div style={{ fontSize:18, fontWeight:700, color:"#1a1a2e", fontFamily:"'Fraunces',serif", marginBottom:6 }}>
+            Tout est validé !
+          </div>
+          <div style={{ fontSize:13, color:"#9ca3af" }}>Aucun témoignage en attente de modération.</div>
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {pending.map(t => (
+            <div key={t.id} style={{ background:"#fff", borderRadius:14, padding:"18px 20px", border:"1px solid #f0eeff", boxShadow:"0 1px 3px rgba(0,0,0,0.04)", borderLeft:"4px solid #f59e0b" }}>
+              <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
+                {/* Avatar */}
+                <div style={{ width:40, height:40, borderRadius:"50%", background:"rgba(124,58,237,0.1)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, color:"#7c3aed", flexShrink:0 }}>
+                  {t.user_name?.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase() || "?"}
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
+                    <span style={{ fontWeight:700, fontSize:14, color:"#1a1a2e" }}>{t.user_name || "Anonyme"}</span>
+                    <span style={{ padding:"2px 8px", borderRadius:99, background:"rgba(124,58,237,0.1)", color:"#7c3aed", fontSize:11, fontWeight:700 }}>{t.school}</span>
+                    {t.filiere && <span style={{ fontSize:12, color:"#6b7280" }}>{t.filiere}</span>}
+                    {t.annee_entree && <span style={{ fontSize:12, color:"#9ca3af" }}>· {t.annee_entree}</span>}
+                    <StarsDisplay rating={t.rating} />
+                  </div>
+                  <p style={{ margin:"6px 0 10px", fontSize:13, color:"#374151", lineHeight:1.6, fontStyle:"italic" }}>
+                    "{t.content}"
+                  </p>
+                  <div style={{ fontSize:11, color:"#9ca3af" }}>{fmtDate(t.created_at)}</div>
+                </div>
+                <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                  <button onClick={() => onApprove(t.id)}
+                    style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 14px", borderRadius:9, border:"none", background:"rgba(16,185,129,0.1)", color:"#10b981", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+                    <CheckCircle size={13}/> Approuver
+                  </button>
+                  <button onClick={() => onDelete(t.id)}
+                    style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 12px", borderRadius:9, border:"none", background:"rgba(239,68,68,0.08)", color:"#ef4444", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+                    <Trash2 size={13}/> Rejeter
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Placeholder
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -622,6 +707,7 @@ const NAV = [
   { id: "users",        icon: Users,           label: "Utilisateurs",   emoji: "👥" },
   { id: "orientations", icon: Compass,         label: "Orientations",   emoji: "🧭" },
   { id: "concours",     icon: CalendarDays,    label: "Concours",       emoji: "📅" },
+  { id: "temoignages",  icon: Star,            label: "Témoignages",    emoji: "⭐" },
   { id: "forum",        icon: MessageSquare,   label: "Forum",          emoji: "💬" },
   { id: "schools",      icon: BookOpen,        label: "Écoles",         emoji: "📚" },
   { id: "settings",     icon: Settings,        label: "Paramètres",     emoji: "⚙️" },
@@ -662,6 +748,8 @@ export default function AdminDashboard() {
   const [concoursModal,     setConcoursModal]     = useState(null); // null | "create" | concoursObj
   const [concoursSaving,    setConcoursSaving]    = useState(false);
   const [confirmConcoursId, setConfirmConcoursId] = useState(null);
+  const [temPending,        setTemPending]        = useState([]);
+  const [temLoading,        setTemLoading]        = useState(false);
   const [deletingId,        setDeletingId]        = useState(null);
   const [confirmId,         setConfirmId]         = useState(null);
   const [toast,             setToast]             = useState({ msg: "", type: "success" });
@@ -733,9 +821,34 @@ export default function AdminDashboard() {
     finally { setConfirmConcoursId(null); }
   };
 
+  const fetchTemPending = async () => {
+    setTemLoading(true);
+    try {
+      const r = await fetch(TAPI("/pending"), { headers: authH() });
+      if (r.ok) setTemPending((await r.json()).temoignages || []);
+    } catch {} finally { setTemLoading(false); }
+  };
+
+  const approveTem = async (id) => {
+    try {
+      const r = await fetch(TAPI(`/${id}/approve`), { method: "PUT", headers: authH() });
+      if (r.ok) { setTemPending(prev => prev.filter(t => t.id !== id)); showToast("Témoignage approuvé !"); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+  };
+
+  const deleteTem = async (id) => {
+    try {
+      const r = await fetch(TAPI(`/${id}`), { method: "DELETE", headers: authH() });
+      if (r.ok) { setTemPending(prev => prev.filter(t => t.id !== id)); showToast("Témoignage supprimé"); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+  };
+
   useEffect(() => { fetchStats(); fetchUsers(1, ""); fetchActivity(); }, []);
-  useEffect(() => { if (activeTab === "orientations" && orientations.length === 0) fetchOrientations(); }, [activeTab]);
-  useEffect(() => { if (activeTab === "concours" && concoursList.length === 0) fetchConcours(); }, [activeTab]);
+  useEffect(() => { if (activeTab === "orientations"  && orientations.length === 0)  fetchOrientations(); }, [activeTab]);
+  useEffect(() => { if (activeTab === "concours"      && concoursList.length === 0)  fetchConcours();      }, [activeTab]);
+  useEffect(() => { if (activeTab === "temoignages")  fetchTemPending();                                   }, [activeTab]);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setUsersPage(1); fetchUsers(1, searchInput); }, 400);
@@ -957,6 +1070,13 @@ export default function AdminDashboard() {
                 onAdd={() => setConcoursModal("create")}
                 onEdit={c => setConcoursModal(c)}
                 onDelete={id => setConfirmConcoursId(id)}
+              />
+            )}
+            {activeTab === "temoignages" && (
+              <TemoignagesSection
+                pending={temPending} loading={temLoading}
+                onApprove={approveTem} onDelete={deleteTem}
+                onRefresh={fetchTemPending}
               />
             )}
             {activeTab === "forum"    && <ComingSoon title="Forum"      emoji="💬" />}
