@@ -248,7 +248,7 @@ export default function Dashboard() {
         .dash-sub-btn:hover{transform:translateY(-1px) !important;opacity:0.9;}
       `}</style>
 
-      <div style={{ minHeight:"100vh", background:bg, fontFamily:"'DM Sans',sans-serif", position:"relative", overflow:"hidden", overflowX:"hidden", transition:"background 0.5s ease" }}>
+      <div style={{ minHeight:"100vh", background:bg, fontFamily:"'DM Sans',sans-serif", position:"relative", overflowX:"hidden", transition:"background 0.5s ease" }}>
 
         {/* Blobs */}
         <div style={{ position:"absolute", top:"-100px", left:"-100px", width:"500px", height:"500px", borderRadius:"50%", background:`radial-gradient(circle,${dark?"rgba(124,58,237,0.25)":"rgba(124,58,237,0.14)"} 0%,transparent 70%)`, filter:"blur(60px)", pointerEvents:"none", animation:"dblob1 8s ease-in-out infinite" }}/>
@@ -257,7 +257,7 @@ export default function Dashboard() {
         <ParticlesBackground dark={dark} />
 
         {/* Navbar */}
-        <nav style={{ position:"sticky", top:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 28px", overflow:"hidden", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
+        <nav style={{ position:"sticky", top:0, zIndex:1000, display:"flex", alignItems:"center", justifyContent:"space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 28px", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width: isMobile ? 28 : 38, height: isMobile ? 28 : 38, borderRadius: isMobile ? 8 : 11, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:5, flexShrink:0, animation:"dglow 3s ease-in-out infinite alternate" }}>
               {!logoError
@@ -297,7 +297,7 @@ export default function Dashboard() {
                   backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
                   border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.18)"}`,
                   borderRadius:16, boxShadow:"0 16px 48px rgba(0,0,0,0.24)",
-                  zIndex:99999, overflow:"hidden",
+                  zIndex:999999, overflow:"hidden",
                   animation:"notifSlide 0.18s ease",
                 }}>
                   <style>{`@keyframes notifSlide { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }`}</style>
