@@ -19,7 +19,11 @@ const fmtDate = (iso) => {
 const fmtRelative = (iso) => {
   if (!iso) return "—";
   try {
-    const diff = Date.now() - new Date(iso).getTime();
+    // If the backend returns a naive ISO string (no Z / offset), treat it as UTC
+    const hasZone = iso.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(iso);
+    const utcIso = hasZone ? iso : iso + "Z";
+    const diff = Date.now() - new Date(utcIso).getTime();
+    if (diff < 0) return "À l'instant";
     const m = Math.floor(diff / 60000);
     if (m < 1) return "À l'instant";
     if (m < 60) return `${m}min`;
