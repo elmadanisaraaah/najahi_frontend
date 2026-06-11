@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Users, FlaskConical, School,
-  ArrowRight, ChevronLeft, ChevronRight, Shield, MessageSquare, CalendarDays, Target, Bell, BarChart3, Star,
+  ArrowRight, ChevronLeft, ChevronRight, Bell, Menu, X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -48,6 +48,21 @@ const FEATURES = [
   },
 ];
 
+const NAV_ITEMS = [
+  { emoji: "🏠", label: "Tableau de bord",  to: "/app/dashboard" },
+  { emoji: "📚", label: "Étude Solo",        to: "/app/study/solo" },
+  { emoji: "👥", label: "Salles privées",    to: "/app/study/rooms" },
+  { emoji: "🏫", label: "Serveurs",          to: "/app/servers" },
+  { emoji: "🧭", label: "Orientation",       to: "/app/orientation" },
+  { emoji: "🏛️", label: "Guide des Écoles", to: "/app/schools" },
+  { emoji: "💬", label: "Communauté",        to: "/app/forum" },
+  { emoji: "📅", label: "Concours",          to: "/app/concours" },
+  { emoji: "🎯", label: "Calculateur",       to: "/app/calculateur" },
+  { emoji: "📊", label: "Statistiques",      to: "/app/stats" },
+  { emoji: "⭐", label: "Témoignages",       to: "/app/temoignages" },
+  { emoji: "👤", label: "Mon Profil",        to: "/app/profile" },
+];
+
 function Particle({ style }) { return <div style={style} />; }
 
 function ParticlesBackground({ dark }) {
@@ -75,6 +90,13 @@ function clamp(min, preferred, max) {
   return `clamp(${min}px, ${preferred}vw, ${max}px)`;
 }
 
+function getInitials(u) {
+  if (u?.prenom) return (u.prenom[0] + (u?.nom ? u.nom[0] : "")).toUpperCase();
+  if (u?.name)   return u.name[0].toUpperCase();
+  if (u?.email)  return u.email[0].toUpperCase();
+  return "?";
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -90,12 +112,15 @@ export default function Dashboard() {
   const autoRef = useRef(null);
 
   // Notifications bell
-  const [notifOpen,    setNotifOpen]    = useState(false);
+  const [notifOpen,     setNotifOpen]     = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount,  setUnreadCount]  = useState(0);
+  const [unreadCount,   setUnreadCount]   = useState(0);
   const notifRef = useRef(null);
-  const NAPI = (p) => `${import.meta.env.VITE_API_URL}/api/notifications${p}`;
+  const NAPI   = (p) => `${import.meta.env.VITE_API_URL}/api/notifications${p}`;
   const nToken = () => localStorage.getItem("najahi_token");
+
+  // Hamburger drawer
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Push notification banner
   const [pushBanner, setPushBanner] = useState(() => {
@@ -125,7 +150,7 @@ export default function Dashboard() {
     return () => clearInterval(iv);
   }, [fetchNotifs]);
 
-  // Close dropdown on outside click
+  // Close notif dropdown on outside click
   useEffect(() => {
     if (!notifOpen) return;
     const handler = (e) => {
@@ -134,6 +159,19 @@ export default function Dashboard() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [notifOpen]);
+
+  // Close drawer on ESC
+  useEffect(() => {
+    const handler = (e) => { if (e.key === "Escape") setDrawerOpen(false); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
 
   async function markNotifRead(id) {
     const tok = nToken();
@@ -161,11 +199,18 @@ export default function Dashboard() {
     if (n.link) navigate(n.link);
   }
 
-  const NOTIF_TYPE_EMOJI = { info:"ℹ️", success:"✅", warning:"⚠️", concours:"📅", orientation:"🧭", forum:"💬" };
+  function handleLogout() {
+    localStorage.removeItem("najahi_token");
+    localStorage.removeItem("najahi_refresh_token");
+    localStorage.removeItem("najahi_user");
+    navigate("/login");
+  }
+
+  const NOTIF_TYPE_EMOJI = { info: "ℹ️", success: "✅", warning: "⚠️", concours: "📅", orientation: "🧭", forum: "💬" };
 
   function fmtNotifAgo(iso) {
     if (!iso) return "";
-    const str = iso.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : iso + "Z";
+    const str  = iso.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : iso + "Z";
     const diff = Date.now() - new Date(str).getTime();
     if (diff < 60000)    return "À l'instant";
     if (diff < 3600000)  return `${Math.floor(diff / 60000)}min`;
@@ -251,6 +296,8 @@ export default function Dashboard() {
   const subCol  = dark ? "rgba(255,255,255,0.4)" : "rgba(15,10,30,0.55)";
   const cardBg  = dark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.98)";
   const cardBdr = dark ? "rgba(255,255,255,0.09)" : "rgba(124,58,237,0.18)";
+  const drawerBg = dark ? "#0f0a1e" : "#ffffff";
+  const drawerBdr = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.13)";
 
   const getCardProps = (i) => {
     const total  = FEATURES.length;
@@ -289,10 +336,14 @@ export default function Dashboard() {
         @keyframes dblob1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,25px) scale(1.15)}}
         @keyframes dblob2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-25px,15px) scale(1.1)}}
         @keyframes dfadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes dfadeIn{from{opacity:0}to{opacity:1}}
         @keyframes dpulse{0%,100%{box-shadow:0 0 6px rgba(16,185,129,0.7)}50%{box-shadow:0 0 16px rgba(16,185,129,1)}}
         @keyframes dglow{0%,100%{box-shadow:0 0 0 1.5px rgba(124,58,237,0.3),0 0 16px rgba(124,58,237,0.4)}50%{box-shadow:0 0 0 1.5px rgba(124,58,237,0.5),0 0 28px rgba(124,58,237,0.6)}}
+        @keyframes notifSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
         .dash-nav-btn:hover{background:rgba(124,58,237,0.15) !important;border-color:#7c3aed !important;}
         .dash-sub-btn:hover{transform:translateY(-1px) !important;opacity:0.9;}
+        .drawer-item:hover{background:rgba(124,58,237,0.07) !important;}
+        .drawer-item-admin:hover{background:rgba(124,58,237,0.1) !important;}
       `}</style>
 
       <div style={{ minHeight:"100vh", background:bg, fontFamily:"'DM Sans',sans-serif", position:"relative", overflowX:"hidden", transition:"background 0.5s ease" }}>
@@ -303,55 +354,55 @@ export default function Dashboard() {
         <div style={{ position:"absolute", inset:0, pointerEvents:"none", backgroundImage:`linear-gradient(rgba(124,58,237,${dark?0.03:0.04}) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,${dark?0.03:0.04}) 1px,transparent 1px)`, backgroundSize:"42px 42px" }}/>
         <ParticlesBackground dark={dark} />
 
-        {/* Navbar */}
-        <nav style={{ position:"sticky", top:0, zIndex:1000, display:"flex", alignItems:"center", justifyContent:"space-between", height: isMobile ? 56 : isTablet ? 60 : "auto", padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "14px 28px", background:navBg, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", borderBottom:`1px solid ${navBdr}`, boxShadow:dark?"none":"0 1px 0 rgba(124,58,237,0.06)", transition:"all 0.4s ease" }}>
+        {/* ── Navbar ──────────────────────────────────────────────────────── */}
+        <nav style={{
+          position:"sticky", top:0, zIndex:1000,
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          height:60, padding:"0 20px",
+          background:navBg,
+          backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
+          borderBottom:`1px solid ${navBdr}`,
+          boxShadow: dark ? "none" : "0 1px 0 rgba(124,58,237,0.06)",
+        }}>
+          {/* Left: logo + name */}
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width: isMobile ? 28 : 38, height: isMobile ? 28 : 38, borderRadius: isMobile ? 8 : 11, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:5, flexShrink:0, animation:"dglow 3s ease-in-out infinite alternate" }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:4, flexShrink:0, animation:"dglow 3s ease-in-out infinite alternate" }}>
               {!logoError
                 ? <img src="/najahi_logo.png" alt="N" style={{ width:"100%", height:"100%", objectFit:"contain" }} onError={() => setLogoError(true)}/>
-                : <span style={{ color:"#7c3aed", fontSize:17, fontWeight:900, fontFamily:"'Fraunces',serif" }}>N</span>
+                : <span style={{ color:"#7c3aed", fontSize:16, fontWeight:900, fontFamily:"'Fraunces',serif" }}>N</span>
               }
             </div>
-            <span style={{ fontSize: isMobile ? 15 : 18, fontWeight:700, color:textCol, fontFamily:"'Fraunces',serif", letterSpacing:"-0.3px", transition:"color 0.4s" }}>
+            <span style={{ fontSize:17, fontWeight:700, color:textCol, fontFamily:"'Fraunces',serif", letterSpacing:"-0.3px", transition:"color 0.4s" }}>
               Najahi
             </span>
           </div>
 
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          {/* Right: bell + theme + hamburger */}
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+
             {/* Bell */}
-            <div ref={notifRef} style={{ position:"relative", zIndex:100 }}>
+            <div ref={notifRef} style={{ position:"relative" }}>
               <button
                 type="button"
                 onClick={() => setNotifOpen(o => !o)}
-                style={{ position:"relative", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, borderRadius:10, border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.2)"}`, background: notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent", cursor:"pointer", transition:"all 0.18s" }}
-                onMouseEnter={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.07)"}
-                onMouseLeave={e => e.currentTarget.style.background = notifOpen ? (dark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)") : "transparent"}
+                style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, borderRadius:10, border:`1px solid ${dark?"rgba(255,255,255,0.12)":"rgba(124,58,237,0.2)"}`, background:notifOpen?(dark?"rgba(124,58,237,0.18)":"rgba(124,58,237,0.08)"):"transparent", cursor:"pointer", transition:"all 0.18s" }}
+                onMouseEnter={e => e.currentTarget.style.background = dark?"rgba(255,255,255,0.08)":"rgba(124,58,237,0.07)"}
+                onMouseLeave={e => e.currentTarget.style.background = notifOpen?(dark?"rgba(124,58,237,0.18)":"rgba(124,58,237,0.08)"):"transparent"}
               >
-                <Bell size={16} color={dark ? "#e2e8f0" : "#7c3aed"} />
+                <Bell size={16} color={dark?"#e2e8f0":"#7c3aed"} />
                 {unreadCount > 0 && (
-                  <span style={{ position:"absolute", top:-4, right:-4, minWidth:16, height:16, borderRadius:99, background:"#ef4444", color:"#fff", fontSize:9, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 4px", fontFamily:"'DM Sans',sans-serif", border:"2px solid " + (dark ? "#0f0c29" : "#fff") }}>
+                  <span style={{ position:"absolute", top:-4, right:-4, minWidth:16, height:16, borderRadius:99, background:"#ef4444", color:"#fff", fontSize:9, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", padding:"0 4px", fontFamily:"'DM Sans',sans-serif", border:"2px solid "+(dark?"#0f0c29":"#fff") }}>
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </button>
 
-              {/* Dropdown */}
+              {/* Notif dropdown */}
               {notifOpen && (
-                <div style={{
-                  position:"fixed", top:60, right:16,
-                  width: Math.min(360, window.innerWidth - 32),
-                  background: dark ? "rgba(18,16,40,0.97)" : "#fff",
-                  backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
-                  border:`1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.18)"}`,
-                  borderRadius:16, boxShadow:"0 16px 48px rgba(0,0,0,0.24)",
-                  zIndex:999999, overflow:"hidden",
-                  animation:"notifSlide 0.18s ease",
-                }}>
-                  <style>{`@keyframes notifSlide { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }`}</style>
+                <div style={{ position:"fixed", top:60, right:16, width:Math.min(360, window.innerWidth - 32), background:dark?"rgba(18,16,40,0.97)":"#fff", backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)", border:`1px solid ${dark?"rgba(255,255,255,0.12)":"rgba(124,58,237,0.18)"}`, borderRadius:16, boxShadow:"0 16px 48px rgba(0,0,0,0.24)", zIndex:999999, overflow:"hidden", animation:"notifSlide 0.18s ease" }}>
 
-                  {/* Dropdown header */}
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px 10px", borderBottom:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}` }}>
-                    <span style={{ fontWeight:800, fontSize:14, color: dark ? "#f3f4f6" : "#1e1b4b", fontFamily:"'DM Sans',sans-serif" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px 10px", borderBottom:`1px solid ${dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.06)"}` }}>
+                    <span style={{ fontWeight:800, fontSize:14, color:dark?"#f3f4f6":"#1e1b4b", fontFamily:"'DM Sans',sans-serif" }}>
                       Notifications {unreadCount > 0 && <span style={{ marginLeft:4, background:"#7c3aed", color:"#fff", borderRadius:99, padding:"1px 7px", fontSize:10 }}>{unreadCount}</span>}
                     </span>
                     {unreadCount > 0 && (
@@ -361,50 +412,34 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  {/* Notification items */}
                   <div style={{ maxHeight:360, overflowY:"auto" }}>
                     {notifications.length === 0 ? (
                       <div style={{ padding:"32px 16px", textAlign:"center" }}>
-                        <Bell size={32} color={dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)"} style={{ marginBottom:8 }} />
-                        <p style={{ margin:0, fontSize:13, color: dark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)", fontFamily:"'DM Sans',sans-serif" }}>Aucune notification</p>
+                        <Bell size={32} color={dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.15)"} style={{ marginBottom:8 }} />
+                        <p style={{ margin:0, fontSize:13, color:dark?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.35)", fontFamily:"'DM Sans',sans-serif" }}>Aucune notification</p>
                       </div>
                     ) : notifications.map(n => (
                       <div key={n.id}
                         onClick={() => handleNotifClick(n)}
-                        style={{
-                          display:"flex", alignItems:"flex-start", gap:10,
-                          padding:"11px 14px",
-                          background: !n.is_read ? (dark ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.05)") : "transparent",
-                          borderBottom:`1px solid ${dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}`,
-                          cursor: n.link ? "pointer" : "default",
-                          transition:"background 0.15s",
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.05)" : "rgba(124,58,237,0.04)"}
-                        onMouseLeave={e => e.currentTarget.style.background = !n.is_read ? (dark ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.05)") : "transparent"}
+                        style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 14px", background:!n.is_read?(dark?"rgba(124,58,237,0.1)":"rgba(124,58,237,0.05)"):"transparent", borderBottom:`1px solid ${dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)"}`, cursor:n.link?"pointer":"default", transition:"background 0.15s" }}
+                        onMouseEnter={e => e.currentTarget.style.background = dark?"rgba(255,255,255,0.05)":"rgba(124,58,237,0.04)"}
+                        onMouseLeave={e => e.currentTarget.style.background = !n.is_read?(dark?"rgba(124,58,237,0.1)":"rgba(124,58,237,0.05)"):"transparent"}
                       >
                         <span style={{ fontSize:18, flexShrink:0, lineHeight:1.2 }}>{NOTIF_TYPE_EMOJI[n.type] || "ℹ️"}</span>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontWeight: n.is_read ? 500 : 700, fontSize:12.5, color: dark ? "#e2e8f0" : "#1e1b4b", fontFamily:"'DM Sans',sans-serif", lineHeight:1.3, marginBottom:2 }}>
-                            {n.title}
-                          </div>
-                          <div style={{ fontSize:11.5, color: dark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)", fontFamily:"'DM Sans',sans-serif", lineHeight:1.4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
-                            {n.message}
-                          </div>
+                          <div style={{ fontWeight:n.is_read?500:700, fontSize:12.5, color:dark?"#e2e8f0":"#1e1b4b", fontFamily:"'DM Sans',sans-serif", lineHeight:1.3, marginBottom:2 }}>{n.title}</div>
+                          <div style={{ fontSize:11.5, color:dark?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.45)", fontFamily:"'DM Sans',sans-serif", lineHeight:1.4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{n.message}</div>
                         </div>
                         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
-                          <span style={{ fontSize:10, color: dark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)", fontFamily:"'DM Sans',sans-serif", whiteSpace:"nowrap" }}>{fmtNotifAgo(n.created_at)}</span>
+                          <span style={{ fontSize:10, color:dark?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.3)", fontFamily:"'DM Sans',sans-serif", whiteSpace:"nowrap" }}>{fmtNotifAgo(n.created_at)}</span>
                           {!n.is_read && <span style={{ width:6, height:6, borderRadius:"50%", background:"#7c3aed", display:"block" }} />}
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Footer */}
-                  <div style={{ padding:"10px 16px", borderTop:`1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}`, textAlign:"center" }}>
-                    <button
-                      onClick={() => { setNotifOpen(false); navigate("/app/notifications"); }}
-                      style={{ fontSize:12, fontWeight:700, color:"#7c3aed", background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}
-                    >
+                  <div style={{ padding:"10px 16px", borderTop:`1px solid ${dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.06)"}`, textAlign:"center" }}>
+                    <button onClick={() => { setNotifOpen(false); navigate("/app/notifications"); }} style={{ fontSize:12, fontWeight:700, color:"#7c3aed", background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
                       Voir toutes les notifications →
                     </button>
                   </div>
@@ -413,78 +448,42 @@ export default function Dashboard() {
             </div>
 
             <ThemeToggle />
-            <button type="button" onClick={() => navigate("/app/forum")}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.09)", border:"1px solid rgba(124,58,237,0.2)", borderRadius:9, color:"#7c3aed", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background="rgba(124,58,237,0.18)"}
-              onMouseLeave={e => e.currentTarget.style.background="rgba(124,58,237,0.09)"}
+
+            {/* Hamburger */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Menu"
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, borderRadius:10, border:`1px solid ${dark?"rgba(255,255,255,0.12)":"rgba(124,58,237,0.2)"}`, background:"transparent", cursor:"pointer", transition:"all 0.18s", flexShrink:0 }}
+              onMouseEnter={e => e.currentTarget.style.background = dark?"rgba(255,255,255,0.08)":"rgba(124,58,237,0.07)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              <MessageSquare size={12} /> Communauté
+              <Menu size={17} color={dark?"#e2e8f0":"#7c3aed"} />
             </button>
-            <button type="button" onClick={() => navigate("/app/concours")}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(16,185,129,0.09)", border:"1px solid rgba(16,185,129,0.22)", borderRadius:9, color:"#10b981", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background="rgba(16,185,129,0.18)"}
-              onMouseLeave={e => e.currentTarget.style.background="rgba(16,185,129,0.09)"}
-            >
-              <CalendarDays size={12} /> Concours
-            </button>
-            <button type="button" onClick={() => navigate("/app/calculateur")}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.09)", border:"1px solid rgba(124,58,237,0.22)", borderRadius:9, color:"#7c3aed", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background="rgba(124,58,237,0.18)"}
-              onMouseLeave={e => e.currentTarget.style.background="rgba(124,58,237,0.09)"}
-            >
-              <Target size={12} /> Chances
-            </button>
-            <button type="button" onClick={() => navigate("/app/stats")}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(245,158,11,0.09)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:9, color:"#d97706", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background="rgba(245,158,11,0.18)"}
-              onMouseLeave={e => e.currentTarget.style.background="rgba(245,158,11,0.09)"}
-            >
-              <BarChart3 size={12} /> Stats
-            </button>
-            <button type="button" onClick={() => navigate("/app/temoignages")}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(245,158,11,0.09)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:9, color:"#d97706", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background="rgba(245,158,11,0.18)"}
-              onMouseLeave={e => e.currentTarget.style.background="rgba(245,158,11,0.09)"}
-            >
-              <Star size={12} /> Témoignages
-            </button>
-            {user?.role === "admin" && (
-              <button type="button" onClick={() => navigate("/app/admin")}
-                style={{ display:"flex", alignItems:"center", gap:5, padding:"7px 13px", background:"rgba(124,58,237,0.12)", border:"1px solid rgba(124,58,237,0.3)", borderRadius:9, color:"#a78bfa", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
-                onMouseEnter={e => e.currentTarget.style.background="rgba(124,58,237,0.22)"}
-                onMouseLeave={e => e.currentTarget.style.background="rgba(124,58,237,0.12)"}
-              >
-                <Shield size={12} /> Admin
-              </button>
-            )}
           </div>
         </nav>
 
         {/* Push permission banner */}
         {pushBanner && (
-          <div style={{ position:"relative", zIndex:50, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10, padding:"10px 20px", background: dark ? "rgba(124,58,237,0.14)" : "rgba(124,58,237,0.07)", borderBottom:`1px solid ${dark ? "rgba(124,58,237,0.22)" : "rgba(124,58,237,0.16)"}` }}>
+          <div style={{ position:"relative", zIndex:50, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10, padding:"10px 20px", background:dark?"rgba(124,58,237,0.14)":"rgba(124,58,237,0.07)", borderBottom:`1px solid ${dark?"rgba(124,58,237,0.22)":"rgba(124,58,237,0.16)"}` }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ fontSize:15 }}>🔔</span>
-              <span style={{ fontSize:13, color: dark ? "#c4b5fd" : "#6d28d9", fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
+              <span style={{ fontSize:13, color:dark?"#c4b5fd":"#6d28d9", fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
                 Active les notifications pour ne rater aucun concours ni résultat
               </span>
             </div>
             <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-              <button onClick={subscribePush} style={{ padding:"5px 14px", borderRadius:8, border:"none", background:"#7c3aed", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-                Activer
-              </button>
-              <button onClick={dismissPushBanner} style={{ padding:"5px 10px", borderRadius:8, border:`1px solid ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`, background:"none", color: dark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.38)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-                Plus tard
-              </button>
+              <button onClick={subscribePush} style={{ padding:"5px 14px", borderRadius:8, border:"none", background:"#7c3aed", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Activer</button>
+              <button onClick={dismissPushBanner} style={{ padding:"5px 10px", borderRadius:8, border:`1px solid ${dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)"}`, background:"none", color:dark?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.38)", fontSize:12, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Plus tard</button>
             </div>
           </div>
         )}
 
         {/* Content */}
-        <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 67px)", padding: isMobile ? "20px 12px" : "40px 24px", textAlign:"center" }}>
+        <div style={{ position:"relative", zIndex:10, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"calc(100vh - 60px)", padding:isMobile?"20px 12px":"40px 24px", textAlign:"center" }}>
 
           {/* Welcome */}
-          <div style={{ marginBottom: isMobile ? 24 : 52, animation: mounted?"dfadeUp 0.5s 0.1s ease both":"none" }}>
+          <div style={{ marginBottom:isMobile?24:52, animation:mounted?"dfadeUp 0.5s 0.1s ease both":"none" }}>
             <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", background:dark?"rgba(124,58,237,0.14)":"rgba(124,58,237,0.09)", border:`1px solid ${dark?"rgba(124,58,237,0.3)":"rgba(124,58,237,0.2)"}`, borderRadius:99, marginBottom:18 }}>
               <div style={{ width:6, height:6, borderRadius:"50%", background:"#10b981", animation:"dpulse 2s infinite" }}/>
               <span style={{ fontSize:12, fontWeight:600, color:"#7c3aed", letterSpacing:"0.3px" }}>Plateforme scolaire marocaine</span>
@@ -499,12 +498,12 @@ export default function Dashboard() {
 
           {/* Carousel */}
           <div
-            style={{ position:"relative", width:"100%", maxWidth:780, height: isMobile ? 400 : 320, animation: mounted?"dfadeUp 0.5s 0.25s ease both":"none" }}
+            style={{ position:"relative", width:"100%", maxWidth:780, height:isMobile?400:320, animation:mounted?"dfadeUp 0.5s 0.25s ease both":"none" }}
             onMouseEnter={() => clearInterval(autoRef.current)}
             onMouseLeave={startAuto}
           >
             {FEATURES.map((f, i) => {
-              const { isActive, isVisible, style } = getCardProps(i);
+              const { isActive, style } = getCardProps(i);
               const Icon = f.icon;
               return (
                 <div key={i} style={style}
@@ -512,7 +511,7 @@ export default function Dashboard() {
                   onMouseLeave={() => setHoveredIdx(null)}
                   onClick={() => !isActive && pick(i)}
                 >
-                  <div style={{ width: isMobile ? "min(256px, 88vw)" : 256, background:cardBg, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:`1px solid ${isActive?f.color+"50":cardBdr}`, borderRadius:24, padding:"28px 24px", boxShadow:isActive
+                  <div style={{ width:isMobile?"min(256px, 88vw)":256, background:cardBg, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:`1px solid ${isActive?f.color+"50":cardBdr}`, borderRadius:24, padding:"28px 24px", boxShadow:isActive
                     ? `0 24px 64px ${f.glow}35, 0 0 0 1px ${f.color}20, inset 0 1px 0 rgba(255,255,255,0.15)`
                     : dark
                       ? "0 8px 24px rgba(0,0,0,0.25)"
@@ -553,8 +552,8 @@ export default function Dashboard() {
             })}
           </div>
 
-          {/* Controls */}
-          <div style={{ display:"flex", alignItems:"center", gap:14, marginTop:36, animation: mounted?"dfadeUp 0.5s 0.35s ease both":"none" }}>
+          {/* Carousel controls */}
+          <div style={{ display:"flex", alignItems:"center", gap:14, marginTop:36, animation:mounted?"dfadeUp 0.5s 0.35s ease both":"none" }}>
             <button type="button" className="dash-nav-btn"
               onClick={() => go(-1)}
               style={{ width:38, height:38, borderRadius:"50%", background:cardBg, border:`1px solid ${cardBdr}`, display:"grid", placeItems:"center", cursor:"pointer", color:textCol, transition:"all 0.2s", backdropFilter:"blur(12px)", boxShadow:dark?"none":"0 2px 8px rgba(124,58,237,0.08)" }}>
@@ -574,7 +573,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <p style={{ marginTop:16, fontSize:13, fontWeight:600, color:FEATURES[activeIdx].color, letterSpacing:"0.3px", transition:"color 0.3s", animation: mounted?"dfadeUp 0.5s 0.4s ease both":"none" }}>
+          <p style={{ marginTop:16, fontSize:13, fontWeight:600, color:FEATURES[activeIdx].color, letterSpacing:"0.3px", transition:"color 0.3s", animation:mounted?"dfadeUp 0.5s 0.4s ease both":"none" }}>
             {FEATURES[activeIdx].title}
           </p>
 
@@ -585,6 +584,103 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
+
+        {/* ── Drawer backdrop ──────────────────────────────────────────────── */}
+        {drawerOpen && (
+          <div
+            onClick={() => setDrawerOpen(false)}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.48)", zIndex:9998, backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)", animation:"dfadeIn 0.22s ease" }}
+          />
+        )}
+
+        {/* ── Side drawer ──────────────────────────────────────────────────── */}
+        <div style={{
+          position:"fixed", top:0, right:0, height:"100vh",
+          width: isMobile ? 280 : 320,
+          background: drawerBg,
+          borderLeft: `1px solid ${drawerBdr}`,
+          boxShadow: "-12px 0 48px rgba(0,0,0,0.22)",
+          zIndex: 9999,
+          transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          display: "flex", flexDirection: "column",
+        }}>
+
+          {/* Close row */}
+          <div style={{ display:"flex", justifyContent:"flex-end", padding:"14px 14px 0", flexShrink:0 }}>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", width:32, height:32, borderRadius:8, border:`1px solid ${dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.1)"}`, background:"none", cursor:"pointer" }}
+              onMouseEnter={e => e.currentTarget.style.background = dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.05)"}
+              onMouseLeave={e => e.currentTarget.style.background = "none"}
+            >
+              <X size={15} color={dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)"} />
+            </button>
+          </div>
+
+          {/* User info */}
+          <div style={{ padding:"14px 18px 18px", borderBottom:`1px solid ${drawerBdr}`, flexShrink:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ width:46, height:46, borderRadius:14, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden" }}>
+                {user?.avatar_url
+                  ? <img src={user.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                  : <span style={{ color:"#fff", fontWeight:800, fontSize:17, fontFamily:"'DM Sans',sans-serif" }}>{getInitials(user)}</span>
+                }
+              </div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:textCol, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {user?.prenom && user?.nom ? `${user.prenom} ${user.nom}` : user?.name || "Étudiant"}
+                </div>
+                <div style={{ fontSize:12, color:dark?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.38)", fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:2 }}>
+                  {user?.email || ""}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Nav links */}
+          <div style={{ flex:1, padding:"8px 8px", overflowY:"auto" }}>
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.to}
+                type="button"
+                className="drawer-item"
+                onClick={() => { setDrawerOpen(false); navigate(item.to); }}
+                style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", borderRadius:10, border:"none", background:"transparent", cursor:"pointer", textAlign:"left", marginBottom:1, color:textCol, fontFamily:"'DM Sans',sans-serif" }}
+              >
+                <span style={{ fontSize:16, flexShrink:0, width:22, textAlign:"center" }}>{item.emoji}</span>
+                <span style={{ fontSize:13.5, fontWeight:500 }}>{item.label}</span>
+              </button>
+            ))}
+            {user?.role === "admin" && (
+              <button
+                type="button"
+                className="drawer-item-admin"
+                onClick={() => { setDrawerOpen(false); navigate("/app/admin"); }}
+                style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", borderRadius:10, border:"none", background:"transparent", cursor:"pointer", textAlign:"left", marginBottom:1, color:"#a78bfa", fontFamily:"'DM Sans',sans-serif" }}
+              >
+                <span style={{ fontSize:16, flexShrink:0, width:22, textAlign:"center" }}>🛡️</span>
+                <span style={{ fontSize:13.5, fontWeight:600 }}>Admin</span>
+              </button>
+            )}
+          </div>
+
+          {/* Logout */}
+          <div style={{ padding:"10px 8px 28px", borderTop:`1px solid ${drawerBdr}`, flexShrink:0 }}>
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"11px 12px", borderRadius:10, border:"1px solid rgba(239,68,68,0.22)", background:"rgba(239,68,68,0.06)", cursor:"pointer", textAlign:"left", color:"#ef4444", fontFamily:"'DM Sans',sans-serif", fontSize:13.5, fontWeight:600, transition:"all 0.15s" }}
+              onMouseEnter={e => { e.currentTarget.style.background="rgba(239,68,68,0.12)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.38)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background="rgba(239,68,68,0.06)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.22)"; }}
+            >
+              <span style={{ fontSize:16, width:22, textAlign:"center" }}>🚪</span>
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+
       </div>
     </>
   );
