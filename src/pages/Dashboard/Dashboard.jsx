@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
+import Avatar from "../../components/Avatar";
 
 const FEATURES = [
   {
@@ -649,12 +650,12 @@ export default function Dashboard() {
           {/* User info */}
           <div style={{ padding:"14px 18px 18px", borderBottom:`1px solid ${drawerBdr}`, flexShrink:0 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ width:46, height:46, borderRadius:14, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden" }}>
-                {user?.avatar_url
-                  ? <img src={user.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                  : <span style={{ color:"#fff", fontWeight:800, fontSize:17, fontFamily:"'DM Sans',sans-serif" }}>{getInitials(user)}</span>
-                }
-              </div>
+              <Avatar
+                src={user?.avatar_url}
+                name={[user?.prenom, user?.nom].filter(Boolean).join(" ") || user?.name || user?.email}
+                size={46}
+                borderRadius={14}
+              />
               <div style={{ minWidth:0 }}>
                 <div style={{ fontWeight:700, fontSize:14, color:textCol, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {user?.prenom && user?.nom ? `${user.prenom} ${user.nom}` : user?.name || "Étudiant"}

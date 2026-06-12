@@ -77,8 +77,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUser = (patch) => {
+    setUser(prev => {
+      const updated = { ...(prev || {}), ...patch };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Called after Google OAuth callback
-  const loginWithTokens = ({ access_token, refresh_token }) => {
+  const loginWithTokens = async ({ access_token, refresh_token }) => {
     try {
       const payload = JSON.parse(atob(access_token.split(".")[1]));
       const userData = {
@@ -95,6 +103,15 @@ export function AuthProvider({ children }) {
       localStorage.setItem(USER_KEY,    JSON.stringify(userData));
       tokensRef.current = { accessToken: access_token, refreshToken: refresh_token };
       if (userData.email) localStorage.setItem("najahi_email", userData.email);
+      // Fetch full profile to get avatar_url and other fields
+      try {
+        const me = await getCurrentUser(access_token);
+        if (me?.id) {
+          const merged = { ...userData, ...me };
+          setUser(merged);
+          localStorage.setItem(USER_KEY, JSON.stringify(merged));
+        }
+      } catch {}
     } catch (e) {
       console.error("loginWithTokens error:", e);
     }
@@ -109,6 +126,15 @@ export function AuthProvider({ children }) {
     if (storedAccess && jwtSecondsLeft(storedAccess) > 60) {
       tokensRef.current = { accessToken: storedAccess, refreshToken: storedRefresh };
       setLoading(false);
+      // Silently refresh profile in background to pick up avatar_url and other fields
+      getCurrentUser(storedAccess).then(me => {
+        if (me?.id) {
+          const cur = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+          const merged = { ...cur, ...me };
+          setUser(merged);
+          localStorage.setItem(USER_KEY, JSON.stringify(merged));
+        }
+      }).catch(() => {});
       return;
     }
 
@@ -118,12 +144,14 @@ export function AuthProvider({ children }) {
       if (refreshed.access_token && refreshed.refresh_token && refreshed.user) {
         persistSession(refreshed);
         try {
+          // /api/profile/me returns a flat profile object (not nested under "user")
           const me = await getCurrentUser(refreshed.access_token);
-          if (me?.user) {
-            setUser(me.user);
-            localStorage.setItem(USER_KEY, JSON.stringify(me.user));
-            if (me.user.email)     localStorage.setItem("najahi_email", me.user.email);
-            if (me.user.telephone) localStorage.setItem("najahi_phone", me.user.telephone);
+          if (me?.id) {
+            const merged = { ...refreshed.user, ...me };
+            setUser(merged);
+            localStorage.setItem(USER_KEY, JSON.stringify(merged));
+            if (me.email)     localStorage.setItem("najahi_email", me.email);
+            if (me.telephone) localStorage.setItem("najahi_phone", me.telephone);
           }
         } catch {}
       } else {
@@ -190,6 +218,7 @@ export function AuthProvider({ children }) {
     clearSession,
     loginWithTokens,
     authFetch,
+    updateUser,
   }), [user, accessToken, refreshToken, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

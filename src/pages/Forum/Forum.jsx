@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MessageSquare, Heart, Eye, Plus, Search, X, ChevronRight, BookOpen } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import Avatar from "../../components/Avatar";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -34,16 +35,6 @@ function fmtDate(iso) {
   return d.toLocaleDateString("fr-MA", { day: "numeric", month: "short" });
 }
 
-function Avatar({ name, size = 32 }) {
-  const letter = (name || "U")[0].toUpperCase();
-  const colors = ["#7c3aed","#10b981","#f59e0b","#3b82f6","#ef4444","#06b6d4"];
-  const bg = colors[letter.charCodeAt(0) % colors.length];
-  return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: `linear-gradient(135deg,${bg},${bg}bb)`, display: "grid", placeItems: "center", fontSize: size * 0.4, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-      {letter}
-    </div>
-  );
-}
 
 function PostCard({ post, onClick, dark }) {
   const color = CATEGORY_COLORS[post.category] || "#7c3aed";
@@ -56,7 +47,7 @@ function PostCard({ post, onClick, dark }) {
       onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? "rgba(255,255,255,0.08)" : "rgba(124,58,237,0.1)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
     >
       <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <Avatar name={post.author?.prenom} size={38} />
+        <Avatar src={post.author?.avatar_url} name={[post.author?.prenom, post.author?.nom].filter(Boolean).join(" ")} size={38} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 700, color, background: color + "18", padding: "2px 9px", borderRadius: 99, letterSpacing: "0.3px" }}>

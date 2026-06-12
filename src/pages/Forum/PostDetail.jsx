@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Heart, MessageSquare, Eye, ArrowLeft, Send, BookOpen } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import Avatar from "../../components/Avatar";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -27,16 +28,6 @@ function fmtDate(iso) {
   return d.toLocaleDateString("fr-MA", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function Avatar({ name, size = 36 }) {
-  const letter = (name || "U")[0].toUpperCase();
-  const colors = ["#7c3aed","#10b981","#f59e0b","#3b82f6","#ef4444","#06b6d4"];
-  const bg = colors[letter.charCodeAt(0) % colors.length];
-  return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: `linear-gradient(135deg,${bg},${bg}bb)`, display: "grid", placeItems: "center", fontSize: size * 0.38, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-      {letter}
-    </div>
-  );
-}
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -182,7 +173,7 @@ export default function PostDetail() {
 
             {/* Author row */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, paddingBottom: 20, borderBottom: dark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(124,58,237,0.08)" }}>
-              <Avatar name={post.author?.prenom} size={40} />
+              <Avatar src={post.author?.avatar_url} name={[post.author?.prenom, post.author?.nom].filter(Boolean).join(" ")} size={40} />
               <div>
                 <p style={{ fontSize: 14, fontWeight: 600, color: tc, margin: 0 }}>
                   {post.author?.prenom} {post.author?.nom}
@@ -219,7 +210,7 @@ export default function PostDetail() {
               {post.replies.map((r, i) => (
                 <div key={r.id || i} style={{ background: cardBg, border: cardBdr, borderRadius: 16, padding: isMobile ? "16px 16px" : "20px 24px", marginBottom: 12, backdropFilter: "blur(12px)", animation: `fadeUp 0.3s ${i * 0.05}s ease both` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <Avatar name={r.author?.prenom} size={34} />
+                    <Avatar src={r.author?.avatar_url} name={[r.author?.prenom, r.author?.nom].filter(Boolean).join(" ")} size={34} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600, color: tc, margin: 0 }}>
                         {r.author?.prenom} {r.author?.nom}

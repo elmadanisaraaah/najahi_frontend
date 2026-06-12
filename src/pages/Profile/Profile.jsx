@@ -260,7 +260,7 @@ function Empty({ icon: Icon, title, sub, color = "#7c3aed", border }) {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, updateUser } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
@@ -436,7 +436,9 @@ export default function Profile() {
         body: fd,
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Erreur"); }
+      const data = await res.json();
       await fetchProfile();
+      if (data.avatarUrl) updateUser({ avatar_url: data.avatarUrl });
       showToast("Photo mise à jour ✓");
     } catch (e) {
       showToast(e.message || "Erreur lors de l'upload", "error");
