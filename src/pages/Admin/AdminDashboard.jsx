@@ -6,7 +6,7 @@ import {
   Search, ChevronLeft, ChevronRight, Trash2, CheckCircle, XCircle,
   LogOut, RefreshCw, LayoutDashboard, Settings, AlertTriangle,
   ChevronDown, Menu, Shield, GraduationCap, CalendarDays, Plus, Pencil, X, Star,
-  FileText, Download,
+  FileText, Download, Key, Sparkles, School,
 } from "lucide-react";
 
 const CAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/concours${path}`;
@@ -44,7 +44,7 @@ const fmtRelative = (iso) => {
 
 const TYPE_COLOR = { login: "#10b981", register: "#7c3aed", orientation: "#f59e0b" };
 const TYPE_LABEL = { login: "Connexion", register: "Inscription", orientation: "Orientation" };
-const TYPE_ICON  = { login: "🔑", register: "✨", orientation: "🧭" };
+const TYPE_ICON  = { login: Key, register: Sparkles, orientation: Compass };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Primitives
@@ -203,8 +203,8 @@ function OverviewSection({ stats, statsLoading, activity, actLoading, onRefresh,
               ? <div style={{ padding: 32, textAlign: "center", color: "#9ca3af", fontSize: 13 }}>Aucune activité</div>
               : activity.slice(0, 14).map((ev, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, padding: "10px 16px", borderBottom: "1px solid #faf9ff" }}>
-                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: `${TYPE_COLOR[ev.type]}14`, display: "grid", placeItems: "center", fontSize: 13, flexShrink: 0 }}>
-                    {TYPE_ICON[ev.type]}
+                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: `${TYPE_COLOR[ev.type]}14`, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    {TYPE_ICON[ev.type] && (() => { const I = TYPE_ICON[ev.type]; return <I size={14} color={TYPE_COLOR[ev.type]} />; })()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 11.5, fontWeight: 700, color: TYPE_COLOR[ev.type] }}>{TYPE_LABEL[ev.type]}</div>
@@ -356,7 +356,7 @@ function UsersSection({ users, usersTotal, usersPages, usersPage, usersLoading, 
         {dangerOpen && (
           <div style={{ padding: "4px 18px 14px", background: "rgba(239,68,68,0.02)" }}>
             <p style={{ fontSize: 12.5, color: "#9ca3af", margin: 0, lineHeight: 1.6 }}>
-              ⚠️ Les boutons de suppression sont maintenant visibles dans le tableau ci-dessus.{" "}
+              <AlertTriangle size={13} style={{ verticalAlign: "middle", marginRight: 4 }} /> Les boutons de suppression sont maintenant visibles dans le tableau ci-dessus.{" "}
               <strong style={{ color: "#ef4444" }}>La suppression est irréversible</strong> — toutes les données de l'utilisateur seront effacées.
             </p>
           </div>
@@ -633,7 +633,7 @@ function TemoignagesSection({ pending, loading, onApprove, onDelete, onRefresh }
         </div>
       ) : pending.length === 0 ? (
         <div style={{ background:"#fff", borderRadius:16, padding:"72px 32px", textAlign:"center", border:"1px solid #f0eeff" }}>
-          <div style={{ fontSize:44, marginBottom:14 }}>✅</div>
+          <div style={{ marginBottom:14 }}><CheckCircle size={44} color="#10b981" /></div>
           <div style={{ fontSize:18, fontWeight:700, color:"#1a1a2e", fontFamily:"'Fraunces',serif", marginBottom:6 }}>
             Tout est validé !
           </div>
@@ -761,14 +761,14 @@ function DocumentsSection({ docs, loading, onApprove, onDelete, onRefresh }) {
   );
 }
 
-function ComingSoon({ title, emoji }) {
+function ComingSoon({ title, icon: Icon }) {
   return (
     <div>
       <div style={{ marginBottom: 26 }}>
         <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 24, fontWeight: 800, color: "#1a1a2e", margin: 0, letterSpacing: "-0.5px" }}>{title}</h2>
       </div>
       <div style={{ background: "#fff", borderRadius: 16, padding: "72px 32px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #f0eeff" }}>
-        <div style={{ fontSize: 52, marginBottom: 18 }}>{emoji}</div>
+        <div style={{ marginBottom: 18 }}>{Icon && <Icon size={52} color="#7c3aed" />}</div>
         <div style={{ fontSize: 18, fontWeight: 700, color: "#1a1a2e", marginBottom: 8, fontFamily: "'Fraunces',serif" }}>Bientôt disponible</div>
         <div style={{ fontSize: 13, color: "#9ca3af" }}>Cette section est en cours de développement.</div>
       </div>
@@ -781,15 +781,15 @@ function ComingSoon({ title, emoji }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "overview",     icon: LayoutDashboard, label: "Vue d'ensemble", emoji: "📊" },
-  { id: "users",        icon: Users,           label: "Utilisateurs",   emoji: "👥" },
-  { id: "orientations", icon: Compass,         label: "Orientations",   emoji: "🧭" },
-  { id: "concours",     icon: CalendarDays,    label: "Concours",       emoji: "📅" },
-  { id: "temoignages",  icon: Star,            label: "Témoignages",    emoji: "⭐" },
-  { id: "forum",        icon: MessageSquare,   label: "Forum",          emoji: "💬" },
-  { id: "documents",    icon: FileText,        label: "Documents",      emoji: "📄" },
-  { id: "schools",      icon: BookOpen,        label: "Écoles",         emoji: "📚" },
-  { id: "settings",     icon: Settings,        label: "Paramètres",     emoji: "⚙️" },
+  { id: "overview",     icon: LayoutDashboard, label: "Vue d'ensemble" },
+  { id: "users",        icon: Users,           label: "Utilisateurs"   },
+  { id: "orientations", icon: Compass,         label: "Orientations"   },
+  { id: "concours",     icon: CalendarDays,    label: "Concours"       },
+  { id: "temoignages",  icon: Star,            label: "Témoignages"    },
+  { id: "forum",        icon: MessageSquare,   label: "Forum"          },
+  { id: "documents",    icon: FileText,        label: "Documents"      },
+  { id: "schools",      icon: School,          label: "Écoles"         },
+  { id: "settings",     icon: Settings,        label: "Paramètres"     },
 ];
 
 export default function AdminDashboard() {
@@ -1185,7 +1185,7 @@ export default function AdminDashboard() {
                 onRefresh={fetchTemPending}
               />
             )}
-            {activeTab === "forum"    && <ComingSoon title="Forum"      emoji="💬" />}
+            {activeTab === "forum"    && <ComingSoon title="Forum"      icon={MessageSquare} />}
             {activeTab === "documents" && (
               <DocumentsSection
                 docs={docsAdmin} loading={docsLoading}
@@ -1193,8 +1193,8 @@ export default function AdminDashboard() {
                 onRefresh={fetchDocsAdmin}
               />
             )}
-            {activeTab === "schools"  && <ComingSoon title="Écoles"     emoji="📚" />}
-            {activeTab === "settings" && <ComingSoon title="Paramètres" emoji="⚙️" />}
+            {activeTab === "schools"  && <ComingSoon title="Écoles"     icon={School} />}
+            {activeTab === "settings" && <ComingSoon title="Paramètres" icon={Settings} />}
           </div>
         </main>
       </div>

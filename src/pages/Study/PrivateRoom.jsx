@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
-import { Play, Pause, RotateCcw, Mic, MicOff, Video, VideoOff, PhoneOff, Copy, Check, Crown, Users, Timer } from "lucide-react";
+import { Play, Pause, RotateCcw, Mic, MicOff, Video, VideoOff, PhoneOff, Copy, Check, Crown, Users, Timer, AlertTriangle } from "lucide-react";
 import { io } from "socket.io-client";
 import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 
@@ -473,7 +473,7 @@ export default function PrivateRoom() {
         {(camError || micError) && (
           <div style={{ padding:"8px 16px", background:"rgba(239,68,68,0.15)", borderTop:"1px solid rgba(239,68,68,0.25)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexShrink:0 }}>
             <span style={{ fontSize:12, color:"#fca5a5", fontFamily:"'DM Sans',sans-serif" }}>
-              ⚠️ {camError || micError}
+              <AlertTriangle size={12} style={{ flexShrink:0 }} /> {camError || micError}
             </span>
             <button type="button" onClick={() => { setCamError(""); setMicError(""); }} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>
           </div>

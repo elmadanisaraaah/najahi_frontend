@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { Lock, ArrowLeft, Eye, EyeOff, CheckCircle, KeyRound } from "lucide-react";
+import { Lock, ArrowLeft, Eye, EyeOff, CheckCircle, KeyRound, AlertTriangle, X } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 
@@ -49,7 +49,7 @@ function PasswordStrength({ password }) {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {checks.map((c, i) => (
             <span key={i} style={{ fontSize: 10, color: c.ok ? "#10b981" : "rgba(255,255,255,0.3)", display: "flex", alignItems: "center", gap: 3 }}>
-              {c.ok ? "✓" : "·"} {c.label}
+              {c.ok ? <CheckCircle size={9} /> : "·"} {c.label}
             </span>
           ))}
         </div>
@@ -203,14 +203,14 @@ export default function ResetPassword() {
 
               {!token && (
                 <div style={{ background:dark?"rgba(239,68,68,0.12)":"#fef2f2", border:"1px solid rgba(239,68,68,0.3)", color:"#ef4444", borderRadius:10, padding:"10px 14px", fontSize:13, marginBottom:16 }}>
-                  ⚠️ Token manquant — utilise le lien reçu par email.
+                  <AlertTriangle size={14} style={{ marginRight: 6, flexShrink: 0, verticalAlign: "middle" }} /> Token manquant — utilise le lien reçu par email.
                 </div>
               )}
 
               <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:16 }}>
                 {error && (
                   <div style={{ display:"flex", alignItems:"center", gap:8, background:dark?"rgba(239,68,68,0.12)":"#fef2f2", border:dark?"1px solid rgba(239,68,68,0.3)":"1px solid #fecaca", color:dark?"#fca5a5":"#ef4444", borderRadius:10, padding:"10px 14px", fontSize:13, animation:"rpShake 0.4s ease" }}>
-                    ✕ {error}
+                    <X size={13} /> {error}
                   </div>
                 )}
 
@@ -251,7 +251,7 @@ export default function ResetPassword() {
                     <p style={{ fontSize:11, color:"#ef4444", marginTop:2 }}>Les mots de passe ne correspondent pas</p>
                   )}
                   {confirm && confirm === password && password.length >= 8 && (
-                    <p style={{ fontSize:11, color:"#10b981", marginTop:2 }}>✓ Les mots de passe correspondent</p>
+                    <p style={{ fontSize:11, color:"#10b981", marginTop:2, display:"flex", alignItems:"center", gap:4 }}><CheckCircle size={11} /> Les mots de passe correspondent</p>
                   )}
                 </div>
 

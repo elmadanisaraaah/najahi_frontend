@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, CheckCheck, Trash2, BellOff } from "lucide-react";
+import { ArrowLeft, Bell, CheckCheck, Trash2, BellOff, Info, CheckCircle2, AlertTriangle, Calendar, Compass, MessageCircle, Clock } from "lucide-react";
 
 const API = (p) => `${import.meta.env.VITE_API_URL}/api/notifications${p}`;
 const token = () => localStorage.getItem("najahi_token");
@@ -14,12 +14,12 @@ function useTheme() {
 }
 
 const TYPE_META = {
-  info:        { emoji: "ℹ️",  label: "Info",        color: "#6b7280" },
-  success:     { emoji: "✅",  label: "Succès",       color: "#10b981" },
-  warning:     { emoji: "⚠️",  label: "Attention",    color: "#f59e0b" },
-  concours:    { emoji: "📅",  label: "Concours",     color: "#3b82f6" },
-  orientation: { emoji: "🧭",  label: "Orientation",  color: "#8b5cf6" },
-  forum:       { emoji: "💬",  label: "Forum",        color: "#ec4899" },
+  info:        { icon: Info,          label: "Info",        color: "#6b7280" },
+  success:     { icon: CheckCircle2,  label: "Succès",      color: "#10b981" },
+  warning:     { icon: AlertTriangle, label: "Attention",   color: "#f59e0b" },
+  concours:    { icon: Calendar,      label: "Concours",    color: "#3b82f6" },
+  orientation: { icon: Compass,       label: "Orientation", color: "#8b5cf6" },
+  forum:       { icon: MessageCircle, label: "Forum",       color: "#ec4899" },
 };
 
 const FILTERS = [
@@ -180,7 +180,7 @@ export default function Notifications() {
         {/* List */}
         {loading ? (
           <div style={{ textAlign: "center", padding: "60px 0", color: sub }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>⏳</div>
+            <Clock size={32} color={sub} style={{ marginBottom: 10 }} />
             <p style={{ margin: 0, fontSize: 14 }}>Chargement…</p>
           </div>
         ) : filtered.length === 0 ? (
@@ -231,9 +231,9 @@ export default function Notifications() {
                   <div style={{
                     width: 40, height: 40, borderRadius: 11, flexShrink: 0,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    background: meta.color + "18", fontSize: 18,
+                    background: meta.color + "18",
                   }}>
-                    {meta.emoji}
+                    {meta.icon && <meta.icon size={18} color={meta.color} />}
                   </div>
 
                   {/* Content */}

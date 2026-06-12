@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { MailCheck, ArrowLeft, RefreshCw, CheckCircle } from "lucide-react";
+import { MailCheck, ArrowLeft, RefreshCw, CheckCircle, X } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 
@@ -216,7 +216,7 @@ export default function VerifyEmail() {
               {/* Error */}
               {error && (
                 <div style={{ display:"flex", alignItems:"center", gap:8, background:dark?"rgba(239,68,68,0.12)":"#fef2f2", border:dark?"1px solid rgba(239,68,68,0.3)":"1px solid #fecaca", color:dark?"#fca5a5":"#ef4444", borderRadius:10, padding:"10px 14px", fontSize:13, marginBottom:16, animation:"veShake 0.4s ease" }}>
-                  ✕ {error}
+                  <X size={13} /> {error}
                 </div>
               )}
 

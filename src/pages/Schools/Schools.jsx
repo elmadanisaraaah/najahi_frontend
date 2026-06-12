@@ -128,7 +128,7 @@ function MD({ text, dark }) {
       continue; // already incremented i
     }
 
-    // Footnote / italic-only line (e.g. *⚠️ note*)
+    // Footnote / italic-only line (e.g. *note*)
     else if (ln.startsWith("*") && ln.endsWith("*") && !ln.startsWith("**")) {
       out.push(
         <div key={i} style={{ fontSize: 11, color: muted, marginTop: 6, fontStyle: "italic" }}>
@@ -262,13 +262,13 @@ export default function Schools() {
   const [messages, setMessages] = useState([{
     role: "assistant",
     content:
-      "Bonjour ! 🎓 Je suis ton guide des écoles et universités marocaines.\n\n" +
+      "Bonjour ! Je suis ton guide des écoles et universités marocaines.\n\n" +
       "Pose-moi n'importe quelle question sur :\n" +
       "- Conditions d'admission & notes de bac requises\n" +
       "- Filières, villes, frais de scolarité\n" +
       "- Concours d'entrée (CNC, ENCG, Médecine...)\n" +
       "- Orientation, débouchés, bourses\n\n" +
-      "Je réponds en français, arabe, anglais ou darija selon ta langue 🌍",
+      "Je réponds en français, arabe, anglais ou darija selon ta langue.",
   }]);
   const [input,   setInput]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -332,7 +332,7 @@ export default function Schools() {
         {
           role: "assistant",
           content:
-            "Désolé, une erreur s'est produite 😕\n\n" +
+            "Désolé, une erreur s'est produite.\n\n" +
             "Vérifie ta connexion internet et réessaie dans quelques secondes.\n\n" +
             `*(Détail : ${err.message || "erreur inconnue"})*`,
           isError: true,

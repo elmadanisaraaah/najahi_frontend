@@ -38,14 +38,14 @@ const WALLPAPERS = [
   { id: "rainy-window", label: "Fenêtre pluvieuse", type: "ambiance", url: "https://images.unsplash.com/photo-1428908728789-d2de25dbd4e2?w=1920&q=80" },
   { id: "cozy-room",    label: "Chambre cozy",      type: "ambiance", url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&q=80" },
   // Animated CSS themes
-  { id: "anim-espace",  label: "🌌 Espace",   type: "animated", animated: true, bgColor: "#020817", url: null },
-  { id: "anim-ocean",   label: "🌊 Océan",    type: "animated", animated: true, bgColor: "#0b1340", url: null },
-  { id: "anim-foret",   label: "🌲 Forêt",    type: "animated", animated: true, bgColor: "#010c06", url: null },
-  { id: "anim-sakura",  label: "🌸 Pétales",  type: "animated", animated: true, bgColor: "#0f0520", url: null },
-  { id: "anim-ville",   label: "🏙️ Ville",    type: "animated", animated: true, bgColor: "#020c18", url: null },
-  { id: "anim-nuages",  label: "☁️ Nuages",   type: "animated", animated: true, bgColor: "#040c1c", url: null },
-  { id: "anim-feu",     label: "🔥 Feu",      type: "animated", animated: true, bgColor: "#050100", url: null },
-  { id: "anim-nuit",    label: "🌙 Nuit",     type: "animated", animated: true, bgColor: "#030510", url: null },
+  { id: "anim-espace",  label: "Espace",   type: "animated", animated: true, bgColor: "#020817", url: null },
+  { id: "anim-ocean",   label: "Océan",    type: "animated", animated: true, bgColor: "#0b1340", url: null },
+  { id: "anim-foret",   label: "Forêt",    type: "animated", animated: true, bgColor: "#010c06", url: null },
+  { id: "anim-sakura",  label: "Pétales",  type: "animated", animated: true, bgColor: "#0f0520", url: null },
+  { id: "anim-ville",   label: "Ville",    type: "animated", animated: true, bgColor: "#020c18", url: null },
+  { id: "anim-nuages",  label: "Nuages",   type: "animated", animated: true, bgColor: "#040c1c", url: null },
+  { id: "anim-feu",     label: "Feu",      type: "animated", animated: true, bgColor: "#050100", url: null },
+  { id: "anim-nuit",    label: "Nuit",     type: "animated", animated: true, bgColor: "#030510", url: null },
 ];
 
 const SOUNDS = [
@@ -71,7 +71,7 @@ const SND_GROUPS = [
 ];
 
 const WP_GROUPS = [
-  { type: "animated", label: "✨ ANIMÉS (CSS)" },
+  { type: "animated", label: "ANIMÉS (CSS)" },
   { type: "nature",   label: "NATURE & PAYSAGES" },
   { type: "space",    label: "ESPACE & NUIT" },
   { type: "ambiance", label: "AMBIANCE" },

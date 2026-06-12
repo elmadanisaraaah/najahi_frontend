@@ -6,8 +6,8 @@ import ThemeToggle from "../../components/UI/ThemeToggle";
 import {
   ArrowLeft, Pencil, Save, X, Upload, Trash2, Download,
   FileText, User, MapPin, GraduationCap, BookOpen, Compass,
-  Clock, Users, AlertCircle, Camera, Phone, Calendar,
-  MessageSquare, TrendingUp,
+  Clock, Users, AlertCircle, AlertTriangle, Camera, Phone, Calendar,
+  MessageSquare, TrendingUp, Settings2, BarChart3, Stethoscope, Palette, Landmark,
 } from "lucide-react";
 
 // ── constants ─────────────────────────────────────────────────────────────────
@@ -29,9 +29,9 @@ const VILLES = [
   "Tanger", "Oujda", "Meknès", "Kenitra", "Settat", "Autre",
 ];
 
-const TYPE_EMOJI = {
-  engineering: "🏗️", business: "📊", health: "🏥",
-  architecture: "🏛️", preparatoire: "📖", university: "🎓",
+const TYPE_ICON = {
+  engineering: Settings2, business: BarChart3, health: Stethoscope,
+  architecture: Palette, preparatoire: BookOpen, university: GraduationCap,
 };
 const TYPE_LABEL = {
   engineering: "Ingénierie", business: "Business",
@@ -415,7 +415,7 @@ export default function Profile() {
       if (!res.ok) throw new Error();
       await fetchProfile();
       setEditMode(false);
-      showToast("Profil mis à jour ✓");
+      showToast("Profil mis à jour");
     } catch {
       showToast("Erreur lors de la sauvegarde", "error");
     } finally {
@@ -439,7 +439,7 @@ export default function Profile() {
       const data = await res.json();
       await fetchProfile();
       if (data.avatarUrl) updateUser({ avatar_url: data.avatarUrl });
-      showToast("Photo mise à jour ✓");
+      showToast("Photo mise à jour");
     } catch (e) {
       showToast(e.message || "Erreur lors de l'upload", "error");
     } finally {
@@ -458,7 +458,7 @@ export default function Profile() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur");
       await fetchBulletins();
-      showToast("Bulletin ajouté ✓");
+      showToast("Bulletin ajouté");
     } catch (e) {
       showToast(e.message || "Erreur upload", "error");
     } finally {
@@ -676,7 +676,7 @@ export default function Profile() {
                 marginBottom: 14,
               }}>
                 <div style={{ display:"flex", alignItems:"center", gap: 10, marginBottom: 12 }}>
-                  <span style={{ fontSize: 28 }}>{TYPE_EMOJI[orientResult.filiere] || "🎓"}</span>
+                  {(() => { const I = TYPE_ICON[orientResult.filiere] || GraduationCap; return <I size={28} color="#059669" />; })()}
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 15, fontWeight: 800, fontFamily:"'Fraunces', serif", lineHeight: 1.3 }}>
                       {orientResult.ecole}
@@ -1036,7 +1036,7 @@ export default function Profile() {
             }}
           >
             <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 40, marginBottom: 14 }}>⚠️</div>
+              <div style={{ marginBottom: 14 }}><AlertTriangle size={40} color="#f59e0b" /></div>
               <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 20, fontWeight: 700, color: isDark ? "#fff" : "#1a1625", marginBottom: 12 }}>
                 Déconnexion
               </h2>

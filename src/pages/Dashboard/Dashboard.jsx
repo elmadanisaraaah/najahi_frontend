@@ -5,6 +5,7 @@ import {
   ArrowRight, ChevronLeft, ChevronRight, Bell, Menu, X,
   Home, Server, MessageSquare, CalendarDays, Target, BarChart3,
   Star, Shield, User, LogOut, Scale, GraduationCap, FileText,
+  Info, CheckCircle, AlertTriangle, Compass,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -237,7 +238,8 @@ export default function Dashboard() {
     navigate("/login");
   }
 
-  const NOTIF_TYPE_EMOJI = { info: "ℹ️", success: "✅", warning: "⚠️", concours: "📅", orientation: "🧭", forum: "💬" };
+  const NOTIF_TYPE_ICON = { info: Info, success: CheckCircle, warning: AlertTriangle, concours: CalendarDays, orientation: Compass, forum: MessageSquare };
+  const NOTIF_TYPE_COLOR = { info: "#6b7280", success: "#10b981", warning: "#f59e0b", concours: "#3b82f6", orientation: "#8b5cf6", forum: "#ec4899" };
 
   function fmtNotifAgo(iso) {
     if (!iso) return "";
@@ -456,7 +458,7 @@ export default function Dashboard() {
                         onMouseEnter={e => e.currentTarget.style.background = dark?"rgba(255,255,255,0.05)":"rgba(124,58,237,0.04)"}
                         onMouseLeave={e => e.currentTarget.style.background = !n.is_read?(dark?"rgba(124,58,237,0.1)":"rgba(124,58,237,0.05)"):"transparent"}
                       >
-                        <span style={{ fontSize:18, flexShrink:0, lineHeight:1.2 }}>{NOTIF_TYPE_EMOJI[n.type] || "ℹ️"}</span>
+                        {(() => { const I = NOTIF_TYPE_ICON[n.type] || Info; const c = NOTIF_TYPE_COLOR[n.type] || "#6b7280"; return <I size={18} color={c} style={{ flexShrink:0 }} />; })()}
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontWeight:n.is_read?500:700, fontSize:12.5, color:dark?"#e2e8f0":"#1e1b4b", fontFamily:"'DM Sans',sans-serif", lineHeight:1.3, marginBottom:2 }}>{n.title}</div>
                           <div style={{ fontSize:11.5, color:dark?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.45)", fontFamily:"'DM Sans',sans-serif", lineHeight:1.4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{n.message}</div>
@@ -498,7 +500,7 @@ export default function Dashboard() {
         {pushBanner && (
           <div style={{ position:"relative", zIndex:50, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10, padding:"10px 20px", background:dark?"rgba(124,58,237,0.14)":"rgba(124,58,237,0.07)", borderBottom:`1px solid ${dark?"rgba(124,58,237,0.22)":"rgba(124,58,237,0.16)"}` }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:15 }}>🔔</span>
+              <Bell size={15} color={dark ? "#c4b5fd" : "#6d28d9"} />
               <span style={{ fontSize:13, color:dark?"#c4b5fd":"#6d28d9", fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
                 Active les notifications pour ne rater aucun concours ni résultat
               </span>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Mail, Phone, ArrowRight, ArrowLeft, CheckCircle, ChevronDown, RefreshCw } from "lucide-react";
+import { Mail, Phone, ArrowRight, ArrowLeft, CheckCircle, ChevronDown, RefreshCw, X } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
@@ -272,7 +272,7 @@ export default function ForgotPassword() {
               <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {error && (
                   <div style={{ display:"flex", alignItems:"center", gap:8, background:dark?"rgba(239,68,68,0.12)":"#fef2f2", border:dark?"1px solid rgba(239,68,68,0.3)":"1px solid #fecaca", color:dark?"#fca5a5":"#ef4444", borderRadius:10, padding:"10px 14px", fontSize:13, animation:"shake 0.4s ease" }}>
-                    ✕ {error}
+                    <X size={13} /> {error}
                   </div>
                 )}
 

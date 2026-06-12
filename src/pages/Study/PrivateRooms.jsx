@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
-import { ArrowLeft, Plus, Hash, Copy, Check, Users, Timer, ArrowRight, Globe, MapPin, School } from "lucide-react";
+import { ArrowLeft, Plus, Hash, Copy, Check, Users, Timer, ArrowRight, Globe, MapPin, School, X } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -293,7 +293,7 @@ export default function PrivateRooms() {
 
                 {error && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, background: dark ? "rgba(239,68,68,0.12)" : "#fef2f2", border: "1px solid rgba(239,68,68,0.3)", color: dark ? "#fca5a5" : "#ef4444", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>
-                    ✕ {error}
+                    <X size={13} /> {error}
                   </div>
                 )}
 
@@ -536,7 +536,7 @@ export default function PrivateRooms() {
                           <span style={{ fontSize: 11, color: subCol, display: "flex", alignItems: "center", gap: 4 }}>
                             <Users size={10} /> {room.participant_count || 0}/{room.max_participants}
                           </span>
-                          <span style={{ fontSize: 11, color: subCol }}>🍅 {room.pomodoro_work}m</span>
+                          <span style={{ fontSize: 11, color: subCol }}><Timer size={10} style={{ verticalAlign:"middle", marginRight:2 }} />{room.pomodoro_work}m</span>
                         </div>
                       </div>
                       <button type="button"
@@ -564,7 +564,7 @@ export default function PrivateRooms() {
 
                 {error && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, background: dark ? "rgba(239,68,68,0.12)" : "#fef2f2", border: "1px solid rgba(239,68,68,0.3)", color: dark ? "#fca5a5" : "#ef4444", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>
-                    ✕ {error}
+                    <X size={13} /> {error}
                   </div>
                 )}
 

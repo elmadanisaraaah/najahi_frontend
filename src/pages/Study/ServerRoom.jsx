@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
-import { Video, VideoOff, PhoneOff, Users, Timer } from "lucide-react";
+import { Video, VideoOff, PhoneOff, Users, Timer, AlertTriangle, BookOpen, Palette } from "lucide-react";
 import { io } from "socket.io-client";
 import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 
@@ -216,7 +216,7 @@ export default function ServerRoom() {
         {/* Camera error banner */}
         {camError && (
           <div style={{ position:"relative", zIndex:11, padding:"8px 16px", background:"rgba(239,68,68,0.18)", borderBottom:"1px solid rgba(239,68,68,0.3)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-            <span style={{ fontSize:12, color:"#fca5a5", fontFamily:"'DM Sans',sans-serif" }}>⚠️ {camError}</span>
+            <span style={{ fontSize:12, color:"#fca5a5", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6 }}><AlertTriangle size={12} /> {camError}</span>
             <button type="button" onClick={() => setCamError("")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:16, padding:0, lineHeight:1 }}>×</button>
           </div>
         )}
@@ -286,7 +286,7 @@ export default function ServerRoom() {
               <button type="button" onClick={() => setShowWpMenu(v=>!v)}
                 style={{ padding:"5px 10px", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:99, cursor:"pointer", color:"rgba(255,255,255,0.45)", fontSize:11, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
                 {!isMobile && "Ambiance"}
-                {isMobile && "🎨"}
+                {isMobile && <Palette size={14} />}
               </button>
               {showWpMenu && (
                 <div style={{ position:"absolute", top:"calc(100%+6px)", right:0, background:"rgba(5,2,15,0.97)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:6, minWidth:140, zIndex:200 }}>
@@ -313,7 +313,7 @@ export default function ServerRoom() {
         <div style={{ position:"relative", zIndex:1, flex:1, padding:"16px", display:"flex", alignItems:"center", justifyContent:"center" }}>
           {allParticipants.length===1 && (
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, pointerEvents:"none" }}>
-              <div style={{ fontSize:48, opacity:0.07 }}>📚</div>
+              <div style={{ opacity:0.07 }}><BookOpen size={48} /></div>
               <p style={{ fontSize:14, color:"rgba(255,255,255,0.08)", fontWeight:500 }}>En attente d'autres étudiants…</p>
             </div>
           )}

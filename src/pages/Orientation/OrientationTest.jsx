@@ -2,63 +2,72 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
-import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, ChevronUp, Home } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, CheckCircle, ChevronDown, ChevronUp, Home,
+  Ruler, FlaskConical, Dna, BarChart3, BookOpen, Zap, GraduationCap,
+  Monitor, Settings2, Stethoscope, Palette, Microscope, Scale, Megaphone, Leaf, MapPin,
+  Brain, Star, Heart, MessageCircle, Rocket, Search,
+  Code2, Briefcase, Landmark, Bot, Radio, Building2, Smartphone, ScrollText, Globe,
+  Compass, PartyPopper, Sparkles, FileText, Trophy, Medal, Lightbulb, ExternalLink,
+  ClipboardList, Timer, Banknote, Handshake, RefreshCw, Target, Clock, TrendingDown,
+  Flame, HelpCircle, Plane, AlertTriangle, School,
+} from "lucide-react";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
 const BAC_OPTIONS = [
-  { id: "Bac Sciences Maths A",            label: "Bac Sciences Maths A",            emoji: "📐" },
-  { id: "Bac Sciences Maths B",            label: "Bac Sciences Maths B",            emoji: "📐" },
-  { id: "Bac Sciences Physiques",          label: "Bac Sciences Physiques",          emoji: "⚗️" },
-  { id: "Bac Sciences de la Vie",          label: "Bac Sciences de la Vie",          emoji: "🧬" },
-  { id: "Bac Sciences Économiques",        label: "Bac Sciences Économiques",        emoji: "📊" },
-  { id: "Bac Lettres & Sciences Humaines", label: "Bac Lettres & Sciences Humaines", emoji: "📖" },
-  { id: "Bac Technologie Électrique",      label: "Bac Technologie Électrique",      emoji: "⚡" },
-  { id: "BTS / DUT",                       label: "BTS / DUT (bac+2)",               emoji: "🎓" },
+  { id: "Bac Sciences Maths A",            label: "Bac Sciences Maths A",            icon: Ruler },
+  { id: "Bac Sciences Maths B",            label: "Bac Sciences Maths B",            icon: Ruler },
+  { id: "Bac Sciences Physiques",          label: "Bac Sciences Physiques",          icon: FlaskConical },
+  { id: "Bac Sciences de la Vie",          label: "Bac Sciences de la Vie",          icon: Dna },
+  { id: "Bac Sciences Économiques",        label: "Bac Sciences Économiques",        icon: BarChart3 },
+  { id: "Bac Lettres & Sciences Humaines", label: "Bac Lettres & Sciences Humaines", icon: BookOpen },
+  { id: "Bac Technologie Électrique",      label: "Bac Technologie Électrique",      icon: Zap },
+  { id: "BTS / DUT",                       label: "BTS / DUT (bac+2)",               icon: GraduationCap },
 ];
 
 const DOMAINES = [
-  { id: "technologie",             label: "Technologie & Informatique",   emoji: "💻", desc: "Dev, IA, cybersécurité" },
-  { id: "ingenierie",              label: "Ingénierie & BTP",             emoji: "⚙️", desc: "Génie civil, mécanique" },
-  { id: "business",                label: "Business & Finance",           emoji: "📊", desc: "Commerce, management" },
-  { id: "sante",                   label: "Santé & Médecine",             emoji: "🏥", desc: "Médecine, pharmacie" },
-  { id: "arts_design",             label: "Architecture & Design",        emoji: "🏛️", desc: "Architecture, urbanisme" },
-  { id: "sciences",                label: "Sciences Fondamentales",       emoji: "🔬", desc: "Maths, physique, chimie" },
-  { id: "droit_sciences_sociales", label: "Droit & Sciences Sociales",    emoji: "⚖️", desc: "Droit, économie" },
-  { id: "communication",           label: "Communication & Marketing",    emoji: "📢", desc: "Média, publicité" },
-  { id: "education",               label: "Éducation & Enseignement",     emoji: "📚", desc: "Pédagogie, formation" },
-  { id: "environnement",           label: "Environnement & Énergie",      emoji: "🌿", desc: "Développement durable" },
-  { id: "tourisme",                label: "Tourisme & Hôtellerie",        emoji: "🏨", desc: "Hôtellerie, restauration" },
+  { id: "technologie",             label: "Technologie & Informatique",   icon: Monitor,      desc: "Dev, IA, cybersécurité" },
+  { id: "ingenierie",              label: "Ingénierie & BTP",             icon: Settings2,    desc: "Génie civil, mécanique" },
+  { id: "business",                label: "Business & Finance",           icon: BarChart3,    desc: "Commerce, management" },
+  { id: "sante",                   label: "Santé & Médecine",             icon: Stethoscope,  desc: "Médecine, pharmacie" },
+  { id: "arts_design",             label: "Architecture & Design",        icon: Palette,      desc: "Architecture, urbanisme" },
+  { id: "sciences",                label: "Sciences Fondamentales",       icon: Microscope,   desc: "Maths, physique, chimie" },
+  { id: "droit_sciences_sociales", label: "Droit & Sciences Sociales",    icon: Scale,        desc: "Droit, économie" },
+  { id: "communication",           label: "Communication & Marketing",    icon: Megaphone,    desc: "Média, publicité" },
+  { id: "education",               label: "Éducation & Enseignement",     icon: BookOpen,     desc: "Pédagogie, formation" },
+  { id: "environnement",           label: "Environnement & Énergie",      icon: Leaf,         desc: "Développement durable" },
+  { id: "tourisme",                label: "Tourisme & Hôtellerie",        icon: MapPin,       desc: "Hôtellerie, restauration" },
 ];
 
 const PERSONNALITE = [
-  { id: "analytique",     label: "Analytique",      emoji: "🧠", desc: "J'adore résoudre des problèmes complexes" },
-  { id: "creatif",        label: "Créatif",          emoji: "🎨", desc: "J'aime créer et innover" },
-  { id: "leader",         label: "Leader",           emoji: "🌟", desc: "J'aime diriger et motiver les autres" },
-  { id: "empathique",     label: "Empathique",       emoji: "💙", desc: "Aider les autres me passionne" },
-  { id: "rigoureux",      label: "Rigoureux",        emoji: "📐", desc: "J'aime la précision et l'ordre" },
-  { id: "communicant",    label: "Communicant",      emoji: "🗣️", desc: "J'aime parler et convaincre" },
-  { id: "entrepreneurial",label: "Entrepreneurial",  emoji: "🚀", desc: "J'aime prendre des risques calculés" },
-  { id: "chercheur",      label: "Curieux/Chercheur",emoji: "🔍", desc: "J'aime explorer et apprendre" },
+  { id: "analytique",     label: "Analytique",       icon: Brain,         desc: "J'adore résoudre des problèmes complexes" },
+  { id: "creatif",        label: "Créatif",           icon: Palette,       desc: "J'aime créer et innover" },
+  { id: "leader",         label: "Leader",            icon: Star,          desc: "J'aime diriger et motiver les autres" },
+  { id: "empathique",     label: "Empathique",        icon: Heart,         desc: "Aider les autres me passionne" },
+  { id: "rigoureux",      label: "Rigoureux",         icon: Ruler,         desc: "J'aime la précision et l'ordre" },
+  { id: "communicant",    label: "Communicant",       icon: MessageCircle, desc: "J'aime parler et convaincre" },
+  { id: "entrepreneurial",label: "Entrepreneurial",   icon: Rocket,        desc: "J'aime prendre des risques calculés" },
+  { id: "chercheur",      label: "Curieux/Chercheur", icon: Search,        desc: "J'aime explorer et apprendre" },
 ];
 
 const CARRIERES = [
-  { id: "ingenieur_dev",      label: "Ingénieur / Développeur",              emoji: "👨‍💻" },
-  { id: "medecin",            label: "Médecin / Pharmacien / Dentiste",       emoji: "👨‍⚕️" },
-  { id: "manager",            label: "Manager / Directeur",                   emoji: "💼" },
-  { id: "entrepreneur",       label: "Entrepreneur",                          emoji: "🚀" },
-  { id: "chercheur",          label: "Chercheur / Scientifique",              emoji: "🔬" },
-  { id: "enseignant",         label: "Enseignant / Formateur",                emoji: "👨‍🏫" },
-  { id: "fonctionnaire",      label: "Fonctionnaire / Diplomate",             emoji: "🏛️" },
-  { id: "architecte_designer",label: "Architecte / Designer / Créatif",       emoji: "🎨" },
-  { id: "juriste",            label: "Juriste / Avocat / Notaire",            emoji: "⚖️" },
-  { id: "economiste",         label: "Économiste / Comptable / Financier",    emoji: "📊" },
-  { id: "paramedical",        label: "Infirmier / Paramédical",               emoji: "🏥" },
-  { id: "telecoms_cyber",     label: "Télécom / Réseaux / Cybersécurité",     emoji: "📡" },
-  { id: "data_ia",            label: "Data Scientist / IA Engineer",          emoji: "🤖" },
-  { id: "environnementaliste",label: "Environnementaliste / Agronome",        emoji: "🌿" },
-  { id: "tourisme",           label: "Tourisme / Hôtellerie / Restauration",  emoji: "🏨" },
-  { id: "product_ux",         label: "Product Manager / UX Designer",         emoji: "📱" },
+  { id: "ingenieur_dev",      label: "Ingénieur / Développeur",              icon: Code2 },
+  { id: "medecin",            label: "Médecin / Pharmacien / Dentiste",       icon: Stethoscope },
+  { id: "manager",            label: "Manager / Directeur",                   icon: Briefcase },
+  { id: "entrepreneur",       label: "Entrepreneur",                          icon: Rocket },
+  { id: "chercheur",          label: "Chercheur / Scientifique",              icon: Microscope },
+  { id: "enseignant",         label: "Enseignant / Formateur",                icon: GraduationCap },
+  { id: "fonctionnaire",      label: "Fonctionnaire / Diplomate",             icon: Landmark },
+  { id: "architecte_designer",label: "Architecte / Designer / Créatif",       icon: Palette },
+  { id: "juriste",            label: "Juriste / Avocat / Notaire",            icon: Scale },
+  { id: "economiste",         label: "Économiste / Comptable / Financier",    icon: BarChart3 },
+  { id: "paramedical",        label: "Infirmier / Paramédical",               icon: Heart },
+  { id: "telecoms_cyber",     label: "Télécom / Réseaux / Cybersécurité",     icon: Radio },
+  { id: "data_ia",            label: "Data Scientist / IA Engineer",          icon: Bot },
+  { id: "environnementaliste",label: "Environnementaliste / Agronome",        icon: Leaf },
+  { id: "tourisme",           label: "Tourisme / Hôtellerie / Restauration",  icon: Building2 },
+  { id: "product_ux",         label: "Product Manager / UX Designer",         icon: Smartphone },
 ];
 
 const VILLES = [
@@ -67,10 +76,10 @@ const VILLES = [
 ];
 
 const BUDGETS = [
-  { id: "public",          label: "Public / Gratuit",                    emoji: "🏛️", desc: "ENCG, ENSA, Médecine — frais quasi nuls (< 1 000 MAD/an)" },
-  { id: "semi_public",     label: "Semi-public ou bourse",               emoji: "📜", desc: "UM6P, ISCAE — aide financière possible" },
-  { id: "prive_abordable", label: "Privé national (EMSI, HEM, ESCA…)",   emoji: "🏫", desc: "15 000 – 40 000 MAD/an" },
-  { id: "prive_premium",   label: "International / Double diplôme",       emoji: "🌍", desc: "UIR, UIR aéro, partenariats mondiaux — 40k+ MAD/an" },
+  { id: "public",          label: "Public / Gratuit",                    icon: Landmark,   desc: "ENCG, ENSA, Médecine — frais quasi nuls (< 1 000 MAD/an)" },
+  { id: "semi_public",     label: "Semi-public ou bourse",               icon: ScrollText, desc: "UM6P, ISCAE — aide financière possible" },
+  { id: "prive_abordable", label: "Privé national (EMSI, HEM, ESCA…)",   icon: School,     desc: "15 000 – 40 000 MAD/an" },
+  { id: "prive_premium",   label: "International / Double diplôme",       icon: Globe,      desc: "UIR, UIR aéro, partenariats mondiaux — 40k+ MAD/an" },
 ];
 
 const STEP_LABELS = [
@@ -80,11 +89,11 @@ const STEP_LABELS = [
 const TOTAL_STEPS = 13;
 
 const LOADING_MESSAGES = [
-  "🔍 Analyse de ton profil scolaire...",
-  "🏫 Comparaison avec 50+ écoles marocaines...",
-  "🤖 Calcul de ta compatibilité par IA...",
-  "✨ Finalisation de tes recommandations...",
-  "📝 Rédaction de tes conseils personnalisés...",
+  { icon: Search,      text: "Analyse de ton profil scolaire..." },
+  { icon: School,      text: "Comparaison avec 50+ écoles marocaines..." },
+  { icon: Bot,         text: "Calcul de ta compatibilité par IA..." },
+  { icon: Sparkles,    text: "Finalisation de tes recommandations..." },
+  { icon: FileText,    text: "Rédaction de tes conseils personnalisés..." },
 ];
 
 const FLOATING_SCHOOLS = ["EMI", "ENSIAS", "ENSA", "Médecine", "ENCG", "CPGE", "INPT", "UM6P", "HEM", "UIR"];
@@ -213,7 +222,7 @@ function Collapsible({ label, color, children }) {
         fontSize: 13, fontWeight: 700, color,
         padding: 0,
       }}>
-        💡 {label}
+        <Lightbulb size={14} color={color} style={{ flexShrink: 0 }} /> {label}
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
       {open && (
@@ -226,7 +235,7 @@ function Collapsible({ label, color, children }) {
 }
 
 // ─── GradeInput ───────────────────────────────────────────────────────────────
-function GradeInput({ label, value, onChange, emoji, isDark, border }) {
+function GradeInput({ label, value, onChange, icon: IconComp, isDark, border }) {
   const num = parseFloat(value);
   const valid = !isNaN(num) && num >= 0 && num <= 20;
   const color = valid ? (num >= 15 ? "#10b981" : num >= 12 ? "#7c3aed" : num >= 10 ? "#f59e0b" : "#ef4444") : "#ef4444";
@@ -241,7 +250,7 @@ function GradeInput({ label, value, onChange, emoji, isDark, border }) {
       background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
       transition: "border 0.2s",
     }}>
-      <span style={{ fontSize: 20 }}>{emoji}</span>
+      {IconComp && <IconComp size={20} />}
       <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: isDark ? "#fff" : "#1a1a2e" }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
         <input type="number" min={0} max={20} step={0.5} value={value}
@@ -512,7 +521,9 @@ export default function OrientationTest() {
 
         {/* Hero */}
         <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: 580, animation: "fadeUp 0.7s ease both" }}>
-          <div style={{ fontSize: 52, marginBottom: 16, filter: "drop-shadow(0 0 20px rgba(124,58,237,0.4))" }}>🧭</div>
+          <div style={{ marginBottom: 16, filter: "drop-shadow(0 0 20px rgba(124,58,237,0.4))" }}>
+            <Compass size={52} color={purple} />
+          </div>
           <h1 style={{
             fontSize: "clamp(26px, 5vw, 44px)", fontWeight: 900, color: textMain,
             marginBottom: 14, lineHeight: 1.2, fontFamily: "'Fraunces', serif",
@@ -535,7 +546,7 @@ export default function OrientationTest() {
               transition: "opacity 0.2s",
             }}>
               <CheckCircle size={15} />
-              ✓ Nous avons récupéré ton profil :
+              Nous avons récupéré ton profil :
               {profileData.bac     && ` ${profileData.bac}`}
               {profileData.moyenne && ` · ${profileData.moyenne}/20`}
               {profileData.ville   && ` · ${profileData.ville}`}
@@ -545,9 +556,9 @@ export default function OrientationTest() {
 
           <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 36, flexWrap: "wrap" }}>
             {[
-              { emoji: "🏫", label: "50+ écoles analysées" },
-              { emoji: "🤖", label: "IA · Groq llama-70b" },
-              { emoji: "🏆", label: "Top 5 recommandations" },
+              { icon: School,      label: "50+ écoles analysées" },
+              { icon: Bot,         label: "IA · Groq llama-70b" },
+              { icon: Trophy,      label: "Top 5 recommandations" },
             ].map((f) => (
               <div key={f.label} style={{
                 padding: "9px 16px", borderRadius: 12,
@@ -555,7 +566,7 @@ export default function OrientationTest() {
                 border: `1px solid ${border}`, fontSize: 13, color: textMain,
                 display: "flex", alignItems: "center", gap: 7, fontWeight: 500,
               }}>
-                {f.emoji} {f.label}
+                <f.icon size={14} /> {f.label}
               </div>
             ))}
           </div>
@@ -627,8 +638,9 @@ export default function OrientationTest() {
           <p key={loadingMsg} style={{
             fontSize: 15, color: "#a78bfa", fontWeight: 600,
             minHeight: 26, animation: "fadeUp 0.4s ease both",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           }}>
-            {LOADING_MESSAGES[loadingMsg]}
+            {(() => { const { icon: I, text } = LOADING_MESSAGES[loadingMsg]; return <><I size={16} /> {text}</>; })()}
           </p>
 
           {/* Progress bar */}
@@ -669,8 +681,8 @@ export default function OrientationTest() {
           background: isDark ? "rgba(10,10,26,0.85)" : "rgba(245,243,255,0.85)", backdropFilter: "blur(16px)",
           borderBottom: `1px solid ${border}`,
         }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: textMain, fontFamily: "'Fraunces', serif" }}>
-            🧭 Tes Résultats
+          <span style={{ fontSize: 15, fontWeight: 800, color: textMain, fontFamily: "'Fraunces', serif", display: "flex", alignItems: "center", gap: 6 }}>
+            <Compass size={16} color={purple} /> Tes Résultats
           </span>
           <ThemeToggle />
         </div>
@@ -678,7 +690,7 @@ export default function OrientationTest() {
         <div style={{ maxWidth: 700, margin: "0 auto", padding: "28px 16px" }}>
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 32, animation: "fadeUp 0.5s ease both" }}>
-            <div style={{ fontSize: 44, marginBottom: 8 }}>🎉</div>
+            <div style={{ marginBottom: 8 }}><PartyPopper size={44} color={purple} /></div>
             <h1 style={{ fontSize: "clamp(22px,4vw,32px)", fontWeight: 900, color: textMain, marginBottom: 8, fontFamily: "'Fraunces', serif" }}>
               Tes résultats sont prêts !
             </h1>
@@ -704,7 +716,7 @@ export default function OrientationTest() {
                   fontSize: 11, fontWeight: 700, marginBottom: 12,
                   textTransform: "uppercase", letterSpacing: 1,
                 }}>
-                  ⭐ Meilleure correspondance · {TYPE_LABELS[top.type] || top.type}
+                  <Star size={12} style={{ verticalAlign: "middle", marginRight: 4 }} /> Meilleure correspondance · {TYPE_LABELS[top.type] || top.type}
                 </div>
                 <h2 style={{ fontSize: 19, fontWeight: 800, color: textMain, marginBottom: 10, lineHeight: 1.3 }}>
                   {top.name}
@@ -713,14 +725,14 @@ export default function OrientationTest() {
                 {/* Meta badges */}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
                   {[
-                    `📍 ${top.city.slice(0, 3).join(", ")}${top.city.length > 3 ? "…" : ""}`,
-                    top.concours ? "📋 Concours" : "📝 Sur dossier",
-                    top.budget === "public" ? "🏛️ Public" : top.budget === "prive" ? "🏢 Privé" : "🤝 Semi-public",
-                    top.duration && `⏱️ ${top.duration}`,
-                    top.salary_range && `💰 ${top.salary_range}`,
+                    { icon: MapPin,    text: `${top.city.slice(0, 3).join(", ")}${top.city.length > 3 ? "…" : ""}` },
+                    { icon: top.concours ? ClipboardList : FileText, text: top.concours ? "Concours" : "Sur dossier" },
+                    { icon: top.budget === "public" ? Landmark : top.budget === "prive" ? Building2 : Handshake, text: top.budget === "public" ? "Public" : top.budget === "prive" ? "Privé" : "Semi-public" },
+                    top.duration    && { icon: Timer,   text: top.duration },
+                    top.salary_range && { icon: Banknote, text: top.salary_range },
                   ].filter(Boolean).map((m) => (
-                    <span key={m} style={{ fontSize: 11, fontWeight: 600, color: textMuted, padding: "3px 8px", borderRadius: 8, background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" }}>
-                      {m}
+                    <span key={m.text} style={{ fontSize: 11, fontWeight: 600, color: textMuted, padding: "3px 8px", borderRadius: 8, background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <m.icon size={11} /> {m.text}
                     </span>
                   ))}
                 </div>
@@ -738,7 +750,7 @@ export default function OrientationTest() {
                     padding: "4px 10px", borderRadius: 8,
                     background: `${topColor}14`, border: `1px solid ${topColor}30`,
                   }}>
-                    🔗 Site officiel →
+                    <ExternalLink size={12} /> Site officiel
                   </a>
                 )}
 
@@ -775,7 +787,12 @@ export default function OrientationTest() {
           {/* ALTERNATIVES */}
           {results.slice(1).map((school, idx) => {
             const color = TYPE_COLORS[school.type] || purple;
-            const medals = ["🥈 2ème choix", "🥉 3ème choix", "4ème choix", "5ème choix"];
+            const medals = [
+              { icon: Medal,  label: "2ème choix" },
+              { icon: Medal,  label: "3ème choix" },
+              { icon: null,   label: "4ème choix" },
+              { icon: null,   label: "5ème choix" },
+            ];
             return (
               <div key={school.id} style={{
                 background: cardBg, border: `1px solid ${border}`,
@@ -790,17 +807,19 @@ export default function OrientationTest() {
                       background: `${color}20`, color, fontSize: 11, fontWeight: 700,
                       marginBottom: 8, textTransform: "uppercase",
                     }}>
-                      {medals[idx] || `${idx + 2}ème choix`} · {TYPE_LABELS[school.type] || school.type}
+                      {medals[idx] ? (
+                        <>{medals[idx].icon && <medals[idx].icon size={11} style={{ verticalAlign: "middle", marginRight: 3 }} />}{medals[idx].label}</>
+                      ) : `${idx + 2}ème choix`} · {TYPE_LABELS[school.type] || school.type}
                     </div>
                     <h3 style={{ fontSize: 15, fontWeight: 700, color: textMain, marginBottom: 7, lineHeight: 1.3 }}>
                       {school.name}
                     </h3>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
                       {[
-                        `📍 ${school.city.slice(0, 2).join(", ")}${school.city.length > 2 ? "…" : ""}`,
-                        school.concours ? "📋 Concours" : "📝 Dossier",
+                        { icon: MapPin,    text: `${school.city.slice(0, 2).join(", ")}${school.city.length > 2 ? "…" : ""}` },
+                        { icon: school.concours ? ClipboardList : FileText, text: school.concours ? "Concours" : "Dossier" },
                       ].map((m) => (
-                        <span key={m} style={{ fontSize: 11, fontWeight: 600, color: textMuted }}>{m}</span>
+                        <span key={m.text} style={{ fontSize: 11, fontWeight: 600, color: textMuted, display: "inline-flex", alignItems: "center", gap: 3 }}><m.icon size={11} /> {m.text}</span>
                       ))}
                     </div>
                     <p style={{ fontSize: 13, color: textMuted, lineHeight: 1.55 }}>{school.pourquoi}</p>
@@ -811,7 +830,7 @@ export default function OrientationTest() {
                         padding: "3px 8px", borderRadius: 7,
                         background: `${color}12`, border: `1px solid ${color}28`,
                       }}>
-                        🔗 Site officiel
+                        <ExternalLink size={11} /> Site officiel
                       </a>
                     )}
                   </div>
@@ -830,15 +849,17 @@ export default function OrientationTest() {
               padding: "12px 24px", fontSize: 14, fontWeight: 700,
               background: "none", color: textMain,
               border: `1.5px solid ${border}`, borderRadius: 50, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 6,
             }}>
-              🔄 Refaire le test
+              <RefreshCw size={14} /> Refaire le test
             </button>
             <button onClick={() => navigate("/app/schools")} style={{
               padding: "12px 24px", fontSize: 14, fontWeight: 700,
               background: "none", color: purple,
               border: `1.5px solid ${purple}55`, borderRadius: 50, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 6,
             }}>
-              🏫 Explorer les écoles
+              <School size={14} /> Explorer les écoles
             </button>
             <button onClick={() => navigate("/app/dashboard")} style={{
               padding: "12px 24px", fontSize: 14, fontWeight: 700,
@@ -894,7 +915,7 @@ export default function OrientationTest() {
                   color: textMain, transition: "all 0.18s", textAlign: "left",
                 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 18 }}>{b.emoji}</span>
+                  <b.icon size={18} />
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{b.label}</span>
                 </div>
                 {sel && <CheckCircle size={16} color={purple} />}
@@ -906,7 +927,7 @@ export default function OrientationTest() {
         {form.bac && (
           <div style={{ padding: "16px", borderRadius: 14, background: isDark ? "rgba(124,58,237,0.08)" : "rgba(124,58,237,0.05)", border: `1px solid ${purple}25` }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: purple, marginBottom: 12 }}>Moyenne du bac</p>
-            <GradeInput label="Moyenne générale" value={form.moyenne} onChange={(v) => setForm((f) => ({ ...f, moyenne: v }))} emoji="📊" isDark={isDark} border={border} />
+            <GradeInput label="Moyenne générale" value={form.moyenne} onChange={(v) => setForm((f) => ({ ...f, moyenne: v }))} icon={BarChart3} isDark={isDark} border={border} />
           </div>
         )}
       </div>
@@ -930,7 +951,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <div style={{ fontSize: 24, marginBottom: 7 }}>{d.emoji}</div>
+                <div style={{ marginBottom: 7 }}><d.icon size={24} /></div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{d.label}</div>
                 <div style={{ fontSize: 11, color: textMuted, marginTop: 3 }}>{d.desc}</div>
               </button>
@@ -960,7 +981,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <div style={{ fontSize: 24, marginBottom: 7 }}>{p.emoji}</div>
+                <div style={{ marginBottom: 7 }}><p.icon size={24} /></div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{p.label}</div>
                 <div style={{ fontSize: 11, color: textMuted, marginTop: 3 }}>{p.desc}</div>
               </button>
@@ -988,7 +1009,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <div style={{ fontSize: 22, marginBottom: 6 }}>{c.emoji}</div>
+                <div style={{ marginBottom: 6 }}><c.icon size={22} /></div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: textMain, lineHeight: 1.3 }}>{c.label}</div>
               </button>
             );
@@ -1016,7 +1037,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   color: textMain, transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>📍 {v}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}><MapPin size={13} /> {v}</span>
                 {sel && <CheckCircle size={13} color={purple} />}
               </button>
             );
@@ -1056,8 +1077,8 @@ export default function OrientationTest() {
         <h2 style={sH}>Quel type d'école tu vises ?</h2>
         <p style={sP}>Choisis selon tes préférences et ta disponibilité financière</p>
         {error && (
-          <div style={{ padding: "11px 15px", borderRadius: 10, marginBottom: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 14 }}>
-            ⚠️ {error}
+          <div style={{ padding: "11px 15px", borderRadius: 10, marginBottom: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <AlertTriangle size={14} /> {error}
           </div>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1074,7 +1095,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 24 }}>{b.emoji}</span>
+                <b.icon size={24} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: textMain }}>{b.label}</div>
                   <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>{b.desc}</div>
@@ -1090,18 +1111,18 @@ export default function OrientationTest() {
     // Step 7 — Matière forte
     if (originalStep === 7) return (
       <div>
-        <h2 style={sH}>🎯 Dans quelle matière tu excelles le plus ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Target size={20} /> Dans quelle matière tu excelles le plus ?</h2>
         <p style={sP}>Ta matière forte nous aide à cibler les meilleures filières</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(148px,1fr))", gap: 9 }}>
           {[
-            { id: "maths",        label: "Maths",         emoji: "📐" },
-            { id: "physique",     label: "Physique",       emoji: "⚗️" },
-            { id: "chimie",       label: "Chimie",         emoji: "🧪" },
-            { id: "bio",          label: "Bio / SVT",      emoji: "🧬" },
-            { id: "informatique", label: "Informatique",   emoji: "💻" },
-            { id: "langues",      label: "Langues",        emoji: "🌐" },
-            { id: "eco",          label: "Économie",       emoji: "📊" },
-            { id: "histoire",     label: "Histoire / Géo", emoji: "🗺️" },
+            { id: "maths",        label: "Maths",         icon: Ruler },
+            { id: "physique",     label: "Physique",       icon: FlaskConical },
+            { id: "chimie",       label: "Chimie",         icon: Microscope },
+            { id: "bio",          label: "Bio / SVT",      icon: Dna },
+            { id: "informatique", label: "Informatique",   icon: Monitor },
+            { id: "langues",      label: "Langues",        icon: Globe },
+            { id: "eco",          label: "Économie",       icon: BarChart3 },
+            { id: "histoire",     label: "Histoire / Géo", icon: MapPin },
           ].map((m) => {
             const sel = form.matiere_forte === m.id;
             return (
@@ -1114,7 +1135,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <div style={{ fontSize: 24, marginBottom: 7 }}>{m.emoji}</div>
+                <div style={{ marginBottom: 7 }}><m.icon size={24} /></div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{m.label}</div>
               </button>
             );
@@ -1126,15 +1147,15 @@ export default function OrientationTest() {
     // Step 8 — Durée études
     if (originalStep === 8) return (
       <div>
-        <h2 style={sH}>⏰ Combien d'années tu veux étudier ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Clock size={20} /> Combien d'années tu veux étudier ?</h2>
         <p style={sP}>La durée préférée oriente vers les formations correspondantes</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[
-            { id: "2ans_bts",    label: "2 ans — BTS / DUT",                      emoji: "⚡", desc: "Formation courte et professionnalisante" },
-            { id: "3ans_licence",label: "3 ans — Licence universitaire",           emoji: "📚", desc: "Parcours universitaire classique" },
-            { id: "5ans_ing",    label: "5 ans — École d'ingénieurs / Grande école",emoji: "🎓", desc: "Ingénieur, business, architecture" },
-            { id: "7ans_med",    label: "7 ans — Médecine / Pharmacie",            emoji: "🏥", desc: "Professions médicales et de santé" },
-            { id: "flexible",    label: "Flexible — peu importe",                  emoji: "🔄", desc: "Ce qui correspond le mieux à mon profil" },
+            { id: "2ans_bts",    label: "2 ans — BTS / DUT",                       icon: Zap,         desc: "Formation courte et professionnalisante" },
+            { id: "3ans_licence",label: "3 ans — Licence universitaire",            icon: BookOpen,    desc: "Parcours universitaire classique" },
+            { id: "5ans_ing",    label: "5 ans — École d'ingénieurs / Grande école", icon: GraduationCap, desc: "Ingénieur, business, architecture" },
+            { id: "7ans_med",    label: "7 ans — Médecine / Pharmacie",             icon: Stethoscope, desc: "Professions médicales et de santé" },
+            { id: "flexible",    label: "Flexible — peu importe",                   icon: RefreshCw,   desc: "Ce qui correspond le mieux à mon profil" },
           ].map((d) => {
             const sel = form.duree_etudes === d.id;
             return (
@@ -1148,7 +1169,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 22 }}>{d.emoji}</span>
+                <d.icon size={22} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{d.label}</div>
                   <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{d.desc}</div>
@@ -1164,13 +1185,13 @@ export default function OrientationTest() {
     // Step 9 — Étranger
     if (originalStep === 9) return (
       <div>
-        <h2 style={sH}>🌍 Tu veux étudier à l'étranger après ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Globe size={20} /> Tu veux étudier à l'étranger après ?</h2>
         <p style={sP}>Certaines écoles ont de forts partenariats internationaux</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[
-            { id: "oui",       label: "Oui, c'est un objectif",         emoji: "✈️", desc: "France, Canada, USA, Espagne, Allemagne..." },
-            { id: "non",       label: "Non, je reste au Maroc",          emoji: "🇲🇦", desc: "Construire ma carrière localement" },
-            { id: "peut_etre", label: "Peut-être, si l'opportunité se présente", emoji: "🤔", desc: "Ouvert selon les circonstances" },
+            { id: "oui",       label: "Oui, c'est un objectif",                  icon: Plane,      desc: "France, Canada, USA, Espagne, Allemagne..." },
+            { id: "non",       label: "Non, je reste au Maroc",                   icon: MapPin,     desc: "Construire ma carrière localement" },
+            { id: "peut_etre", label: "Peut-être, si l'opportunité se présente",  icon: HelpCircle, desc: "Ouvert selon les circonstances" },
           ].map((e) => {
             const sel = form.etudier_etranger === e.id;
             return (
@@ -1184,7 +1205,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 28 }}>{e.emoji}</span>
+                <e.icon size={28} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: textMain }}>{e.label}</div>
                   <div style={{ fontSize: 12, color: textMuted, marginTop: 3 }}>{e.desc}</div>
@@ -1200,15 +1221,15 @@ export default function OrientationTest() {
     // Step 10 — Secteur de travail
     if (originalStep === 10) return (
       <div>
-        <h2 style={sH}>💼 Tu préfères quel secteur de travail ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Briefcase size={20} /> Tu préfères quel secteur de travail ?</h2>
         <p style={sP}>Ton secteur cible influence les meilleures filières pour toi</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(165px,1fr))", gap: 9 }}>
           {[
-            { id: "public",         label: "Public",          emoji: "🏛️", desc: "Fonctionnaire, État" },
-            { id: "prive",          label: "Privé",            emoji: "🏢", desc: "Entreprises, multinationales" },
-            { id: "entrepreneuriat",label: "Entrepreneuriat",  emoji: "🚀", desc: "Créer ma propre entreprise" },
-            { id: "international",  label: "International",    emoji: "🌍", desc: "ONG, organisations mondiales" },
-            { id: "peu_importe",    label: "Peu importe",      emoji: "🔄", desc: "Ouvert à tout" },
+            { id: "public",         label: "Public",          icon: Landmark,   desc: "Fonctionnaire, État" },
+            { id: "prive",          label: "Privé",            icon: Building2,  desc: "Entreprises, multinationales" },
+            { id: "entrepreneuriat",label: "Entrepreneuriat",  icon: Rocket,     desc: "Créer ma propre entreprise" },
+            { id: "international",  label: "International",    icon: Globe,      desc: "ONG, organisations mondiales" },
+            { id: "peu_importe",    label: "Peu importe",      icon: RefreshCw,  desc: "Ouvert à tout" },
           ].map((s) => {
             const sel = form.secteur_travail === s.id;
             return (
@@ -1221,7 +1242,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <div style={{ fontSize: 24, marginBottom: 7 }}>{s.emoji}</div>
+                <div style={{ marginBottom: 7 }}><s.icon size={24} /></div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: textMain }}>{s.label}</div>
                 <div style={{ fontSize: 11, color: textMuted, marginTop: 3 }}>{s.desc}</div>
               </button>
@@ -1234,13 +1255,13 @@ export default function OrientationTest() {
     // Step 11 — Mode de travail
     if (originalStep === 11) return (
       <div>
-        <h2 style={sH}>🤝 Tu préfères travailler ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Handshake size={20} /> Tu préfères travailler ?</h2>
         <p style={sP}>Ton style de travail préféré pour la suite</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[
-            { id: "seul",     label: "Seul(e)",                        emoji: "🧑‍💻", desc: "Indépendant, autonome, concentré" },
-            { id: "equipe",   label: "En équipe",                      emoji: "👥",  desc: "Collaboration, synergie, projets collectifs" },
-            { id: "les_deux", label: "Les deux selon le contexte",      emoji: "⚖️",  desc: "Flexible, adaptable aux situations" },
+            { id: "seul",     label: "Seul(e)",                       icon: Brain,     desc: "Indépendant, autonome, concentré" },
+            { id: "equipe",   label: "En équipe",                     icon: Megaphone, desc: "Collaboration, synergie, projets collectifs" },
+            { id: "les_deux", label: "Les deux selon le contexte",     icon: Scale,     desc: "Flexible, adaptable aux situations" },
           ].map((t) => {
             const sel = form.type_travail === t.id;
             return (
@@ -1254,7 +1275,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 28 }}>{t.emoji}</span>
+                <t.icon size={28} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: textMain }}>{t.label}</div>
                   <div style={{ fontSize: 12, color: textMuted, marginTop: 3 }}>{t.desc}</div>
@@ -1270,13 +1291,13 @@ export default function OrientationTest() {
     // Step 12 — Niveau tech
     if (originalStep === 12) return (
       <div>
-        <h2 style={sH}>📱 Tu utilises beaucoup la technologie ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Smartphone size={20} /> Tu utilises beaucoup la technologie ?</h2>
         <p style={sP}>Ton rapport avec le digital et les nouvelles technologies</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[
-            { id: "passionne", label: "Oui, je suis passionné(e)",    emoji: "🔥", desc: "Dev, gaming, gadgets, nouvelles technos..." },
-            { id: "normal",    label: "Oui, utilisation normale",      emoji: "📲", desc: "J'utilise les outils courants sans passion particulière" },
-            { id: "pas_trop",  label: "Non, pas vraiment",             emoji: "📖", desc: "Je préfère d'autres domaines à la tech" },
+            { id: "passionne", label: "Oui, je suis passionné(e)",    icon: Flame,    desc: "Dev, gaming, gadgets, nouvelles technos..." },
+            { id: "normal",    label: "Oui, utilisation normale",      icon: Monitor,  desc: "J'utilise les outils courants sans passion particulière" },
+            { id: "pas_trop",  label: "Non, pas vraiment",             icon: BookOpen, desc: "Je préfère d'autres domaines à la tech" },
           ].map((n) => {
             const sel = form.niveau_tech === n.id;
             return (
@@ -1290,7 +1311,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 28 }}>{n.emoji}</span>
+                <n.icon size={28} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: textMain }}>{n.label}</div>
                   <div style={{ fontSize: 12, color: textMuted, marginTop: 3 }}>{n.desc}</div>
@@ -1306,14 +1327,14 @@ export default function OrientationTest() {
     // Step 13 — Niveau maths
     if (originalStep === 13) return (
       <div>
-        <h2 style={sH}>🏆 Ton niveau actuel en maths ?</h2>
+        <h2 style={{ ...sH, display: "flex", alignItems: "center", gap: 8 }}><Trophy size={20} /> Ton niveau actuel en maths ?</h2>
         <p style={sP}>Une estimation honnête pour affiner les recommandations</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[
-            { id: "excellent", label: "Excellent — 17/20 et plus",   emoji: "🥇", desc: "Les maths sont ta matière forte absolue" },
-            { id: "bon",       label: "Bon — 14 à 16/20",            emoji: "🥈", desc: "À l'aise, quelques difficultés ponctuelles" },
-            { id: "moyen",     label: "Moyen — 11 à 13/20",          emoji: "🥉", desc: "Correct, d'autres matières sont meilleures" },
-            { id: "faible",    label: "Faible — moins de 11/20",     emoji: "📉", desc: "Les maths ne sont pas mon point fort" },
+            { id: "excellent", label: "Excellent — 17/20 et plus",   icon: Trophy,      desc: "Les maths sont ta matière forte absolue" },
+            { id: "bon",       label: "Bon — 14 à 16/20",            icon: Medal,       desc: "À l'aise, quelques difficultés ponctuelles" },
+            { id: "moyen",     label: "Moyen — 11 à 13/20",          icon: Star,        desc: "Correct, d'autres matières sont meilleures" },
+            { id: "faible",    label: "Faible — moins de 11/20",     icon: TrendingDown, desc: "Les maths ne sont pas mon point fort" },
           ].map((m) => {
             const sel = form.niveau_maths_auto === m.id;
             return (
@@ -1327,7 +1348,7 @@ export default function OrientationTest() {
                   border: sel ? `2px solid ${purple}` : `1px solid ${border}`,
                   transition: "all 0.18s",
                 }}>
-                <span style={{ fontSize: 24 }}>{m.emoji}</span>
+                <m.icon size={24} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: textMain }}>{m.label}</div>
                   <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>{m.desc}</div>
@@ -1338,8 +1359,8 @@ export default function OrientationTest() {
           })}
         </div>
         {error && (
-          <div style={{ padding: "11px 15px", borderRadius: 10, marginTop: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 14 }}>
-            ⚠️ {error}
+          <div style={{ padding: "11px 15px", borderRadius: 10, marginTop: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <AlertTriangle size={14} /> {error}
           </div>
         )}
       </div>
@@ -1395,7 +1416,7 @@ export default function OrientationTest() {
           <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
             <span style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
               <CheckCircle size={12} style={{ verticalAlign: "middle", marginRight: 4 }} />
-              ✓ Profil récupéré :{profileData.bac && ` ${profileData.bac}`}{profileData.moyenne && ` · ${profileData.moyenne}/20`}{profileData.ville && ` · ${profileData.ville}`}{profileData.filiere && ` · Filière: ${profileData.filiere}`}
+              Profil récupéré :{profileData.bac && ` ${profileData.bac}`}{profileData.moyenne && ` · ${profileData.moyenne}/20`}{profileData.ville && ` · ${profileData.ville}`}{profileData.filiere && ` · Filière: ${profileData.filiere}`}
             </span>
             <button onClick={() => navigate("/app/profile")} style={{ background: "none", border: "none", cursor: "pointer", color: "#10b981", fontSize: 12, fontWeight: 600, textDecoration: "underline", padding: 0 }}>
               → Modifier dans le Profil
@@ -1434,7 +1455,7 @@ export default function OrientationTest() {
               boxShadow: canNext() ? "0 6px 24px rgba(124,58,237,0.35)" : "none",
             }}
           >
-            {step === EFFECTIVE_TOTAL ? "Voir mes résultats ✨" : "Suivant"}
+            {step === EFFECTIVE_TOTAL ? <><Sparkles size={15} /> Voir mes résultats</> : "Suivant"}
             {step < TOTAL_STEPS && <ArrowRight size={16} />}
           </button>
         </div>

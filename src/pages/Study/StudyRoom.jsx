@@ -4,7 +4,7 @@ import {
   ArrowLeft, Send, Users, Play, Pause, RotateCcw,
   Copy, Check, Crown, LogOut, Video, VideoOff,
   Mic, MicOff, Settings, Music, Image, Volume2,
-  VolumeX, ChevronDown, Timer
+  VolumeX, ChevronDown, Timer, MessageCircle, AlertTriangle
 } from "lucide-react";
 import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 import { useAuth } from "../../context/AuthContext";
@@ -22,30 +22,30 @@ const PRESETS = [
 
 // ── Backgrounds ───────────────────────────────────────────────────────────────
 const BACKGROUNDS = [
-  { id: "lofi-city",   label: "Ville Lo-fi",     emoji: "🌃", type: "animated" },
-  { id: "sakura",      label: "Sakura",           emoji: "🌸", type: "animated" },
-  { id: "space",       label: "Espace",           emoji: "🌌", type: "animated" },
-  { id: "forest",      label: "Forêt",            emoji: "🌲", type: "animated" },
-  { id: "beach",       label: "Plage",            emoji: "🏖️", type: "animated" },
-  { id: "rain",        label: "Pluie",            emoji: "🌧️", type: "animated" },
-  { id: "cozy-room",   label: "Chambre cozy",     emoji: "🏠", type: "animated" },
-  { id: "naruto",      label: "Naruto",           emoji: "🍃", type: "anime"    },
-  { id: "luffy",       label: "One Piece",        emoji: "⚓", type: "anime"    },
-  { id: "gojo",        label: "Jujutsu Kaisen",   emoji: "👁️", type: "anime"    },
-  { id: "tanjiro",     label: "Demon Slayer",     emoji: "🔥", type: "anime"    },
-  { id: "totoro",      label: "Totoro",           emoji: "🌿", type: "anime"    },
+  { id: "lofi-city",   label: "Ville Lo-fi",     type: "animated" },
+  { id: "sakura",      label: "Sakura",           type: "animated" },
+  { id: "space",       label: "Espace",           type: "animated" },
+  { id: "forest",      label: "Forêt",            type: "animated" },
+  { id: "beach",       label: "Plage",            type: "animated" },
+  { id: "rain",        label: "Pluie",            type: "animated" },
+  { id: "cozy-room",   label: "Chambre cozy",     type: "animated" },
+  { id: "naruto",      label: "Naruto",           type: "anime"    },
+  { id: "luffy",       label: "One Piece",        type: "anime"    },
+  { id: "gojo",        label: "Jujutsu Kaisen",   type: "anime"    },
+  { id: "tanjiro",     label: "Demon Slayer",     type: "anime"    },
+  { id: "totoro",      label: "Totoro",           type: "anime"    },
 ];
 
 // ── Sounds ────────────────────────────────────────────────────────────────────
 const SOUNDS = [
-  { id: "lofi",    label: "Lo-fi",         emoji: "🎵", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-  { id: "piano",   label: "Piano",         emoji: "🎹", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-  { id: "rain",    label: "Pluie",         emoji: "🌧️", url: null },
-  { id: "cafe",    label: "Café",          emoji: "☕", url: null },
-  { id: "nature",  label: "Nature",        emoji: "🌿", url: null },
-  { id: "ocean",   label: "Océan",         emoji: "🌊", url: null },
-  { id: "fire",    label: "Cheminée",      emoji: "🔥", url: null },
-  { id: "silence", label: "Silence",       emoji: "🔇", url: null },
+  { id: "lofi",    label: "Lo-fi",     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+  { id: "piano",   label: "Piano",     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+  { id: "rain",    label: "Pluie",     url: null },
+  { id: "cafe",    label: "Café",      url: null },
+  { id: "nature",  label: "Nature",    url: null },
+  { id: "ocean",   label: "Océan",     url: null },
+  { id: "fire",    label: "Cheminée",  url: null },
+  { id: "silence", label: "Silence",   url: null },
 ];
 
 // ── Quotes ────────────────────────────────────────────────────────────────────
@@ -212,11 +212,11 @@ function AnimatedBackground({ bgId }) {
     // Draw anime character SVG shapes
     const drawAnimeAccent = (bg) => {
       const accents = {
-        naruto:  { color1:"#FF7F00", color2:"#FFA500", symbol:"🍃" },
-        luffy:   { color1:"#FF0000", color2:"#FF6666", symbol:"⚓" },
-        gojo:    { color1:"#4169E1", color2:"#87CEEB", symbol:"👁️" },
-        tanjiro: { color1:"#8B0000", color2:"#DC143C", symbol:"🔥" },
-        totoro:  { color1:"#228B22", color2:"#90EE90", symbol:"🌿" },
+        naruto:  { color1:"#FF7F00", color2:"#FFA500" },
+        luffy:   { color1:"#FF0000", color2:"#FF6666" },
+        gojo:    { color1:"#4169E1", color2:"#87CEEB" },
+        tanjiro: { color1:"#8B0000", color2:"#DC143C" },
+        totoro:  { color1:"#228B22", color2:"#90EE90" },
       };
       if (!accents[bg]) return;
       const acc = accents[bg];
@@ -791,7 +791,7 @@ export default function StudyRoom() {
               {/* Pomodoro count */}
               <div style={{ width:48, height:48, borderRadius:"50%", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:1 }}>
                 <span style={{ fontSize:18, fontWeight:700, color:phaseColor, lineHeight:1 }}>{pomCount}</span>
-                <span style={{ fontSize:8, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>🍅</span>
+                <span style={{ fontSize:8, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>pom</span>
               </div>
 
               {/* Pomodoro dots */}
@@ -880,7 +880,7 @@ export default function StudyRoom() {
               <button type="button"
                 onClick={()=>setShowChat(v=>!v)}
                 style={{ display:"flex", alignItems:"center", gap:5, padding:"8px 14px", background:showChat?"rgba(124,58,237,0.15)":"rgba(255,255,255,0.06)", border:`1px solid ${showChat?"rgba(124,58,237,0.3)":"rgba(255,255,255,0.1)"}`, borderRadius:10, color:showChat?"#a78bfa":"rgba(255,255,255,0.5)", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
-                💬 {showChat?"Chat ON":"Chat"}
+                <MessageCircle size={13} /> {showChat?"Chat ON":"Chat"}
               </button>
             </div>
           </div>
@@ -896,7 +896,7 @@ export default function StudyRoom() {
               <div style={{ flex:1, overflowY:"auto", padding:"14px", display:"flex", flexDirection:"column", gap:10 }}>
                 {messages.length===0 && (
                   <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.25)", fontSize:13, lineHeight:1.8 }}>
-                    Pas encore de messages<br/>Dis bonjour ! 👋
+                    Pas encore de messages<br/>Dis bonjour !
                   </div>
                 )}
                 {messages.map((msg,i) => (
@@ -934,7 +934,7 @@ export default function StudyRoom() {
       {/* Media error banner */}
       {mediaError && (
         <div style={{ position:"fixed", bottom:80, left:"50%", transform:"translateX(-50%)", padding:"10px 18px", borderRadius:12, background:"rgba(239,68,68,0.18)", border:"1px solid rgba(239,68,68,0.3)", color:"#fca5a5", fontSize:13, fontFamily:"'DM Sans',sans-serif", zIndex:9999, display:"flex", alignItems:"center", gap:10, maxWidth:"90vw" }}>
-          ⚠️ {mediaError}
+          <AlertTriangle size={14} /> {mediaError}
           <button type="button" onClick={() => setMediaError("")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:16, padding:0, lineHeight:1 }}>×</button>
         </div>
       )}

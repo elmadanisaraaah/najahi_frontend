@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Send, ChevronDown, ChevronUp, CheckCircle, Trash2, Plus, X } from "lucide-react";
+import { ArrowLeft, Star, Send, ChevronDown, ChevronUp, CheckCircle, Trash2, Plus, X, User, MessageCircle } from "lucide-react";
 
 const TAPI = (p) => `${import.meta.env.VITE_API_URL}/api/temoignages${p}`;
 const tok  = () => localStorage.getItem("najahi_token");
@@ -23,7 +23,7 @@ const SCHOOL_COLORS = {
 const schoolColor = (s) => SCHOOL_COLORS[s] || "#7c3aed";
 
 function initials(name) {
-  if (!name || name === "Étudiant anonyme") return "👤";
+  if (!name || name === "Étudiant anonyme") return null;
   return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
 }
 
@@ -63,8 +63,8 @@ function Avatar({ url, name, color, size = 42 }) {
   }
   const ini = initials(name);
   return (
-    <div style={{ width:size, height:size, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: color + "22", border:`1.5px solid ${color}44`, fontSize: ini.length > 1 ? size * 0.32 : size * 0.42, fontWeight:800, color, fontFamily:"'DM Sans',sans-serif" }}>
-      {ini}
+    <div style={{ width:size, height:size, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: color + "22", border:`1.5px solid ${color}44`, fontSize: ini && ini.length > 1 ? size * 0.32 : size * 0.42, fontWeight:800, color, fontFamily:"'DM Sans',sans-serif" }}>
+      {ini || <User size={size * 0.5} color={color} />}
     </div>
   );
 }
@@ -205,7 +205,7 @@ function SubmitForm({ dark, onSuccess }) {
 
       {ok && (
         <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, fontWeight:600, marginBottom:14 }}>
-          ✅ {ok}
+          <CheckCircle size={14} style={{ verticalAlign:"middle", marginRight:5 }} /> {ok}
         </div>
       )}
       {error && (
@@ -402,7 +402,7 @@ export default function Temoignages() {
         {/* Empty */}
         {!loading && items.length === 0 && (
           <div style={{ textAlign:"center", padding:"70px 30px", background: dark?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.7)", border:`1px solid ${brd}`, borderRadius:18 }}>
-            <div style={{ fontSize:52, marginBottom:14 }}>💬</div>
+            <div style={{ marginBottom:14 }}><MessageCircle size={52} color="#7c3aed" /></div>
             <h3 style={{ margin:"0 0 8px", fontFamily:"'Fraunces',serif", fontSize:20, color:txt }}>
               {filter ? `Aucun témoignage pour ${filter}` : "Aucun témoignage pour l'instant"}
             </h3>

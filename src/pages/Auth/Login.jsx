@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
@@ -243,7 +243,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
             {error && (
               <div style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", color: dark?"#fca5a5":"#ef4444", borderRadius:10, padding:"10px 14px", fontSize:13, animation:"shake 0.4s ease" }}>
-                <span style={{ fontSize:11 }}>✕</span> {error}
+                <X size={13} /> {error}
               </div>
             )}
 

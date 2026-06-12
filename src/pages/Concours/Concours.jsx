@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BellOff, ExternalLink, Calendar, ChevronLeft, Search, SlidersHorizontal } from "lucide-react";
+import { Bell, BellOff, ExternalLink, Calendar, CalendarDays, ChevronLeft, Search, SlidersHorizontal, ClipboardList, Target, BarChart3 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -112,9 +112,9 @@ function ConcoursCard({ c, dark, subscribed, onSubscribe }) {
 
         {/* Date rows */}
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-          <DateRow icon="📝" label="Inscriptions" start={c.registration_start} end={c.registration_end} color={color} dark={dark} />
-          <DateRow icon="🎯" label="Examen" start={c.exam_date} highlight color={color} dark={dark} />
-          <DateRow icon="📊" label="Résultats" start={c.results_date} color={color} dark={dark} />
+          <DateRow icon={ClipboardList} label="Inscriptions" start={c.registration_start} end={c.registration_end} color={color} dark={dark} />
+          <DateRow icon={Target} label="Examen" start={c.exam_date} highlight color={color} dark={dark} />
+          <DateRow icon={BarChart3} label="Résultats" start={c.results_date} color={color} dark={dark} />
         </div>
       </div>
 
@@ -137,12 +137,12 @@ function ConcoursCard({ c, dark, subscribed, onSubscribe }) {
   );
 }
 
-function DateRow({ icon, label, start, end, highlight, color, dark }) {
+function DateRow({ icon: Icon, label, start, end, highlight, color, dark }) {
   const sc = dark ? "rgba(255,255,255,0.45)" : "rgba(26,22,37,0.5)";
   const tc = dark ? "#fff" : "#1a1a2e";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 13, flexShrink: 0 }}>{icon}</span>
+      <span style={{ flexShrink: 0, display:"flex" }}>{Icon && <Icon size={13} color={color} />}</span>
       <span style={{ fontSize: 12, color: sc, width: 80, flexShrink: 0 }}>{label}</span>
       <span style={{ fontSize: 12.5, fontWeight: highlight ? 700 : 500, color: highlight ? color : tc, background: highlight ? color + "12" : "transparent", padding: highlight ? "2px 8px" : "0", borderRadius: highlight ? 99 : 0 }}>
         {end ? `${fmtDate(start)} → ${fmtDate(end)}` : fmtDate(start)}
@@ -187,7 +187,7 @@ export default function Concours() {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const handleSubscribe = async (id) => {
-    if (!user) { showToast("Connecte-toi pour activer les rappels 🔔"); return; }
+    if (!user) { showToast("Connecte-toi pour activer les rappels"); return; }
     setSubLoading(p => ({ ...p, [id]: true }));
     try {
       const res = await fetch(`${API}/api/concours/subscribe`, {
@@ -272,7 +272,7 @@ export default function Concours() {
 
           {/* Hero */}
           <div style={{ textAlign: "center", marginBottom: 36, animation: "cnc-fadeUp 0.5s ease both" }}>
-            <div style={{ fontSize: isMobile ? 36 : 48, marginBottom: 12 }}>📅</div>
+            <div style={{ marginBottom: 12 }}><CalendarDays size={isMobile ? 36 : 48} color="#7c3aed" /></div>
             <h1 style={{ fontFamily: "'Fraunces',serif", fontSize: isMobile ? 24 : 32, fontWeight: 800, color: tc, margin: "0 0 10px", letterSpacing: "-0.5px" }}>
               Calendrier des Concours 2026
             </h1>
@@ -333,7 +333,7 @@ export default function Concours() {
             </div>
           ) : visible.length === 0 ? (
             <div style={{ textAlign: "center", padding: "64px 24px", color: sc, animation: "cnc-fadeUp 0.4s ease" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
+              <div style={{ marginBottom: 16 }}><Search size={48} color={sc} /></div>
               <p style={{ fontSize: 16, fontWeight: 700, color: tc, fontFamily: "'Fraunces',serif" }}>Aucun concours trouvé</p>
               <p style={{ fontSize: 13, marginTop: 6 }}>Essaie un autre filtre ou terme de recherche.</p>
             </div>

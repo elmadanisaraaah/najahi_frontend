@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Users, Flame, BarChart3, Lock, BookOpen, Zap, Trophy, Star } from "lucide-react";
+import { ArrowLeft, Clock, Users, Flame, BarChart3, Lock, BookOpen, Zap, Trophy, Star, Target, User, Sparkles } from "lucide-react";
 
 const SAPI = (p) => `${import.meta.env.VITE_API_URL}/api/study${p}`;
 const tok   = () => localStorage.getItem("najahi_token");
@@ -207,12 +207,12 @@ function Breakdown({ stats, dark }) {
 
 // ── Achievements ───────────────────────────────────────────────────────────────
 const BADGES = [
-  { id:"first",    emoji:"🎯", label:"Première session",    desc:"Lance ta première session d'étude",          check: (s) => s.total_sessions >= 1 },
-  { id:"five",     emoji:"⚡", label:"5 sessions",          desc:"Complète 5 sessions d'étude",                check: (s) => s.total_sessions >= 5 },
-  { id:"streak3",  emoji:"🔥", label:"Streak 3 jours",      desc:"3 jours consécutifs d'étude",                check: (s) => s.streak_days >= 3 },
-  { id:"ten_h",    emoji:"📚", label:"10 heures totales",   desc:"Accumule 10 heures d'étude",                 check: (s) => s.total_minutes >= 600 },
-  { id:"thirty",   emoji:"🏆", label:"30 sessions",         desc:"Complète 30 sessions d'étude",               check: (s) => s.total_sessions >= 30 },
-  { id:"fifty_h",  emoji:"💎", label:"50 heures totales",   desc:"Accumule 50 heures d'étude",                 check: (s) => s.total_minutes >= 3000 },
+  { id:"first",    icon: Target,  label:"Première session",    desc:"Lance ta première session d'étude",          check: (s) => s.total_sessions >= 1 },
+  { id:"five",     icon: Zap,     label:"5 sessions",          desc:"Complète 5 sessions d'étude",                check: (s) => s.total_sessions >= 5 },
+  { id:"streak3",  icon: Flame,   label:"Streak 3 jours",      desc:"3 jours consécutifs d'étude",                check: (s) => s.streak_days >= 3 },
+  { id:"ten_h",    icon: BookOpen,label:"10 heures totales",   desc:"Accumule 10 heures d'étude",                 check: (s) => s.total_minutes >= 600 },
+  { id:"thirty",   icon: Trophy,  label:"30 sessions",         desc:"Complète 30 sessions d'étude",               check: (s) => s.total_sessions >= 30 },
+  { id:"fifty_h",  icon: Sparkles, label:"50 heures totales",  desc:"Accumule 50 heures d'étude",                 check: (s) => s.total_minutes >= 3000 },
 ];
 
 function Achievements({ stats, dark }) {
@@ -240,8 +240,8 @@ function Achievements({ stats, dark }) {
               opacity: unlocked ? 1 : 0.5,
               transition:"all 0.2s",
             }}>
-              <div style={{ fontSize:28, marginBottom:6, filter: unlocked ? "none" : "grayscale(1) opacity(0.4)" }}>
-                {unlocked ? b.emoji : <Lock size={22} color={subC} style={{ display:"inline-block" }} />}
+              <div style={{ marginBottom:6, display:"flex", justifyContent:"center", filter: unlocked ? "none" : "grayscale(1) opacity(0.4)" }}>
+                {unlocked ? <b.icon size={28} color="#f59e0b" /> : <Lock size={22} color={subC} />}
               </div>
               <div style={{ fontSize:12, fontWeight:700, color: unlocked ? (dark?"#fbbf24":"#d97706") : subC, fontFamily:"'DM Sans',sans-serif", lineHeight:1.3 }}>
                 {b.label}
@@ -280,9 +280,8 @@ function RecentSessions({ sessions, dark }) {
             <div style={{
               width:34, height:34, borderRadius:9, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
               background: s.type === "solo" ? "rgba(124,58,237,0.12)" : "rgba(59,130,246,0.12)",
-              fontSize:16,
             }}>
-              {s.type === "solo" ? "📖" : "👥"}
+              {s.type === "solo" ? <BookOpen size={16} color="#7c3aed" /> : <User size={16} color="#3b82f6" />}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontWeight:600, fontSize:13, color:txt, fontFamily:"'DM Sans',sans-serif" }}>
@@ -314,7 +313,7 @@ function EmptyState({ dark }) {
   const brd  = dark ? "rgba(255,255,255,0.09)" : "rgba(124,58,237,0.13)";
   return (
     <div style={{ background:card, border:`1px solid ${brd}`, borderRadius:16, padding:"60px 30px", textAlign:"center", backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)" }}>
-      <div style={{ fontSize:52, marginBottom:16 }}>📊</div>
+      <div style={{ marginBottom:16 }}><BarChart3 size={52} color="#7c3aed" /></div>
       <h3 style={{ margin:"0 0 10px", fontFamily:"'Fraunces',serif", fontSize:20, color:txt }}>Aucune session pour l'instant</h3>
       <p style={{ margin:"0 0 22px", color:subC, fontSize:14, lineHeight:1.6 }}>
         Lance ta première session d'étude pour voir tes statistiques apparaître ici.
@@ -438,7 +437,7 @@ export default function Stats() {
               <StatCard dark={dark} icon={Users}    color="#3b82f6" label="Sessions salle cette sem." value={stats.week_room_sessions}
                 sub={null} />
               <StatCard dark={dark} icon={Flame}    color="#f59e0b" label="Streak actuel"
-                value={stats.streak_days > 0 ? `${stats.streak_days}j 🔥` : "0j"}
+                value={stats.streak_days > 0 ? `${stats.streak_days}j` : "0j"}
                 sub={stats.streak_days >= 3 ? <span style={{ fontSize:10, fontWeight:700, color:"#f59e0b", background:"rgba(245,158,11,0.12)", padding:"2px 7px", borderRadius:99 }}>En feu !</span> : null} />
             </div>
 

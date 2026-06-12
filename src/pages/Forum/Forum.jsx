@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Heart, Eye, Plus, Search, X, ChevronRight, BookOpen } from "lucide-react";
+import { MessageSquare, Heart, Eye, Plus, Search, X, ChevronRight, BookOpen, GraduationCap } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import Avatar from "../../components/Avatar";
@@ -284,8 +284,8 @@ export default function Forum() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", padding: isMobile ? "32px 16px 20px" : "48px 24px 28px", animation: "fadeUp 0.5s ease both" }}>
-          <h1 style={{ fontFamily: "'Fraunces',serif", fontSize: isMobile ? 26 : 34, fontWeight: 700, color: tc, marginBottom: 10, letterSpacing: "-0.5px" }}>
-            Communauté Najahi 🎓
+          <h1 style={{ fontFamily: "'Fraunces',serif", fontSize: isMobile ? 26 : 34, fontWeight: 700, color: tc, marginBottom: 10, letterSpacing: "-0.5px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+            <GraduationCap size={isMobile ? 24 : 30} color="#7c3aed" style={{ flexShrink: 0 }} /> Communauté Najahi
           </h1>
           <p style={{ fontSize: 15, color: sc, maxWidth: 480, margin: "0 auto 24px" }}>
             Pose tes questions, partage ton expérience et aide les autres étudiants marocains.

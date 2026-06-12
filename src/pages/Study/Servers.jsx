@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
-import { ArrowLeft, Users, Video, VideoOff, ArrowRight, Timer } from "lucide-react";
+import { ArrowLeft, Users, Video, VideoOff, ArrowRight, Timer, AlertTriangle, BookOpen } from "lucide-react";
 import { io } from "socket.io-client";
 import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 
@@ -107,7 +107,7 @@ function JoinModal({ onClose, onJoin }) {
               </button>
               {camError && (
                 <p style={{ margin:"6px 0 0", padding:"8px 12px", borderRadius:9, background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)", color:"#fca5a5", fontSize:12, fontFamily:"'DM Sans',sans-serif", lineHeight:1.5 }}>
-                  ⚠️ {camError}
+                  <AlertTriangle size={12} style={{ flexShrink:0 }} /> {camError}
                 </p>
               )}
             </div>
@@ -340,7 +340,7 @@ export default function Servers() {
             </div>
           ) : (
             <div style={{ textAlign:"center", padding:"48px 0", animation:mounted?"svfadeUp 0.5s 0.2s ease both":"none" }}>
-              <div style={{ fontSize:56, opacity:0.08, marginBottom:16 }}>📚</div>
+              <div style={{ opacity:0.08, marginBottom:16 }}><BookOpen size={56} /></div>
               <p style={{ fontSize:15, color:"rgba(255,255,255,0.12)", fontWeight:500 }}>Personne en ligne pour l'instant</p>
               <p style={{ fontSize:13, color:"rgba(255,255,255,0.07)", marginTop:6 }}>Sois le premier à rejoindre !</p>
             </div>

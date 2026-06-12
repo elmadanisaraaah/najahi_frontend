@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, RotateCcw, Target, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, RotateCcw, Target, CheckCircle,
+  GraduationCap, Settings2, Monitor, Settings, Radio,
+  BarChart3, TrendingUp, Stethoscope, Zap, Globe,
+  Briefcase, Building2, Wrench, Ruler, FlaskConical, Leaf,
+  BookOpen, Lightbulb, X,
+} from "lucide-react";
 
 // ── Theme ────────────────────────────────────────────────────────────────────
 function useTheme() {
@@ -20,7 +26,7 @@ const SCHOOLS = [
     id: "cpge",
     name: "CPGE",
     full: "Classes Préparatoires aux Grandes Écoles",
-    emoji: "📐",
+    icon: GraduationCap,
     domain: "Prépa",
     domainColor: "#8b5cf6",
     required_note: 17,
@@ -36,7 +42,7 @@ const SCHOOLS = [
     id: "ensa",
     name: "ENSA",
     full: "École Nationale des Sciences Appliquées",
-    emoji: "🏗️",
+    icon: Settings2,
     domain: "Ingénierie",
     domainColor: "#3b82f6",
     required_note: 15,
@@ -52,7 +58,7 @@ const SCHOOLS = [
     id: "ensias",
     name: "ENSIAS",
     full: "École Nationale Supérieure d'Informatique",
-    emoji: "💻",
+    icon: Monitor,
     domain: "Ingénierie",
     domainColor: "#3b82f6",
     required_note: 16,
@@ -68,7 +74,7 @@ const SCHOOLS = [
     id: "emi",
     name: "EMI",
     full: "École Mohammadia d'Ingénieurs",
-    emoji: "⚙️",
+    icon: Settings,
     domain: "Ingénierie",
     domainColor: "#3b82f6",
     required_note: 16,
@@ -84,7 +90,7 @@ const SCHOOLS = [
     id: "inpt",
     name: "INPT",
     full: "Institut National des Postes et Télécommunications",
-    emoji: "📡",
+    icon: Radio,
     domain: "Ingénierie",
     domainColor: "#3b82f6",
     required_note: 15,
@@ -100,7 +106,7 @@ const SCHOOLS = [
     id: "encg",
     name: "ENCG",
     full: "École Nationale de Commerce et de Gestion",
-    emoji: "📊",
+    icon: BarChart3,
     domain: "Commerce",
     domainColor: "#10b981",
     required_note: 14,
@@ -116,7 +122,7 @@ const SCHOOLS = [
     id: "iscae",
     name: "ISCAE",
     full: "Institut Supérieur de Commerce et d'Administration",
-    emoji: "🏦",
+    icon: TrendingUp,
     domain: "Commerce",
     domainColor: "#10b981",
     required_note: 16,
@@ -132,7 +138,7 @@ const SCHOOLS = [
     id: "medecine",
     name: "Médecine",
     full: "Facultés de Médecine & Pharmacie",
-    emoji: "🩺",
+    icon: Stethoscope,
     domain: "Santé",
     domainColor: "#ef4444",
     required_note: 17,
@@ -148,7 +154,7 @@ const SCHOOLS = [
     id: "uir",
     name: "UIR",
     full: "Université Internationale de Rabat",
-    emoji: "🌐",
+    icon: Globe,
     domain: "Université Privée",
     domainColor: "#f59e0b",
     required_note: 12,
@@ -164,7 +170,7 @@ const SCHOOLS = [
     id: "alakhawayn",
     name: "Al Akhawayn",
     full: "Université Al Akhawayn d'Ifrane",
-    emoji: "🏔️",
+    icon: Building2,
     domain: "Université Internationale",
     domainColor: "#f97316",
     required_note: 14,
@@ -181,7 +187,7 @@ const SCHOOLS = [
     id: "um6p",
     name: "UM6P",
     full: "Université Mohammed VI Polytechnique",
-    emoji: "🔬",
+    icon: Zap,
     domain: "Ingénierie",
     domainColor: "#3b82f6",
     required_note: 15,
@@ -197,7 +203,7 @@ const SCHOOLS = [
     id: "bts",
     name: "BTS",
     full: "Brevet de Technicien Supérieur",
-    emoji: "🔧",
+    icon: Wrench,
     domain: "Formation Pro",
     domainColor: "#6b7280",
     required_note: 10,
@@ -213,7 +219,7 @@ const SCHOOLS = [
     id: "ofppt",
     name: "OFPPT",
     full: "Office de la Formation Professionnelle",
-    emoji: "🏭",
+    icon: Building2,
     domain: "Formation Pro",
     domainColor: "#6b7280",
     required_note: 10,
@@ -228,22 +234,22 @@ const SCHOOLS = [
 ];
 
 const BAC_TYPES = [
-  { id: "Sciences Maths",    label: "Sciences Maths",    emoji: "📐", short: "SM" },
-  { id: "Sciences Physiques",label: "Sciences Physiques",emoji: "⚛️", short: "SP" },
-  { id: "SVT",               label: "Sciences de la Vie",emoji: "🌿", short: "SVT" },
-  { id: "Sciences Eco",      label: "Sciences Eco",      emoji: "📈", short: "SE" },
-  { id: "Lettres",           label: "Lettres",            emoji: "📚", short: "LTT" },
-  { id: "Technique",         label: "Technique",          emoji: "🔨", short: "TEC" },
+  { id: "Sciences Maths",    label: "Sciences Maths",    icon: Ruler,        short: "SM" },
+  { id: "Sciences Physiques",label: "Sciences Physiques",icon: FlaskConical, short: "SP" },
+  { id: "SVT",               label: "Sciences de la Vie",icon: Leaf,         short: "SVT" },
+  { id: "Sciences Eco",      label: "Sciences Eco",      icon: TrendingUp,   short: "SE" },
+  { id: "Lettres",           label: "Lettres",            icon: BookOpen,     short: "LTT" },
+  { id: "Technique",         label: "Technique",          icon: Wrench,       short: "TEC" },
 ];
 
 const DOMAINS = [
-  { id: "Ingénierie",           label: "Ingénierie & Informatique", emoji: "⚙️" },
-  { id: "Commerce",             label: "Commerce & Gestion",        emoji: "📊" },
-  { id: "Santé",                label: "Médecine & Santé",          emoji: "🩺" },
-  { id: "Prépa",                label: "Classes Préparatoires",     emoji: "📐" },
-  { id: "Université Privée",    label: "Université Privée",         emoji: "🏛️" },
-  { id: "Université Internationale", label: "Université Internationale", emoji: "🌍" },
-  { id: "Formation Pro",        label: "Formation Professionnelle", emoji: "🔧" },
+  { id: "Ingénierie",           label: "Ingénierie & Informatique", icon: Settings2 },
+  { id: "Commerce",             label: "Commerce & Gestion",        icon: BarChart3 },
+  { id: "Santé",                label: "Médecine & Santé",          icon: Stethoscope },
+  { id: "Prépa",                label: "Classes Préparatoires",     icon: GraduationCap },
+  { id: "Université Privée",    label: "Université Privée",         icon: Building2 },
+  { id: "Université Internationale", label: "Université Internationale", icon: Globe },
+  { id: "Formation Pro",        label: "Formation Professionnelle", icon: Wrench },
 ];
 
 // ── Calculation logic ─────────────────────────────────────────────────────────
@@ -343,7 +349,7 @@ function ResultBar({ school, pct, animated, dark }) {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
         <div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ fontSize:18 }}>{school.emoji}</span>
+            {school.icon && <school.icon size={18} />}
             <span style={{ fontWeight:700, fontSize:15, color: dark ? "#f3f4f6" : "#1e1b4b", fontFamily:"'DM Sans',sans-serif" }}>
               {school.name}
             </span>
@@ -375,7 +381,7 @@ function ResultBar({ school, pct, animated, dark }) {
 
       {/* Tip */}
       <p style={{ margin:0, fontSize:12, color: dark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.5)", fontFamily:"'DM Sans',sans-serif", lineHeight:1.5 }}>
-        💡 {tip}
+        <Lightbulb size={13} style={{verticalAlign:"middle", marginRight:4}} /> {tip}
       </p>
     </div>
   );
@@ -553,7 +559,7 @@ export default function Calculateur() {
                         textAlign:"left",
                       }}
                     >
-                      <span style={{ fontSize:20 }}>{b.emoji}</span>
+                      {b.icon && <b.icon size={20} />}
                       <div>
                         <div style={{ fontWeight:700, fontSize:13 }}>{b.short}</div>
                         <div style={{ fontSize:11, opacity:0.6, fontWeight:400 }}>{b.label}</div>
@@ -641,8 +647,8 @@ export default function Calculateur() {
               </p>
 
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:22 }}>
-                {[{ val:true, label:"Oui, j'ai / je vais faire une CPGE", emoji:"✅" },
-                  { val:false, label:"Non, je passe directement", emoji:"⏭️" }].map(o => (
+                {[{ val:true, label:"Oui, j'ai / je vais faire une CPGE", icon: CheckCircle },
+                  { val:false, label:"Non, je passe directement", icon: ArrowRight }].map(o => (
                   <button key={String(o.val)} onClick={() => setHasCPGE(o.val)}
                     style={{
                       padding:"18px 16px", borderRadius:14, cursor:"pointer", textAlign:"left",
@@ -652,7 +658,7 @@ export default function Calculateur() {
                       boxShadow: hasCPGE === o.val ? "0 2px 14px rgba(124,58,237,0.18)" : "none",
                     }}
                   >
-                    <div style={{ fontSize:24, marginBottom:8 }}>{o.emoji}</div>
+                    <div style={{ marginBottom:8 }}><o.icon size={24} color={hasCPGE === o.val ? "#7c3aed" : undefined} /></div>
                     <div style={{ fontWeight:700, fontSize:13, color: hasCPGE === o.val ? "#7c3aed" : txt }}>{o.label}</div>
                   </button>
                 ))}
@@ -716,7 +722,7 @@ export default function Calculateur() {
                         textAlign:"left",
                       }}
                     >
-                      <span style={{ fontSize:20 }}>{d.emoji}</span>
+                      {d.icon && <d.icon size={20} />}
                       <span>{d.label}</span>
                     </button>
                   );
@@ -751,7 +757,7 @@ export default function Calculateur() {
               {/* Live adjustment panel */}
               <div style={{ background: dark ? "rgba(124,58,237,0.09)" : "rgba(124,58,237,0.05)", border:`1px solid rgba(124,58,237,0.18)`, borderRadius:14, padding:"16px 18px", marginBottom:22 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:"#7c3aed", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:14 }}>
-                  ⚡ Ajuster en direct — résultats mis à jour automatiquement
+                  <Zap size={11} style={{verticalAlign:"middle", marginRight:4}} /> Ajuster en direct — résultats mis à jour automatiquement
                 </div>
 
                 {/* Note BAC */}
@@ -776,7 +782,7 @@ export default function Calculateur() {
                       border: hasCPGE ? "1.5px solid rgba(16,185,129,0.4)" : `1.5px solid ${border}`,
                       color: hasCPGE ? "#10b981" : sub, fontFamily:"'DM Sans',sans-serif", transition:"all 0.18s",
                     }}>
-                      {hasCPGE ? "✓ Oui" : "Non"}
+                      {hasCPGE ? <><CheckCircle size={12} style={{verticalAlign:"middle",marginRight:4}} />Oui</> : "Non"}
                     </button>
                     {hasCPGE && (
                       <span style={{ marginLeft:"auto", fontSize:16, fontWeight:800, color:"#10b981", fontFamily:"'Fraunces',serif" }}>{noteCPGE.toFixed(1)}/20</span>
@@ -804,7 +810,7 @@ export default function Calculateur() {
                             background: sel ? "rgba(124,58,237,0.12)" : input,
                             color: sel ? "#7c3aed" : sub, fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s",
                           }}>
-                          {d.emoji} {d.label}
+                          {d.icon && <d.icon size={11} style={{verticalAlign:"middle", marginRight:4}} />}{d.label}
                         </button>
                       );
                     })}

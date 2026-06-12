@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Scale, X, Search, ExternalLink, Plus } from "lucide-react";
+import { ArrowLeft, Scale, X, Search, ExternalLink, Plus, GraduationCap, Settings2, Monitor, Settings, Radio, Plug, BarChart3, TrendingUp, Stethoscope, Building2, Globe, Laptop, Store, Landmark } from "lucide-react";
 
 function useTheme() {
   const [dark] = useState(() => {
@@ -13,7 +13,7 @@ function useTheme() {
 // ── Complete school database for comparison ───────────────────────────────────
 const SCHOOLS_DB = [
   {
-    id: "cpge", name: "CPGE", color: "#8b5cf6", emoji: "📐",
+    id: "cpge", name: "CPGE", color: "#8b5cf6", icon: GraduationCap,
     full: "Classes Préparatoires aux Grandes Écoles",
     ville: "Rabat, Casablanca, Fès, Marrakech…",
     duree: "2 ans",
@@ -24,7 +24,7 @@ const SCHOOLS_DB = [
     website: "https://www.men.gov.ma",
   },
   {
-    id: "ensa", name: "ENSA", color: "#3b82f6", emoji: "🏗️",
+    id: "ensa", name: "ENSA", color: "#3b82f6", icon: Settings2,
     full: "École Nationale des Sciences Appliquées",
     ville: "Rabat, Agadir, Fès, Oujda, Marrakech, Tanger…",
     duree: "5 ans (accès direct bac ou via CPGE)",
@@ -35,7 +35,7 @@ const SCHOOLS_DB = [
     website: "https://ensa.um5.ac.ma",
   },
   {
-    id: "ensias", name: "ENSIAS", color: "#3b82f6", emoji: "💻",
+    id: "ensias", name: "ENSIAS", color: "#3b82f6", icon: Monitor,
     full: "École Nationale Supérieure d'Informatique et d'Analyse des Systèmes",
     ville: "Rabat",
     duree: "2 ans après CPGE (cycle ingénieur)",
@@ -46,7 +46,7 @@ const SCHOOLS_DB = [
     website: "http://www.ensias.um5.ac.ma",
   },
   {
-    id: "emi", name: "EMI", color: "#3b82f6", emoji: "⚙️",
+    id: "emi", name: "EMI", color: "#3b82f6", icon: Settings,
     full: "École Mohammadia d'Ingénieurs",
     ville: "Rabat",
     duree: "2 ans après CPGE (cycle ingénieur)",
@@ -57,7 +57,7 @@ const SCHOOLS_DB = [
     website: "http://www.emi.ac.ma",
   },
   {
-    id: "inpt", name: "INPT", color: "#06b6d4", emoji: "📡",
+    id: "inpt", name: "INPT", color: "#06b6d4", icon: Radio,
     full: "Institut National des Postes et Télécommunications",
     ville: "Rabat",
     duree: "3 ans (cycle ingénieur)",
@@ -68,7 +68,7 @@ const SCHOOLS_DB = [
     website: "https://www.inpt.ac.ma",
   },
   {
-    id: "ehtp", name: "EHTP", color: "#3b82f6", emoji: "🔌",
+    id: "ehtp", name: "EHTP", color: "#3b82f6", icon: Plug,
     full: "École Hassania des Travaux Publics",
     ville: "Casablanca",
     duree: "2 ans après CPGE (cycle ingénieur)",
@@ -79,7 +79,7 @@ const SCHOOLS_DB = [
     website: "http://www.ehtp.ac.ma",
   },
   {
-    id: "encg", name: "ENCG", color: "#10b981", emoji: "📊",
+    id: "encg", name: "ENCG", color: "#10b981", icon: BarChart3,
     full: "École Nationale de Commerce et de Gestion",
     ville: "Settat, Casablanca, Agadir, Tanger, Fès, Marrakech…",
     duree: "5 ans (Licence + Master)",
@@ -90,7 +90,7 @@ const SCHOOLS_DB = [
     website: "https://www.encg-settat.ac.ma",
   },
   {
-    id: "iscae", name: "ISCAE", color: "#10b981", emoji: "🏦",
+    id: "iscae", name: "ISCAE", color: "#10b981", icon: TrendingUp,
     full: "Institut Supérieur de Commerce et d'Administration des Entreprises",
     ville: "Casablanca / Rabat",
     duree: "5 ans (Licence + MBA)",
@@ -101,7 +101,7 @@ const SCHOOLS_DB = [
     website: "https://www.iscae.ac.ma",
   },
   {
-    id: "medecine", name: "Médecine", color: "#ef4444", emoji: "🩺",
+    id: "medecine", name: "Médecine", color: "#ef4444", icon: Stethoscope,
     full: "Faculté de Médecine et de Pharmacie",
     ville: "Rabat, Casablanca, Fès, Marrakech, Oujda",
     duree: "7 ans (généraliste) à 11+ ans (spécialiste)",
@@ -112,7 +112,7 @@ const SCHOOLS_DB = [
     website: "https://fmp.um5.ac.ma",
   },
   {
-    id: "um6p", name: "UM6P", color: "#f59e0b", emoji: "🏫",
+    id: "um6p", name: "UM6P", color: "#f59e0b", icon: Building2,
     full: "Université Mohammed VI Polytechnique",
     ville: "Ben Guerir (Marrakech)",
     duree: "3 à 5 ans selon le programme",
@@ -123,7 +123,7 @@ const SCHOOLS_DB = [
     website: "https://www.um6p.ma",
   },
   {
-    id: "uir", name: "UIR", color: "#f97316", emoji: "🌍",
+    id: "uir", name: "UIR", color: "#f97316", icon: Globe,
     full: "Université Internationale de Rabat",
     ville: "Rabat (campus Technopolis)",
     duree: "3 à 5 ans",
@@ -134,7 +134,7 @@ const SCHOOLS_DB = [
     website: "https://www.uir.ac.ma",
   },
   {
-    id: "emsi", name: "EMSI", color: "#f59e0b", emoji: "🖥️",
+    id: "emsi", name: "EMSI", color: "#f59e0b", icon: Laptop,
     full: "École Marocaine des Sciences de l'Ingénieur",
     ville: "Casablanca, Rabat, Marrakech, Fès, Oujda",
     duree: "5 ans",
@@ -145,7 +145,7 @@ const SCHOOLS_DB = [
     website: "https://www.emsi.ma",
   },
   {
-    id: "hem", name: "HEM", color: "#06b6d4", emoji: "🏬",
+    id: "hem", name: "HEM", color: "#06b6d4", icon: Store,
     full: "Hautes Études de Management",
     ville: "Casablanca, Rabat, Marrakech, Tanger",
     duree: "5 ans (Bachelor + Master)",
@@ -156,7 +156,7 @@ const SCHOOLS_DB = [
     website: "https://www.hem.ac.ma",
   },
   {
-    id: "architecture", name: "Architecture", color: "#8b5cf6", emoji: "🏛️",
+    id: "architecture", name: "Architecture", color: "#8b5cf6", icon: Landmark,
     full: "École Nationale d'Architecture",
     ville: "Rabat (+ antennes à Tétouan, Marrakech, Fès)",
     duree: "5 ans (cycle ingénieur) + 1 an DESA",
@@ -265,7 +265,7 @@ export default function Comparateur() {
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:18 }}>
               {selected.map(s => (
                 <div key={s.id} style={{ display:"flex", alignItems:"center", gap:7, padding:"6px 12px", borderRadius:99, background:s.color+"22", border:`1.5px solid ${s.color}55`, fontSize:13, fontWeight:700, color:s.color, fontFamily:"'DM Sans',sans-serif" }}>
-                  <span>{s.emoji}</span>
+                  {s.icon && <s.icon size={13} />}
                   <span>{s.name}</span>
                   <button onClick={() => remove(s.id)} style={{ display:"flex", alignItems:"center", background:"none", border:"none", cursor:"pointer", color:s.color, padding:0, marginLeft:2 }}>
                     <X size={13} />
@@ -302,7 +302,7 @@ export default function Comparateur() {
                       onMouseEnter={e => e.currentTarget.style.background = dark?"rgba(255,255,255,0.06)":"rgba(124,58,237,0.06)"}
                       onMouseLeave={e => e.currentTarget.style.background = "none"}
                     >
-                      <span style={{ fontSize:20 }}>{s.emoji}</span>
+                      {s.icon && <s.icon size={20} />}
                       <div>
                         <div style={{ fontWeight:700, fontSize:14, color: dark?"#f3f4f6":"#1e1b4b" }}>{s.name}</div>
                         <div style={{ fontSize:11, color:sub }}>{s.full}</div>
@@ -335,7 +335,7 @@ export default function Comparateur() {
               <div style={{ padding:"18px 20px", background: dark?"rgba(255,255,255,0.03)":"rgba(124,58,237,0.04)" }} />
               {selected.map(s => (
                 <div key={s.id} style={{ padding:"18px 16px", textAlign:"center", borderLeft:`1px solid ${border}`, background: dark?"rgba(255,255,255,0.03)":"rgba(124,58,237,0.04)" }}>
-                  <div style={{ fontSize:28, marginBottom:6 }}>{s.emoji}</div>
+                  <div style={{ marginBottom:6 }}>{s.icon && <s.icon size={28} color={s.color} />}</div>
                   <div style={{ fontWeight:800, fontSize:16, color:s.color, fontFamily:"'Fraunces',serif" }}>{s.name}</div>
                 </div>
               ))}
