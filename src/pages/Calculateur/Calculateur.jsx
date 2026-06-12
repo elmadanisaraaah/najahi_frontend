@@ -410,14 +410,15 @@ export default function Calculateur() {
       .catch(() => {});
   }, []);
 
-  // Animate bar fills when entering results
+  // Debounced bar animation — re-triggers 500 ms after any input change in results view
+  const debounceRef = useRef(null);
   useEffect(() => {
-    if (step === 4) {
-      setAnimated(false);
-      const t = setTimeout(() => setAnimated(true), 120);
-      return () => clearTimeout(t);
-    }
-  }, [step]);
+    if (step !== 4) return;
+    setAnimated(false);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setAnimated(true), 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [step, noteBAC, noteCPGE, bacType, hasCPGE, domains]);
 
   // Step transition animation
   const goTo = (next) => {
@@ -747,24 +748,68 @@ export default function Calculateur() {
           {/* ─── RESULTS ─── */}
           {step === 4 && (
             <div>
-              {/* Summary chips */}
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:22 }}>
-                <span style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:700, background:"rgba(124,58,237,0.1)", color:"#7c3aed" }}>
-                  Bac {bacType}
-                </span>
-                <span style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:700, background:"rgba(124,58,237,0.1)", color:"#7c3aed" }}>
-                  Note: {noteBAC}/20
-                </span>
-                {hasCPGE && (
-                  <span style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:700, background:"rgba(16,185,129,0.1)", color:"#10b981" }}>
-                    CPGE {noteCPGE}/20
-                  </span>
-                )}
-                {domains.map(d => (
-                  <span key={d} style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:700, background:"rgba(0,0,0,0.05)", color:sub }}>
-                    {d}
-                  </span>
-                ))}
+              {/* Live adjustment panel */}
+              <div style={{ background: dark ? "rgba(124,58,237,0.09)" : "rgba(124,58,237,0.05)", border:`1px solid rgba(124,58,237,0.18)`, borderRadius:14, padding:"16px 18px", marginBottom:22 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:"#7c3aed", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:14 }}>
+                  ⚡ Ajuster en direct — résultats mis à jour automatiquement
+                </div>
+
+                {/* Note BAC */}
+                <div style={{ marginBottom:14 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                    <span style={{ fontSize:13, fontWeight:600, color:txt }}>Note du Bac</span>
+                    <span style={{ fontSize:18, fontWeight:800, color:"#7c3aed", fontFamily:"'Fraunces',serif" }}>{noteBAC.toFixed(1)}/20</span>
+                  </div>
+                  <input type="range" min={10} max={20} step={0.5}
+                    value={noteBAC} onChange={e => setNoteBAC(parseFloat(e.target.value))}
+                    style={{ width:"100%", accentColor:"#7c3aed", cursor:"pointer" }}
+                  />
+                </div>
+
+                {/* CPGE toggle + note */}
+                <div style={{ marginBottom: hasCPGE ? 14 : 0 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom: hasCPGE ? 10 : 0 }}>
+                    <span style={{ fontSize:13, fontWeight:600, color:txt }}>CPGE</span>
+                    <button onClick={() => setHasCPGE(v => !v)} style={{
+                      padding:"3px 12px", borderRadius:99, fontSize:12, fontWeight:700, cursor:"pointer",
+                      background: hasCPGE ? "rgba(16,185,129,0.15)" : (dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"),
+                      border: hasCPGE ? "1.5px solid rgba(16,185,129,0.4)" : `1.5px solid ${border}`,
+                      color: hasCPGE ? "#10b981" : sub, fontFamily:"'DM Sans',sans-serif", transition:"all 0.18s",
+                    }}>
+                      {hasCPGE ? "✓ Oui" : "Non"}
+                    </button>
+                    {hasCPGE && (
+                      <span style={{ marginLeft:"auto", fontSize:16, fontWeight:800, color:"#10b981", fontFamily:"'Fraunces',serif" }}>{noteCPGE.toFixed(1)}/20</span>
+                    )}
+                  </div>
+                  {hasCPGE && (
+                    <input type="range" min={10} max={20} step={0.5}
+                      value={noteCPGE} onChange={e => setNoteCPGE(parseFloat(e.target.value))}
+                      style={{ width:"100%", accentColor:"#10b981", cursor:"pointer" }}
+                    />
+                  )}
+                </div>
+
+                {/* Domain filter chips */}
+                <div>
+                  <div style={{ fontSize:12, fontWeight:600, color:sub, marginBottom:8 }}>Filières (filtre) :</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                    {DOMAINS.map(d => {
+                      const sel = domains.includes(d.id);
+                      return (
+                        <button key={d.id} onClick={() => setDomains(prev => sel ? prev.filter(x => x !== d.id) : [...prev, d.id])}
+                          style={{
+                            padding:"4px 11px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
+                            border: sel ? "1.5px solid #7c3aed" : `1.5px solid ${border}`,
+                            background: sel ? "rgba(124,58,237,0.12)" : input,
+                            color: sel ? "#7c3aed" : sub, fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s",
+                          }}>
+                          {d.emoji} {d.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* Stats row */}
