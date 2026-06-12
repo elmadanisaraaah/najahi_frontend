@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
-import { ArrowLeft, Plus, Hash, Copy, Check, Users, Timer, ArrowRight } from "lucide-react";
+import { ArrowLeft, Plus, Hash, Copy, Check, Users, Timer, ArrowRight, Globe, MapPin, School } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -48,7 +48,40 @@ export default function PrivateRooms() {
   const [isMobile, setIsMobile]     = useState(window.innerWidth < 768);
   const [isTablet, setIsTablet]     = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
 
+  // Explore tab state
+  const [exploreRooms,    setExploreRooms]    = useState([]);
+  const [exploreLoading,  setExploreLoading]  = useState(false);
+  const [exploreCategory, setExploreCategory] = useState("general");
+  const [exploreTag,      setExploreTag]      = useState("");
+  const [joiningRoom,     setJoiningRoom]     = useState(null);
+
   useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+
+  const fetchExploreRooms = async (cat = exploreCategory, tag = exploreTag) => {
+    setExploreLoading(true);
+    try {
+      const params = new URLSearchParams({ category: cat });
+      if (tag.trim()) params.set("tag", tag.trim());
+      const res = await fetch(`${API_URL}/api/study/rooms?${params}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) setExploreRooms(await res.json());
+    } catch {} finally { setExploreLoading(false); }
+  };
+
+  const handleJoinStudyRoom = async (roomId) => {
+    setJoiningRoom(roomId);
+    try {
+      const res = await fetch(`${API_URL}/api/study/rooms/${roomId}/join`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Impossible de rejoindre"); return; }
+      navigate(`/app/servers/${roomId}`);
+    } catch { setError("Erreur réseau"); }
+    finally { setJoiningRoom(null); }
+  };
   useEffect(() => {
     const onResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -184,6 +217,7 @@ export default function PrivateRooms() {
                 if (step === "choice") navigate("/app/study");
                 else if (step === "created") setStep("form");
                 else setStep("choice");
+                setError("");
               }}
               style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: dark ? "rgba(255,255,255,0.06)" : "rgba(124,58,237,0.06)", border: dark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(124,58,237,0.15)", borderRadius: 8, color: subCol, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
               <ArrowLeft size={13} /> {step === "choice" ? "Study" : "Retour"}
@@ -215,7 +249,7 @@ export default function PrivateRooms() {
                   Crée une salle privée ou rejoins celle d'un ami.
                 </p>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3,1fr)", gap: 16 }}>
                 <div className="pr-choice"
                   onClick={() => { setStep("form"); setError(""); }}
                   style={{ background: cardBg, backdropFilter: "blur(20px)", border: cardBdr, borderRadius: 20, padding: "28px 24px", cursor: "pointer", transition: "all 0.3s", boxShadow: dark ? "0 4px 20px rgba(0,0,0,0.2)" : "0 4px 20px rgba(124,58,237,0.07)", textAlign: "center" }}>
@@ -233,6 +267,15 @@ export default function PrivateRooms() {
                   </div>
                   <h3 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 700, color: textCol, marginBottom: 6 }}>Rejoindre</h3>
                   <p style={{ fontSize: 12, color: subCol, lineHeight: 1.6 }}>Entre le code partagé par ton ami.</p>
+                </div>
+                <div className="pr-choice"
+                  onClick={() => { setStep("explore"); setExploreCategory("general"); setExploreTag(""); fetchExploreRooms("general", ""); setError(""); }}
+                  style={{ background: cardBg, backdropFilter: "blur(20px)", border: cardBdr, borderRadius: 20, padding: "28px 24px", cursor: "pointer", transition: "all 0.3s", boxShadow: dark ? "0 4px 20px rgba(0,0,0,0.2)" : "0 4px 20px rgba(124,58,237,0.07)", textAlign: "center" }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(245,158,11,0.12)", border: "1.5px solid rgba(245,158,11,0.2)", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+                    <Globe size={24} color="#f59e0b" />
+                  </div>
+                  <h3 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 700, color: textCol, marginBottom: 6 }}>Explorer</h3>
+                  <p style={{ fontSize: 12, color: subCol, lineHeight: 1.6 }}>Rejoins un groupe par ville ou lycée.</p>
                 </div>
               </div>
             </div>
@@ -429,6 +472,83 @@ export default function PrivateRooms() {
                   Créer une autre salle
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ── EXPLORE ── */}
+          {step === "explore" && (
+            <div style={{ width: "100%", maxWidth: 680, animation: "prfadeUp 0.4s ease both" }}>
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 26, fontWeight: 700, color: textCol, marginBottom: 6 }}>Explorer les groupes d'étude</h2>
+                <p style={{ color: subCol, fontSize: 13 }}>Rejoins un groupe organisé par ville ou lycée.</p>
+              </div>
+
+              {/* Category chips */}
+              <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 20 }}>
+                {[["general", <Globe size={13} />, "Général"], ["ville", <MapPin size={13} />, "Par ville"], ["lycee", <School size={13} />, "Par lycée"]].map(([val, icon, label]) => (
+                  <button key={val} type="button"
+                    onClick={() => { setExploreCategory(val); setExploreTag(""); fetchExploreRooms(val, ""); }}
+                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 99, border: exploreCategory === val ? "none" : `1px solid ${dark ? "rgba(255,255,255,0.12)" : "rgba(124,58,237,0.2)"}`, background: exploreCategory === val ? "linear-gradient(135deg,#7c3aed,#a78bfa)" : "transparent", color: exploreCategory === val ? "#fff" : subCol, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", transition: "all 0.2s" }}>
+                    {icon} {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tag filter for ville/lycee */}
+              {(exploreCategory === "ville" || exploreCategory === "lycee") && (
+                <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                  <input type="text"
+                    placeholder={exploreCategory === "ville" ? "Filtrer par ville…" : "Filtrer par lycée…"}
+                    value={exploreTag}
+                    onChange={e => setExploreTag(e.target.value)}
+                    style={{ flex: 1, padding: "10px 14px", background: inputBg, border: inputBd, borderRadius: 10, fontSize: 14, color: textCol, fontFamily: "'DM Sans',sans-serif", outline: "none" }}
+                  />
+                  <button type="button" onClick={() => fetchExploreRooms(exploreCategory, exploreTag)}
+                    style={{ padding: "10px 18px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
+                    Filtrer
+                  </button>
+                </div>
+              )}
+
+              {exploreLoading ? (
+                <div style={{ textAlign: "center", padding: 48, color: subCol, fontSize: 14 }}>Chargement…</div>
+              ) : exploreRooms.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                  <Globe size={36} style={{ marginBottom: 12, color: subCol, opacity: 0.4 }} />
+                  <div style={{ fontSize: 15, fontWeight: 600, color: textCol, marginBottom: 6 }}>Aucun groupe trouvé</div>
+                  <div style={{ fontSize: 12, color: subCol }}>Crée le premier groupe de cette catégorie !</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {exploreRooms.map(room => (
+                    <div key={room.id} style={{ background: cardBg, backdropFilter: "blur(20px)", border: cardBdr, borderRadius: 16, padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, boxShadow: dark ? "0 4px 16px rgba(0,0,0,0.2)" : "0 4px 16px rgba(124,58,237,0.06)" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: textCol, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{room.nom}</div>
+                          {room.tag && (
+                            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(245,158,11,0.12)", color: "#f59e0b", fontWeight: 700, border: "1px solid rgba(245,158,11,0.2)", flexShrink: 0 }}>
+                              {room.tag}
+                            </span>
+                          )}
+                        </div>
+                        {room.sujet && <div style={{ fontSize: 12, color: subCol, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{room.sujet}</div>}
+                        <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
+                          <span style={{ fontSize: 11, color: subCol, display: "flex", alignItems: "center", gap: 4 }}>
+                            <Users size={10} /> {room.participant_count || 0}/{room.max_participants}
+                          </span>
+                          <span style={{ fontSize: 11, color: subCol }}>🍅 {room.pomodoro_work}m</span>
+                        </div>
+                      </div>
+                      <button type="button"
+                        onClick={() => handleJoinStudyRoom(room.id)}
+                        disabled={joiningRoom === room.id}
+                        style={{ padding: "9px 18px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff", fontSize: 13, fontWeight: 600, cursor: joiningRoom === room.id ? "not-allowed" : "pointer", fontFamily: "'DM Sans',sans-serif", flexShrink: 0 }}>
+                        {joiningRoom === room.id ? "…" : "Rejoindre"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

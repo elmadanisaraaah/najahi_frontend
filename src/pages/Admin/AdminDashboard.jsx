@@ -6,6 +6,7 @@ import {
   Search, ChevronLeft, ChevronRight, Trash2, CheckCircle, XCircle,
   LogOut, RefreshCw, LayoutDashboard, Settings, AlertTriangle,
   ChevronDown, Menu, Shield, GraduationCap, CalendarDays, Plus, Pencil, X, Star,
+  FileText, Download,
 } from "lucide-react";
 
 const CAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/concours${path}`;
@@ -683,6 +684,83 @@ function TemoignagesSection({ pending, loading, onApprove, onDelete, onRefresh }
 // Placeholder
 // ─────────────────────────────────────────────────────────────────────────────
 
+const TYPE_LABELS_DOC = { sujet_concours: "Sujet de concours", fiche_revision: "Fiche de révision", autre: "Autre" };
+
+function DocumentsSection({ docs, loading, onApprove, onDelete, onRefresh }) {
+  const pending  = docs.filter(d => !d.is_approved);
+  const approved = docs.filter(d => d.is_approved);
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 24, fontWeight: 800, color: "#1a1a2e", margin: 0 }}>Documents partagés</h2>
+          <p style={{ fontSize: 13, color: "#9ca3af", margin: "4px 0 0" }}>
+            {pending.length} en attente · {approved.length} approuvés
+          </p>
+        </div>
+        <button onClick={onRefresh} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 9, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
+          <RefreshCw size={13} /> Actualiser
+        </button>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 60, color: "#9ca3af", fontSize: 14 }}>Chargement…</div>
+      ) : docs.length === 0 ? (
+        <div style={{ background: "#fff", borderRadius: 16, padding: "60px 32px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #f0eeff" }}>
+          <FileText size={36} color="#d1d5db" style={{ marginBottom: 12 }} />
+          <div style={{ fontSize: 15, fontWeight: 600, color: "#1a1a2e", marginBottom: 6 }}>Aucun document</div>
+          <div style={{ fontSize: 13, color: "#9ca3af" }}>Les documents soumis par les utilisateurs apparaîtront ici.</div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {pending.length > 0 && (
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", padding: "6px 14px", background: "rgba(245,158,11,0.08)", borderRadius: 8, border: "1px solid rgba(245,158,11,0.2)", display: "inline-block", marginBottom: 4 }}>
+              EN ATTENTE D'APPROBATION ({pending.length})
+            </div>
+          )}
+          {docs.map(d => {
+            const uploader = [d.prenom, d.nom].filter(Boolean).join(" ") || "—";
+            return (
+              <div key={d.id} style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: d.is_approved ? "1px solid #f0eeff" : "1px solid rgba(245,158,11,0.3)" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 11, background: "rgba(124,58,237,0.08)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <FileText size={20} color="#7c3aed" />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e" }}>{d.title}</span>
+                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: d.is_approved ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)", color: d.is_approved ? "#10b981" : "#f59e0b", fontWeight: 700, border: `1px solid ${d.is_approved ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}` }}>
+                      {d.is_approved ? "Approuvé" : "En attente"}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 3 }}>
+                    {TYPE_LABELS_DOC[d.type] || "Autre"} {d.school ? `· ${d.school}` : ""} · Par {uploader} · {d.created_at ? new Date(d.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" }) : "—"}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                  <a href={d.file_url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontSize: 12, fontWeight: 600, textDecoration: "none", fontFamily: "'DM Sans',sans-serif" }}>
+                    <Download size={12} /> PDF
+                  </a>
+                  {!d.is_approved && (
+                    <button onClick={() => onApprove(d.id)}
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, border: "none", background: "rgba(16,185,129,0.1)", color: "#10b981", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
+                      <CheckCircle size={12} /> Approuver
+                    </button>
+                  )}
+                  <button onClick={() => onDelete(d.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, border: "none", background: "rgba(239,68,68,0.08)", color: "#ef4444", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>
+                    <Trash2 size={12} /> Suppr.
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ComingSoon({ title, emoji }) {
   return (
     <div>
@@ -709,6 +787,7 @@ const NAV = [
   { id: "concours",     icon: CalendarDays,    label: "Concours",       emoji: "📅" },
   { id: "temoignages",  icon: Star,            label: "Témoignages",    emoji: "⭐" },
   { id: "forum",        icon: MessageSquare,   label: "Forum",          emoji: "💬" },
+  { id: "documents",    icon: FileText,        label: "Documents",      emoji: "📄" },
   { id: "schools",      icon: BookOpen,        label: "Écoles",         emoji: "📚" },
   { id: "settings",     icon: Settings,        label: "Paramètres",     emoji: "⚙️" },
 ];
@@ -750,6 +829,8 @@ export default function AdminDashboard() {
   const [confirmConcoursId, setConfirmConcoursId] = useState(null);
   const [temPending,        setTemPending]        = useState([]);
   const [temLoading,        setTemLoading]        = useState(false);
+  const [docsAdmin,         setDocsAdmin]         = useState([]);
+  const [docsLoading,       setDocsLoading]       = useState(false);
   const [deletingId,        setDeletingId]        = useState(null);
   const [confirmId,         setConfirmId]         = useState(null);
   const [toast,             setToast]             = useState({ msg: "", type: "success" });
@@ -845,10 +926,35 @@ export default function AdminDashboard() {
     } catch { showToast("Erreur réseau", "error"); }
   };
 
+  const fetchDocsAdmin = async () => {
+    setDocsLoading(true);
+    try {
+      const r = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/documents/admin`, { headers: authH() });
+      if (r.ok) setDocsAdmin(await r.json());
+    } catch {} finally { setDocsLoading(false); }
+  };
+
+  const approveDoc = async (id) => {
+    try {
+      const r = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/documents/admin/${id}/approve`, { method: "PUT", headers: authH() });
+      if (r.ok) { showToast("Document approuvé"); fetchDocsAdmin(); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+  };
+
+  const deleteDoc = async (id) => {
+    try {
+      const r = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/documents/admin/${id}`, { method: "DELETE", headers: authH() });
+      if (r.ok) { showToast("Document supprimé"); fetchDocsAdmin(); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+  };
+
   useEffect(() => { fetchStats(); fetchUsers(1, ""); fetchActivity(); }, []);
   useEffect(() => { if (activeTab === "orientations"  && orientations.length === 0)  fetchOrientations(); }, [activeTab]);
   useEffect(() => { if (activeTab === "concours"      && concoursList.length === 0)  fetchConcours();      }, [activeTab]);
   useEffect(() => { if (activeTab === "temoignages")  fetchTemPending();                                   }, [activeTab]);
+  useEffect(() => { if (activeTab === "documents")    fetchDocsAdmin();                                     }, [activeTab]);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setUsersPage(1); fetchUsers(1, searchInput); }, 400);
@@ -1080,6 +1186,13 @@ export default function AdminDashboard() {
               />
             )}
             {activeTab === "forum"    && <ComingSoon title="Forum"      emoji="💬" />}
+            {activeTab === "documents" && (
+              <DocumentsSection
+                docs={docsAdmin} loading={docsLoading}
+                onApprove={approveDoc} onDelete={deleteDoc}
+                onRefresh={fetchDocsAdmin}
+              />
+            )}
             {activeTab === "schools"  && <ComingSoon title="Écoles"     emoji="📚" />}
             {activeTab === "settings" && <ComingSoon title="Paramètres" emoji="⚙️" />}
           </div>

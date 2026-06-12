@@ -4,7 +4,7 @@ import {
   BookOpen, Users, FlaskConical, School,
   ArrowRight, ChevronLeft, ChevronRight, Bell, Menu, X,
   Home, Server, MessageSquare, CalendarDays, Target, BarChart3,
-  Star, Shield, User, LogOut, Scale,
+  Star, Shield, User, LogOut, Scale, GraduationCap, FileText,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -62,7 +62,9 @@ const NAV_ITEMS = [
   { icon: MessageSquare, label: "Communauté",        to: "/app/forum" },
   { icon: CalendarDays,  label: "Concours",          to: "/app/concours" },
   { icon: Target,        label: "Calculateur",       to: "/app/calculateur" },
-  { icon: Scale,         label: "Comparer",          to: "/app/comparateur" },
+  { icon: Scale,          label: "Comparer",          to: "/app/comparateur" },
+  { icon: GraduationCap, label: "Mentors",           to: "/app/mentors" },
+  { icon: FileText,      label: "Documents",         to: "/app/documents" },
   { icon: BarChart3,     label: "Statistiques",      to: "/app/stats" },
   { icon: Star,          label: "Témoignages",       to: "/app/temoignages" },
 ];
