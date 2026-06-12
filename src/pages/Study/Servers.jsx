@@ -5,6 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import { ArrowLeft, Users, Video, VideoOff, ArrowRight, Timer } from "lucide-react";
 import { io } from "socket.io-client";
+import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 
 const STREAM_ROOM_ID = "najahi_public_stream";
 const SUBJECTS = ["Maths","Physique","SVT","Français","Anglais","Informatique","Histoire","Philosophie","Général","CPGE","Bac"];
@@ -29,6 +30,7 @@ function PreviewTile({ participant }) {
 function JoinModal({ onClose, onJoin }) {
   const [camOn, setCamOn]           = useState(false);
   const [stream, setStream]         = useState(null);
+  const [camError, setCamError]     = useState("");
   const [subject, setSubject]       = useState("");
   const [showSubjects, setShowSubjects] = useState(false);
   const [heures, setHeures]         = useState(1);
@@ -41,13 +43,17 @@ function JoinModal({ onClose, onJoin }) {
     if (camOn) {
       stream?.getTracks().forEach(t => t.stop());
       setStream(null); setCamOn(false);
+      setCamError("");
       if (videoRef.current) videoRef.current.srcObject = null;
     } else {
+      setCamError("");
       try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true });
+        const s = await requestCamera({ video: true });
         setStream(s); setCamOn(true);
         if (videoRef.current) videoRef.current.srcObject = s;
-      } catch (e) { console.warn("Cam:", e); }
+      } catch (e) {
+        setCamError(e.userMessage || getCameraErrorMessage(e));
+      }
     }
   };
 
@@ -99,6 +105,11 @@ function JoinModal({ onClose, onJoin }) {
                 style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"10px", background:camOn?"rgba(124,58,237,0.15)":"rgba(255,255,255,0.06)", border:`1px solid ${camOn?"rgba(124,58,237,0.3)":"rgba(255,255,255,0.1)"}`, borderRadius:12, cursor:"pointer", color:camOn?"#a78bfa":"rgba(255,255,255,0.5)", fontSize:13, fontWeight:600, fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
                 {camOn ? <><Video size={14}/> Caméra activée — cliquer pour désactiver</> : <><VideoOff size={14}/> Activer la caméra</>}
               </button>
+              {camError && (
+                <p style={{ margin:"6px 0 0", padding:"8px 12px", borderRadius:9, background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)", color:"#fca5a5", fontSize:12, fontFamily:"'DM Sans',sans-serif", lineHeight:1.5 }}>
+                  ⚠️ {camError}
+                </p>
+              )}
             </div>
 
             {/* Subject */}

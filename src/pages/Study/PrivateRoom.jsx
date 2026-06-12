@@ -4,6 +4,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { Play, Pause, RotateCcw, Mic, MicOff, Video, VideoOff, PhoneOff, Copy, Check, Crown, Users, Timer } from "lucide-react";
 import { io } from "socket.io-client";
+import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 
 const PHASE_COLORS = { focus: "#7c3aed", break: "#10b981", longBreak: "#3b82f6" };
 const PHASE_LABELS = { focus: "Focus", break: "Pause", longBreak: "Long break" };
@@ -126,6 +127,8 @@ export default function PrivateRoom() {
   const [micOn, setMicOn]       = useState(false);
   const [camOn, setCamOn]       = useState(false);
   const [stream, setStream]     = useState(null);
+  const [camError, setCamError] = useState("");
+  const [micError, setMicError] = useState("");
   const localVideoRef = useRef(null);
 
   // Socket
@@ -220,13 +223,17 @@ export default function PrivateRoom() {
     if (camOn) {
       stream?.getVideoTracks().forEach(t => t.stop());
       setStream(null); setCamOn(false);
+      setCamError("");
       if (localVideoRef.current) localVideoRef.current.srcObject = null;
     } else {
+      setCamError("");
       try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: micOn });
+        const s = await requestCamera({ video: true, audio: micOn });
         setStream(s); setCamOn(true);
         if (localVideoRef.current) localVideoRef.current.srcObject = s;
-      } catch (e) { console.warn("Cam error:", e); }
+      } catch (e) {
+        setCamError(e.userMessage || getCameraErrorMessage(e));
+      }
     }
   };
 
@@ -234,11 +241,25 @@ export default function PrivateRoom() {
     if (micOn) {
       stream?.getAudioTracks().forEach(t => t.stop());
       setMicOn(false);
+      setMicError("");
     } else {
+      setMicError("");
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setMicError("Votre navigateur ne supporte pas l'accès au microphone.");
+        return;
+      }
       try {
-        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        await navigator.mediaDevices.getUserMedia({ audio: true });
         setMicOn(true);
-      } catch (e) { console.warn("Mic error:", e); }
+      } catch (e) {
+        const n = e?.name || "";
+        if (n === "NotAllowedError" || n === "PermissionDeniedError")
+          setMicError("Permission micro refusée. Autorisez l'accès dans les paramètres du navigateur.");
+        else if (n === "NotFoundError")
+          setMicError("Aucun microphone détecté sur cet appareil.");
+        else
+          setMicError("Impossible d'accéder au microphone.");
+      }
     }
   };
 
@@ -449,23 +470,37 @@ export default function PrivateRoom() {
         </div>
 
         {/* ── FOOTER: Controls ── */}
+        {(camError || micError) && (
+          <div style={{ padding:"8px 16px", background:"rgba(239,68,68,0.15)", borderTop:"1px solid rgba(239,68,68,0.25)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexShrink:0 }}>
+            <span style={{ fontSize:12, color:"#fca5a5", fontFamily:"'DM Sans',sans-serif" }}>
+              ⚠️ {camError || micError}
+            </span>
+            <button type="button" onClick={() => { setCamError(""); setMicError(""); }} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>
+          </div>
+        )}
         <footer style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:14, padding:"14px 20px", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(20px)", borderTop:"1px solid rgba(255,255,255,0.07)", flexShrink:0 }}>
 
           {/* Mic */}
-          <button type="button" className="ctrl-btn"
-            onClick={toggleMic}
-            style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"10px 18px", background:micOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.08)", border:`1px solid ${micOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.12)"}`, borderRadius:12, cursor:"pointer", color:micOn?"#a78bfa":"rgba(255,255,255,0.7)", transition:"all 0.2s" }}>
-            {micOn ? <Mic size={20}/> : <MicOff size={20} color="#ef4444"/>}
-            <span style={{ fontSize:10, fontWeight:500 }}>{micOn ? "Micro" : "Muet"}</span>
-          </button>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+            <button type="button" className="ctrl-btn"
+              onClick={toggleMic}
+              title={micError || (micOn ? "Couper le micro" : "Activer le micro")}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"10px 18px", background:micError?"rgba(239,68,68,0.18)":micOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.08)", border:`1px solid ${micError?"rgba(239,68,68,0.4)":micOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.12)"}`, borderRadius:12, cursor:"pointer", color:micError?"#fca5a5":micOn?"#a78bfa":"rgba(255,255,255,0.7)", transition:"all 0.2s" }}>
+              {micOn ? <Mic size={20}/> : <MicOff size={20} color={micError?"#ef4444":"#ef4444"}/>}
+              <span style={{ fontSize:10, fontWeight:500 }}>{micError ? "Erreur" : micOn ? "Micro" : "Muet"}</span>
+            </button>
+          </div>
 
           {/* Camera */}
-          <button type="button" className="ctrl-btn"
-            onClick={toggleCam}
-            style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"10px 18px", background:camOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.08)", border:`1px solid ${camOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.12)"}`, borderRadius:12, cursor:"pointer", color:camOn?"#a78bfa":"rgba(255,255,255,0.7)", transition:"all 0.2s" }}>
-            {camOn ? <Video size={20}/> : <VideoOff size={20} color="#ef4444"/>}
-            <span style={{ fontSize:10, fontWeight:500 }}>{camOn ? "Caméra" : "Caméra off"}</span>
-          </button>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+            <button type="button" className="ctrl-btn"
+              onClick={toggleCam}
+              title={camError || (camOn ? "Désactiver la caméra" : "Activer la caméra")}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"10px 18px", background:camError?"rgba(239,68,68,0.18)":camOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.08)", border:`1px solid ${camError?"rgba(239,68,68,0.4)":camOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.12)"}`, borderRadius:12, cursor:"pointer", color:camError?"#fca5a5":camOn?"#a78bfa":"rgba(255,255,255,0.7)", transition:"all 0.2s" }}>
+              {camOn ? <Video size={20}/> : <VideoOff size={20} color={camError?"#ef4444":"#ef4444"}/>}
+              <span style={{ fontSize:10, fontWeight:500 }}>{camError ? "Erreur" : camOn ? "Caméra" : "Caméra off"}</span>
+            </button>
+          </div>
 
           {/* Separator */}
           <div style={{ width:1, height:40, background:"rgba(255,255,255,0.08)" }}/>

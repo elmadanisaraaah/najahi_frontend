@@ -6,6 +6,7 @@ import {
   Mic, MicOff, Settings, Music, Image, Volume2,
   VolumeX, ChevronDown, Timer
 } from "lucide-react";
+import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
@@ -385,6 +386,7 @@ export default function StudyRoom() {
   // Media
   const [roomPerms, setRoomPerms]     = useState({ camera: false, mic: false });
   const [myCamera, setMyCamera]       = useState(false);
+  const [mediaError, setMediaError]   = useState("");
   const [myMic, setMyMic]             = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const streamRef = useRef(null);
@@ -504,15 +506,37 @@ export default function StudyRoom() {
   const toggleMedia = async (type) => {
     if (type==="camera"&&!roomPerms.camera) return;
     if (type==="mic"&&!roomPerms.mic) return;
+    setMediaError("");
     try {
       if (type==="camera") {
-        if (myCamera) { stopStream("video"); setMyCamera(false); if(videoRef.current) videoRef.current.srcObject=null; socketRef.current?.emit("media_state",{room_id:id,camera:false}); }
-        else { const s=await navigator.mediaDevices.getUserMedia({video:true}); streamRef.current=s; if(videoRef.current) videoRef.current.srcObject=s; setMyCamera(true); socketRef.current?.emit("media_state",{room_id:id,camera:true}); }
+        if (myCamera) {
+          stopStream("video"); setMyCamera(false);
+          if(videoRef.current) videoRef.current.srcObject=null;
+          socketRef.current?.emit("media_state",{room_id:id,camera:false});
+        } else {
+          const s = await requestCamera({video:true});
+          streamRef.current=s;
+          if(videoRef.current) videoRef.current.srcObject=s;
+          setMyCamera(true);
+          socketRef.current?.emit("media_state",{room_id:id,camera:true});
+        }
       } else {
-        if (myMic) { stopStream("audio"); setMyMic(false); socketRef.current?.emit("media_state",{room_id:id,mic:false}); }
-        else { const s=await navigator.mediaDevices.getUserMedia({audio:true}); streamRef.current=s; setMyMic(true); socketRef.current?.emit("media_state",{room_id:id,mic:true}); }
+        if (myMic) {
+          stopStream("audio"); setMyMic(false);
+          socketRef.current?.emit("media_state",{room_id:id,mic:false});
+        } else {
+          if (!navigator.mediaDevices?.getUserMedia) {
+            setMediaError("Votre navigateur ne supporte pas l'accès au microphone.");
+            return;
+          }
+          const s = await navigator.mediaDevices.getUserMedia({audio:true});
+          streamRef.current=s; setMyMic(true);
+          socketRef.current?.emit("media_state",{room_id:id,mic:true});
+        }
       }
-    } catch {}
+    } catch (e) {
+      setMediaError(e.userMessage || getCameraErrorMessage(e));
+    }
   };
 
   const toggleHostPerm = (type) => {
@@ -906,6 +930,14 @@ export default function StudyRoom() {
           )}
         </div>
       </div>
+
+      {/* Media error banner */}
+      {mediaError && (
+        <div style={{ position:"fixed", bottom:80, left:"50%", transform:"translateX(-50%)", padding:"10px 18px", borderRadius:12, background:"rgba(239,68,68,0.18)", border:"1px solid rgba(239,68,68,0.3)", color:"#fca5a5", fontSize:13, fontFamily:"'DM Sans',sans-serif", zIndex:9999, display:"flex", alignItems:"center", gap:10, maxWidth:"90vw" }}>
+          ⚠️ {mediaError}
+          <button type="button" onClick={() => setMediaError("")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:16, padding:0, lineHeight:1 }}>×</button>
+        </div>
+      )}
     </>
   );
 }

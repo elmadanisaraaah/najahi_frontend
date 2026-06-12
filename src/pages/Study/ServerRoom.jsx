@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "../../components/UI/ThemeToggle";
 import { Video, VideoOff, PhoneOff, Users, Timer } from "lucide-react";
 import { io } from "socket.io-client";
+import { requestCamera, getCameraErrorMessage } from "../../lib/webrtc";
 
 const STREAM_ROOM_ID = "najahi_public_stream";
 
@@ -57,6 +58,7 @@ export default function ServerRoom() {
 
   const [camOn, setCamOn]               = useState(false);
   const [stream, setStream]             = useState(null);
+  const [camError, setCamError]         = useState("");
   const [mySubject, setMySubject]       = useState("");
   const [sessionSecs, setSessionSecs]   = useState(3600);
   const [sessionLeft, setSessionLeft]   = useState(3600);
@@ -100,9 +102,9 @@ export default function ServerRoom() {
 
     // Request cam if user wanted it
     if (config.camRequested) {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      requestCamera({ video: true })
         .then(s => { setStream(s); setCamOn(true); })
-        .catch(() => {});
+        .catch(e => setCamError(e.userMessage || getCameraErrorMessage(e)));
     }
     setReady(true);
   }, []);
@@ -161,11 +163,15 @@ export default function ServerRoom() {
     if (camOn) {
       stream?.getTracks().forEach(t => t.stop());
       setStream(null); setCamOn(false);
+      setCamError("");
     } else {
+      setCamError("");
       try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true });
+        const s = await requestCamera({ video: true });
         setStream(s); setCamOn(true);
-      } catch (e) { console.warn("Cam:", e); }
+      } catch (e) {
+        setCamError(e.userMessage || getCameraErrorMessage(e));
+      }
     }
   };
 
@@ -207,6 +213,14 @@ export default function ServerRoom() {
       <div style={{ minHeight:"100vh", background:wallpaper.bg, fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column", overflow:"hidden", transition:"background 0.8s ease" }}>
         <div style={{ position:"fixed", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)", backgroundSize:"48px 48px", pointerEvents:"none", zIndex:0 }}/>
 
+        {/* Camera error banner */}
+        {camError && (
+          <div style={{ position:"relative", zIndex:11, padding:"8px 16px", background:"rgba(239,68,68,0.18)", borderBottom:"1px solid rgba(239,68,68,0.3)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+            <span style={{ fontSize:12, color:"#fca5a5", fontFamily:"'DM Sans',sans-serif" }}>⚠️ {camError}</span>
+            <button type="button" onClick={() => setCamError("")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:16, padding:0, lineHeight:1 }}>×</button>
+          </div>
+        )}
+
         {/* TOP BAR */}
         <div style={{ position:"relative", zIndex:10, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 16px", background:"rgba(0,0,0,0.55)", backdropFilter:"blur(24px)", borderBottom:"1px solid rgba(255,255,255,0.05)", flexShrink:0, gap:12, flexWrap:"wrap" }}>
 
@@ -220,9 +234,10 @@ export default function ServerRoom() {
               {mySubject && <span style={{ fontSize:10, color:"#a78bfa", fontWeight:600 }}>· {mySubject}</span>}
             </div>
             <button type="button" className="ctrl" onClick={toggleCam}
-              style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:camOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.07)", border:`1px solid ${camOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.1)"}`, borderRadius:99, cursor:"pointer", color:camOn?"#a78bfa":"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
+              title={camError || (camOn ? "Désactiver la caméra" : "Activer la caméra")}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:camError?"rgba(239,68,68,0.18)":camOn?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.07)", border:`1px solid ${camError?"rgba(239,68,68,0.4)":camOn?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.1)"}`, borderRadius:99, cursor:"pointer", color:camError?"#fca5a5":camOn?"#a78bfa":"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
               {camOn ? <Video size={13}/> : <VideoOff size={13}/>}
-              {!isMobile && (camOn ? "Cam on" : "Cam off")}
+              {!isMobile && (camError ? "Erreur caméra" : camOn ? "Cam on" : "Cam off")}
             </button>
           </div>
 
