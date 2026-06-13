@@ -132,10 +132,11 @@ export default function Dashboard() {
   // Push notification banner
   const [pushBanner, setPushBanner] = useState(() => {
     if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return false;
-    if (Notification.permission === "denied") return false;
-    const dismissed = localStorage.getItem("najahi_push_dismissed");
-    if (dismissed && Date.now() < parseInt(dismissed, 10)) return false;
-    if (localStorage.getItem("najahi_push_subscribed")) return false;
+    if (Notification.permission === "granted" || Notification.permission === "denied") {
+      localStorage.setItem("push_banner_dismissed", "true");
+      return false;
+    }
+    if (localStorage.getItem("push_banner_dismissed")) return false;
     return true;
   });
 
@@ -260,6 +261,7 @@ export default function Dashboard() {
   async function subscribePush() {
     try {
       const perm = await Notification.requestPermission();
+      localStorage.setItem("push_banner_dismissed", "true");
       if (perm !== "granted") { setPushBanner(false); return; }
       const reg = await navigator.serviceWorker.register("/sw-push.js");
       await navigator.serviceWorker.ready;
@@ -284,7 +286,7 @@ export default function Dashboard() {
   }
 
   function dismissPushBanner() {
-    localStorage.setItem("najahi_push_dismissed", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    localStorage.setItem("push_banner_dismissed", "true");
     setPushBanner(false);
   }
 
