@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -6,11 +6,13 @@ import {
   Search, ChevronLeft, ChevronRight, Trash2, CheckCircle, XCircle,
   LogOut, RefreshCw, LayoutDashboard, Settings, AlertTriangle,
   ChevronDown, Menu, Shield, GraduationCap, CalendarDays, Plus, Pencil, X, Star,
-  FileText, Download, Key, Sparkles, School,
+  FileText, Download, Key, Sparkles, School, Pin, Lock, Unlock, PinOff,
+  ToggleLeft, ToggleRight, Phone, Mail, Globe, MapPin, Save,
 } from "lucide-react";
 
 const CAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/concours${path}`;
 const TAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/temoignages${path}`;
+const SAPI = (path) => `${import.meta.env.VITE_API_URL || ""}/api/admin${path}`;
 
 const CONCOURS_CATS = [
   "Ingénierie","Télécommunications","Commerce & Management","Santé",
@@ -160,7 +162,7 @@ function MetricsBars({ stats }) {
 // Overview Section
 // ─────────────────────────────────────────────────────────────────────────────
 
-function OverviewSection({ stats, statsLoading, activity, actLoading, onRefresh, isMobile }) {
+function OverviewSection({ stats, statsLoading, activity, actLoading, onRefresh, isMobile, registrations }) {
   const CARDS = [
     { icon: Users,         label: "Utilisateurs",        value: stats?.total_users,        color: "#7c3aed" },
     { icon: Activity,      label: "Actifs aujourd'hui",  value: stats?.active_today,       color: "#10b981" },
@@ -168,6 +170,8 @@ function OverviewSection({ stats, statsLoading, activity, actLoading, onRefresh,
     { icon: MessageSquare, label: "Chats écoles",        value: stats?.total_chats,        color: "#3b82f6" },
     { icon: BookOpen,      label: "Sessions solo",       value: stats?.total_sessions,     color: "#ec4899" },
     { icon: TrendingUp,    label: "Nouveaux / semaine",  value: stats?.new_this_week,      color: "#06b6d4" },
+    { icon: Star,          label: "Témoignages en attente", value: stats?.pending_temoignages, color: "#f59e0b" },
+    { icon: FileText,      label: "Documents en attente",   value: stats?.pending_documents,   color: "#ef4444" },
   ];
 
   return (
@@ -184,6 +188,10 @@ function OverviewSection({ stats, statsLoading, activity, actLoading, onRefresh,
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 14, marginBottom: 24 }}>
         {CARDS.map(c => <StatCard key={c.label} {...c} loading={statsLoading} />)}
+      </div>
+
+      <div style={{ display:"flex", gap:16, marginBottom:16, flexWrap:"wrap" }}>
+        <RegistrationsChart data={registrations} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 320px", gap: 16 }}>
@@ -761,6 +769,483 @@ function DocumentsSection({ docs, loading, onApprove, onDelete, onRefresh }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Registrations chart (inline SVG — no external lib)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function RegistrationsChart({ data }) {
+  const W = 600, H = 120, PAD = { t: 8, b: 24, l: 28, r: 8 };
+  const iW = W - PAD.l - PAD.r;
+  const iH = H - PAD.t - PAD.b;
+
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ background:"#fff", borderRadius:16, padding:"22px 24px", border:"1px solid #f0eeff", flex:1 }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#1a1a2e", marginBottom:6, fontFamily:"'Fraunces',serif" }}>Inscriptions (30 derniers jours)</div>
+        <div style={{ fontSize:12, color:"#9ca3af", marginBottom:16 }}>Aucune donnée disponible</div>
+      </div>
+    );
+  }
+
+  const last30 = (() => {
+    const map = {};
+    data.forEach(d => { map[d.day] = d.count; });
+    const out = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      out.push({ day: key, count: map[key] || 0 });
+    }
+    return out;
+  })();
+
+  const maxVal = Math.max(1, ...last30.map(d => d.count));
+  const barW   = iW / last30.length;
+
+  return (
+    <div style={{ background:"#fff", borderRadius:16, padding:"22px 24px", border:"1px solid #f0eeff", flex:2 }}>
+      <div style={{ fontSize:14, fontWeight:700, color:"#1a1a2e", marginBottom:4, fontFamily:"'Fraunces',serif" }}>Inscriptions — 30 derniers jours</div>
+      <div style={{ fontSize:12, color:"#9ca3af", marginBottom:14 }}>
+        Total : {last30.reduce((s, d) => s + d.count, 0)} nouvelles inscriptions
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width:"100%", height:"auto", display:"block" }}>
+        {[0, 0.25, 0.5, 0.75, 1].map(p => {
+          const y = PAD.t + iH * (1 - p);
+          return (
+            <g key={p}>
+              <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke="#f3f4f6" strokeWidth={1} />
+              <text x={PAD.l - 4} y={y + 4} textAnchor="end" fontSize={8} fill="#9ca3af">
+                {Math.round(maxVal * p)}
+              </text>
+            </g>
+          );
+        })}
+        {last30.map((d, i) => {
+          const bH  = (d.count / maxVal) * iH;
+          const x   = PAD.l + i * barW + barW * 0.1;
+          const y   = PAD.t + iH - bH;
+          const ww  = barW * 0.8;
+          const isToday = i === 29;
+          return (
+            <g key={d.day}>
+              <rect x={x} y={y} width={ww} height={bH} rx={2}
+                fill={isToday ? "#7c3aed" : "#a78bfa"} opacity={0.85} />
+              {i % 5 === 0 && (
+                <text x={x + ww / 2} y={H - 2} textAnchor="middle" fontSize={7} fill="#9ca3af">
+                  {d.day.slice(5)}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Schools Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EMPTY_SCHOOL = {
+  nom:"", sigle:"", categorie:"", secteur:"", ville:"", site_web:"",
+  telephone:"", adresse:"", frais_annuels:"", note_bac_min:"",
+  filieres:"", debouches:"", concours:"", duree_etudes:"", groupe:"",
+};
+
+const SCHOOL_CATS = [
+  "Ingénierie","Commerce & Management","Santé","Architecture",
+  "Classes Préparatoires","Droit & Sciences Politiques",
+  "Sciences & Techniques","Sciences Humaines","Université Internationale",
+  "Université Privée","Autre",
+];
+
+function SchoolModal({ mode, initial, onSave, onClose, saving }) {
+  const [form, setForm] = useState(initial ? {
+    ...initial,
+    filieres:  Array.isArray(initial.filieres)  ? initial.filieres.join(", ")  : initial.filieres  || "",
+    debouches: Array.isArray(initial.debouches) ? initial.debouches.join(", ") : initial.debouches || "",
+    concours:  Array.isArray(initial.concours)  ? initial.concours.join(", ")  : initial.concours  || "",
+  } : EMPTY_SCHOOL);
+  const [err, setErr] = useState("");
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = () => {
+    if (!form.nom.trim()) { setErr("Le nom est obligatoire"); return; }
+    setErr("");
+    onSave({
+      ...form,
+      filieres:  form.filieres  ? form.filieres.split(",").map(s => s.trim()).filter(Boolean)  : [],
+      debouches: form.debouches ? form.debouches.split(",").map(s => s.trim()).filter(Boolean) : [],
+      concours:  form.concours  ? form.concours.split(",").map(s => s.trim()).filter(Boolean)  : [],
+      frais_annuels: form.frais_annuels ? parseFloat(form.frais_annuels) : null,
+      note_bac_min:  form.note_bac_min  ? parseFloat(form.note_bac_min)  : null,
+    });
+  };
+
+  const iS = { width:"100%", padding:"9px 11px", borderRadius:9, border:"1px solid #e5e7eb", background:"#fafafa", color:"#1a1a2e", fontSize:13, fontFamily:"'DM Sans',sans-serif", outline:"none", boxSizing:"border-box" };
+  const lS = { fontSize:12, fontWeight:700, color:"#6b7280", display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.4px" };
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9100, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background:"#fff", borderRadius:20, padding:"28px 30px", maxWidth:640, width:"100%", maxHeight:"92vh", overflowY:"auto", boxShadow:"0 24px 60px rgba(0,0,0,0.18)", animation:"adm-fadeUp 0.22s ease" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22 }}>
+          <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:19, fontWeight:800, color:"#1a1a2e", margin:0 }}>
+            {mode === "create" ? "Ajouter une école" : "Modifier l'école"}
+          </h3>
+          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"#9ca3af", display:"flex" }}><X size={18}/></button>
+        </div>
+        {err && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", color:"#ef4444", borderRadius:9, padding:"9px 13px", fontSize:13, marginBottom:16 }}>{err}</div>}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:13 }}>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lS}>Nom *</label>
+            <input style={iS} value={form.nom} onChange={e => set("nom", e.target.value)} placeholder="ex: ENSA Rabat" maxLength={300} />
+          </div>
+          <div><label style={lS}>Sigle</label><input style={iS} value={form.sigle} onChange={e => set("sigle", e.target.value)} placeholder="ex: ENSA" /></div>
+          <div>
+            <label style={lS}>Catégorie</label>
+            <select style={{ ...iS, cursor:"pointer" }} value={form.categorie} onChange={e => set("categorie", e.target.value)}>
+              <option value="">Sélectionner…</option>
+              {SCHOOL_CATS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div><label style={lS}>Secteur</label><input style={iS} value={form.secteur} onChange={e => set("secteur", e.target.value)} placeholder="Public / Privé" /></div>
+          <div><label style={lS}>Ville</label><input style={iS} value={form.ville} onChange={e => set("ville", e.target.value)} placeholder="ex: Casablanca" /></div>
+          <div><label style={lS}>Site web</label><input style={iS} value={form.site_web} onChange={e => set("site_web", e.target.value)} placeholder="https://…" /></div>
+          <div><label style={lS}>Téléphone</label><input style={iS} value={form.telephone} onChange={e => set("telephone", e.target.value)} placeholder="+212…" /></div>
+          <div><label style={lS}>Durée études</label><input style={iS} value={form.duree_etudes} onChange={e => set("duree_etudes", e.target.value)} placeholder="ex: 3 ans" /></div>
+          <div><label style={lS}>Groupe</label><input style={iS} value={form.groupe} onChange={e => set("groupe", e.target.value)} placeholder="ex: CNC, CNC-ENSA…" /></div>
+          <div><label style={lS}>Frais annuels (DH)</label><input type="number" style={iS} value={form.frais_annuels} onChange={e => set("frais_annuels", e.target.value)} placeholder="ex: 3000" /></div>
+          <div><label style={lS}>Note bac min</label><input type="number" step="0.01" style={iS} value={form.note_bac_min} onChange={e => set("note_bac_min", e.target.value)} placeholder="ex: 16.5" /></div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lS}>Adresse</label>
+            <input style={iS} value={form.adresse} onChange={e => set("adresse", e.target.value)} placeholder="Adresse complète" />
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lS}>Filières (séparées par virgule)</label>
+            <input style={iS} value={form.filieres} onChange={e => set("filieres", e.target.value)} placeholder="ex: Génie Informatique, Génie Civil, …" />
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lS}>Débouchés (séparés par virgule)</label>
+            <input style={iS} value={form.debouches} onChange={e => set("debouches", e.target.value)} placeholder="ex: Ingénieur logiciel, Chef de projet, …" />
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={lS}>Concours d'accès (séparés par virgule)</label>
+            <input style={iS} value={form.concours} onChange={e => set("concours", e.target.value)} placeholder="ex: CNC, CNC-ENSA, …" />
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:22 }}>
+          <button onClick={onClose} style={{ padding:"10px 22px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Annuler</button>
+          <button onClick={handleSave} disabled={saving} style={{ padding:"10px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans',sans-serif", opacity:saving?0.7:1 }}>
+            {saving && <Spinner size={14} color="#fff"/>}
+            {mode === "create" ? "Créer" : "Enregistrer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SchoolsSection({ schools, total, pages, page, loading, searchInput, setSearchInput, goPage, onAdd, onEdit, onDelete }) {
+  return (
+    <div>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:26, gap:12 }}>
+        <div>
+          <h2 style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:800, color:"#1a1a2e", margin:0, letterSpacing:"-0.5px" }}>Écoles</h2>
+          <p style={{ fontSize:13, color:"#6b7280", margin:"5px 0 0" }}>{total} établissement{total !== 1 ? "s" : ""} enregistré{total !== 1 ? "s" : ""}</p>
+        </div>
+        <button onClick={onAdd} style={{ display:"flex", alignItems:"center", gap:7, padding:"10px 18px", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", border:"none", borderRadius:11, fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 4px 16px rgba(124,58,237,0.35)", whiteSpace:"nowrap", flexShrink:0, fontFamily:"'DM Sans',sans-serif" }}>
+          <Plus size={14}/> Ajouter une école
+        </button>
+      </div>
+
+      <div style={{ background:"#fff", borderRadius:16, boxShadow:"0 1px 3px rgba(0,0,0,0.05),0 4px 16px rgba(0,0,0,0.04)", border:"1px solid #f0eeff", overflow:"hidden" }}>
+        <div style={{ padding:"16px 20px", borderBottom:"1px solid #f5f3ff" }}>
+          <div style={{ position:"relative", maxWidth:380 }}>
+            <Search size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#9ca3af", pointerEvents:"none" }} />
+            <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
+              placeholder="Chercher par nom, ville, catégorie…"
+              style={{ width:"100%", paddingLeft:35, paddingRight:12, paddingTop:9, paddingBottom:9, borderRadius:10, border:"1px solid #e5e7eb", background:"#fafafa", color:"#1a1a2e", fontSize:13, fontFamily:"'DM Sans',sans-serif", boxSizing:"border-box", outline:"none" }} />
+          </div>
+        </div>
+
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead>
+              <tr style={{ background:"#fafafa", borderBottom:"2px solid #f0eeff" }}>
+                {["Nom","Sigle","Catégorie","Ville","Frais/an","Actions"].map(h => (
+                  <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:10.5, fontWeight:700, color:"#9ca3af", whiteSpace:"nowrap", letterSpacing:"0.6px", textTransform:"uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} style={{ padding:48, textAlign:"center" }}><div style={{ display:"flex", justifyContent:"center" }}><Spinner/></div></td></tr>
+              ) : schools.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding:48, textAlign:"center", color:"#9ca3af" }}>Aucune école enregistrée</td></tr>
+              ) : schools.map(s => (
+                <tr key={s.id} style={{ borderBottom:"1px solid #f9f8ff" }}
+                  onMouseEnter={e => e.currentTarget.style.background="#fdfcff"}
+                  onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+                  <td style={{ padding:"12px 16px", fontWeight:700, color:"#1a1a2e", maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.nom}</td>
+                  <td style={{ padding:"12px 16px", color:"#6b7280" }}>{s.sigle || "—"}</td>
+                  <td style={{ padding:"12px 16px" }}>
+                    {s.categorie
+                      ? <span style={{ padding:"2px 9px", borderRadius:99, fontSize:11, fontWeight:700, background:"rgba(124,58,237,0.08)", color:"#7c3aed" }}>{s.categorie}</span>
+                      : <span style={{ color:"#9ca3af" }}>—</span>}
+                  </td>
+                  <td style={{ padding:"12px 16px", color:"#6b7280" }}>{s.ville || "—"}</td>
+                  <td style={{ padding:"12px 16px", color:"#6b7280", whiteSpace:"nowrap" }}>
+                    {s.frais_annuels != null ? `${Number(s.frais_annuels).toLocaleString("fr-FR")} DH` : "—"}
+                  </td>
+                  <td style={{ padding:"12px 16px" }}>
+                    <div style={{ display:"flex", gap:6 }}>
+                      <button onClick={() => onEdit(s)} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:8, border:"1px solid rgba(124,58,237,0.25)", background:"rgba(124,58,237,0.07)", color:"#7c3aed", fontSize:11.5, fontWeight:600, cursor:"pointer" }}>
+                        <Pencil size={11}/> Modifier
+                      </button>
+                      <button onClick={() => onDelete(s.id)} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:8, border:"1px solid rgba(239,68,68,0.25)", background:"rgba(239,68,68,0.06)", color:"#ef4444", fontSize:11.5, fontWeight:600, cursor:"pointer" }}>
+                        <Trash2 size={11}/> Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {pages > 1 && (
+          <div style={{ padding:"14px 20px", borderTop:"1px solid #f5f3ff", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
+            <span style={{ fontSize:12, color:"#9ca3af" }}>Page {page} sur {pages} · {total} écoles</span>
+            <div style={{ display:"flex", gap:4 }}>
+              <button onClick={() => goPage(page - 1)} disabled={page <= 1}
+                style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #e5e7eb", background:"transparent", color:"#6b7280", cursor:page<=1?"not-allowed":"pointer", opacity:page<=1?0.4:1 }}>
+                <ChevronLeft size={14}/>
+              </button>
+              <button onClick={() => goPage(page + 1)} disabled={page >= pages}
+                style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #e5e7eb", background:"transparent", color:"#6b7280", cursor:page>=pages?"not-allowed":"pointer", opacity:page>=pages?0.4:1 }}>
+                <ChevronRight size={14}/>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SettingsSection({ settings, loading, onSave, saving }) {
+  const [form, setForm] = useState(settings || {});
+  const [saved, setSaved] = useState(false);
+  useEffect(() => { setForm(settings || {}); }, [settings]);
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = async () => {
+    await onSave(form);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const iS = { width:"100%", padding:"9px 12px", borderRadius:9, border:"1px solid #e5e7eb", background:"#fafafa", color:"#1a1a2e", fontSize:13, fontFamily:"'DM Sans',sans-serif", outline:"none", boxSizing:"border-box" };
+  const lS = { fontSize:12, fontWeight:700, color:"#6b7280", display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.4px" };
+
+  return (
+    <div>
+      <div style={{ marginBottom:26 }}>
+        <h2 style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:800, color:"#1a1a2e", margin:0, letterSpacing:"-0.5px" }}>Paramètres</h2>
+        <p style={{ fontSize:13, color:"#6b7280", margin:"5px 0 0" }}>Configuration globale de la plateforme</p>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign:"center", padding:60 }}><Spinner size={28}/></div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+          {/* Toggles */}
+          <div style={{ background:"#fff", borderRadius:16, padding:"24px 26px", border:"1px solid #f0eeff", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize:14, fontWeight:700, color:"#1a1a2e", marginBottom:20, fontFamily:"'Fraunces',serif" }}>Mode & accès</div>
+
+            {[
+              { key:"maintenance_mode",  icon:AlertTriangle, label:"Mode maintenance", desc:"Affiche une page de maintenance aux visiteurs", color:"#f59e0b" },
+              { key:"registration_open", icon:Users,         label:"Inscriptions ouvertes", desc:"Permet aux nouveaux utilisateurs de créer un compte", color:"#10b981" },
+            ].map(({ key, icon: Icon, label, desc, color }) => {
+              const on = !!form[key];
+              return (
+                <div key={key} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 0", borderBottom:"1px solid #f5f3ff" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                    <div style={{ width:38, height:38, borderRadius:11, background:`${color}14`, display:"grid", placeItems:"center", flexShrink:0 }}>
+                      <Icon size={17} color={color}/>
+                    </div>
+                    <div>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:"#1a1a2e" }}>{label}</div>
+                      <div style={{ fontSize:12, color:"#9ca3af", marginTop:2 }}>{desc}</div>
+                    </div>
+                  </div>
+                  <button onClick={() => set(key, !on)} style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:99, border:`1.5px solid ${on ? color : "#e5e7eb"}`, background:on ? `${color}14` : "#fafafa", color:on ? color : "#9ca3af", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
+                    {on ? <ToggleRight size={16} color={color}/> : <ToggleLeft size={16} color="#9ca3af"/>}
+                    {on ? "Activé" : "Désactivé"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Contact info */}
+          <div style={{ background:"#fff", borderRadius:16, padding:"24px 26px", border:"1px solid #f0eeff", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize:14, fontWeight:700, color:"#1a1a2e", marginBottom:20, fontFamily:"'Fraunces',serif" }}>Informations de contact</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              <div>
+                <label style={lS}><Mail size={11} style={{ verticalAlign:"middle", marginRight:4 }}/>Email de contact</label>
+                <input style={iS} type="email" value={form.contact_email || ""} onChange={e => set("contact_email", e.target.value)} placeholder="contact@najahi.ma" />
+              </div>
+              <div>
+                <label style={lS}><Phone size={11} style={{ verticalAlign:"middle", marginRight:4 }}/>Téléphone support</label>
+                <input style={iS} value={form.support_phone || ""} onChange={e => set("support_phone", e.target.value)} placeholder="+212 …" />
+              </div>
+            </div>
+          </div>
+
+          {/* Info read-only */}
+          <div style={{ background:"#fff", borderRadius:16, padding:"24px 26px", border:"1px solid #f0eeff", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize:14, fontWeight:700, color:"#1a1a2e", marginBottom:16, fontFamily:"'Fraunces',serif" }}>Informations système</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {[
+                { label:"Version",      value:form.app_version || "—" },
+                { label:"Environnement", value:form.environment || "—" },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ padding:"11px 14px", borderRadius:10, background:"#fafafa", border:"1px solid #f0eeff" }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:4 }}>{label}</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#1a1a2e", fontFamily:"'Fraunces',serif" }}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display:"flex", justifyContent:"flex-end" }}>
+            <button onClick={handleSave} disabled={saving} style={{ display:"flex", alignItems:"center", gap:7, padding:"11px 26px", borderRadius:11, border:"none", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"not-allowed":"pointer", boxShadow:"0 4px 14px rgba(124,58,237,0.3)", opacity:saving?0.7:1, fontFamily:"'DM Sans',sans-serif" }}>
+              {saving ? <Spinner size={14} color="#fff"/> : <Save size={14}/>}
+              {saved ? "Enregistré !" : "Sauvegarder"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Forum Admin Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ForumAdminSection({ posts, total, pages, page, loading, searchInput, setSearchInput, goPage, onPin, onLock, onDelete, onRefresh }) {
+  return (
+    <div>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:26, gap:12 }}>
+        <div>
+          <h2 style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:800, color:"#1a1a2e", margin:0, letterSpacing:"-0.5px" }}>Forum — Modération</h2>
+          <p style={{ fontSize:13, color:"#6b7280", margin:"5px 0 0" }}>{total} post{total !== 1 ? "s" : ""} au total</p>
+        </div>
+        <button onClick={onRefresh} style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 14px", background:"#fff", border:"1px solid #e5e7eb", borderRadius:10, color:"#6b7280", fontSize:12, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap", flexShrink:0 }}>
+          <RefreshCw size={12}/> Actualiser
+        </button>
+      </div>
+
+      <div style={{ background:"#fff", borderRadius:16, boxShadow:"0 1px 3px rgba(0,0,0,0.05),0 4px 16px rgba(0,0,0,0.04)", border:"1px solid #f0eeff", overflow:"hidden" }}>
+        <div style={{ padding:"16px 20px", borderBottom:"1px solid #f5f3ff" }}>
+          <div style={{ position:"relative", maxWidth:380 }}>
+            <Search size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#9ca3af", pointerEvents:"none" }} />
+            <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
+              placeholder="Chercher titre, contenu, auteur…"
+              style={{ width:"100%", paddingLeft:35, paddingRight:12, paddingTop:9, paddingBottom:9, borderRadius:10, border:"1px solid #e5e7eb", background:"#fafafa", color:"#1a1a2e", fontSize:13, fontFamily:"'DM Sans',sans-serif", boxSizing:"border-box", outline:"none" }} />
+          </div>
+        </div>
+
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead>
+              <tr style={{ background:"#fafafa", borderBottom:"2px solid #f0eeff" }}>
+                {["Post","Auteur","Catégorie","Stats","État","Actions"].map(h => (
+                  <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:10.5, fontWeight:700, color:"#9ca3af", whiteSpace:"nowrap", letterSpacing:"0.6px", textTransform:"uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} style={{ padding:48, textAlign:"center" }}><div style={{ display:"flex", justifyContent:"center" }}><Spinner/></div></td></tr>
+              ) : posts.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding:48, textAlign:"center", color:"#9ca3af" }}>Aucun post trouvé</td></tr>
+              ) : posts.map(p => (
+                <tr key={p.id} style={{ borderBottom:"1px solid #f9f8ff" }}
+                  onMouseEnter={e => e.currentTarget.style.background="#fdfcff"}
+                  onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+                  <td style={{ padding:"12px 16px", maxWidth:260 }}>
+                    <div style={{ fontWeight:700, color:"#1a1a2e", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:3 }}>{p.title}</div>
+                    <div style={{ fontSize:11.5, color:"#9ca3af", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.content}</div>
+                    <div style={{ fontSize:11, color:"#9ca3af", marginTop:2 }}>{fmtDate(p.created_at)}</div>
+                  </td>
+                  <td style={{ padding:"12px 16px", whiteSpace:"nowrap" }}>
+                    <div style={{ fontSize:12.5, fontWeight:600, color:"#374151" }}>
+                      {(p.author.prenom || p.author.nom) ? `${p.author.prenom} ${p.author.nom}`.trim() : "—"}
+                    </div>
+                    <div style={{ fontSize:11, color:"#9ca3af", overflow:"hidden", textOverflow:"ellipsis", maxWidth:150 }}>{p.author.email}</div>
+                  </td>
+                  <td style={{ padding:"12px 16px" }}>
+                    <span style={{ padding:"2px 9px", borderRadius:99, fontSize:11, fontWeight:700, background:"rgba(124,58,237,0.08)", color:"#7c3aed" }}>{p.category}</span>
+                  </td>
+                  <td style={{ padding:"12px 16px", whiteSpace:"nowrap", color:"#6b7280", fontSize:12 }}>
+                    {p.likes} ❤ · {p.reply_count} 💬 · {p.views} 👁
+                  </td>
+                  <td style={{ padding:"12px 16px", whiteSpace:"nowrap" }}>
+                    <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                      {p.is_pinned && <span style={{ padding:"2px 7px", borderRadius:99, fontSize:10, fontWeight:700, background:"rgba(245,158,11,0.1)", color:"#f59e0b" }}>Épinglé</span>}
+                      {p.is_locked && <span style={{ padding:"2px 7px", borderRadius:99, fontSize:10, fontWeight:700, background:"rgba(239,68,68,0.1)", color:"#ef4444" }}>Verrouillé</span>}
+                      {!p.is_pinned && !p.is_locked && <span style={{ fontSize:11, color:"#9ca3af" }}>Normal</span>}
+                    </div>
+                  </td>
+                  <td style={{ padding:"12px 16px" }}>
+                    <div style={{ display:"flex", gap:5 }}>
+                      <button onClick={() => onPin(p.id, !p.is_pinned)} title={p.is_pinned ? "Désépingler" : "Épingler"}
+                        style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"5px 9px", borderRadius:8, border:`1px solid ${p.is_pinned?"rgba(245,158,11,0.4)":"rgba(0,0,0,0.1)"}`, background:p.is_pinned?"rgba(245,158,11,0.1)":"transparent", color:p.is_pinned?"#f59e0b":"#9ca3af", fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                        {p.is_pinned ? <PinOff size={11}/> : <Pin size={11}/>}
+                        {p.is_pinned ? "Désépingler" : "Épingler"}
+                      </button>
+                      <button onClick={() => onLock(p.id, !p.is_locked)} title={p.is_locked ? "Déverrouiller" : "Verrouiller"}
+                        style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"5px 9px", borderRadius:8, border:`1px solid ${p.is_locked?"rgba(239,68,68,0.3)":"rgba(0,0,0,0.1)"}`, background:p.is_locked?"rgba(239,68,68,0.08)":"transparent", color:p.is_locked?"#ef4444":"#9ca3af", fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                        {p.is_locked ? <Unlock size={11}/> : <Lock size={11}/>}
+                        {p.is_locked ? "Déverrouiller" : "Verrouiller"}
+                      </button>
+                      <button onClick={() => onDelete(p.id)}
+                        style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"5px 9px", borderRadius:8, border:"1px solid rgba(239,68,68,0.25)", background:"rgba(239,68,68,0.06)", color:"#ef4444", fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                        <Trash2 size={11}/> Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {pages > 1 && (
+          <div style={{ padding:"14px 20px", borderTop:"1px solid #f5f3ff", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
+            <span style={{ fontSize:12, color:"#9ca3af" }}>Page {page} sur {pages} · {total} posts</span>
+            <div style={{ display:"flex", gap:4 }}>
+              <button onClick={() => goPage(page-1)} disabled={page<=1} style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #e5e7eb", background:"transparent", color:"#6b7280", cursor:page<=1?"not-allowed":"pointer", opacity:page<=1?0.4:1 }}><ChevronLeft size={14}/></button>
+              <button onClick={() => goPage(page+1)} disabled={page>=pages} style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #e5e7eb", background:"transparent", color:"#6b7280", cursor:page>=pages?"not-allowed":"pointer", opacity:page>=pages?0.4:1 }}><ChevronRight size={14}/></button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ComingSoon({ title, icon: Icon }) {
   return (
     <div>
@@ -834,6 +1319,36 @@ export default function AdminDashboard() {
   const [deletingId,        setDeletingId]        = useState(null);
   const [confirmId,         setConfirmId]         = useState(null);
   const [toast,             setToast]             = useState({ msg: "", type: "success" });
+
+  // Schools
+  const [schools,       setSchools]       = useState([]);
+  const [schoolsTotal,  setSchoolsTotal]  = useState(0);
+  const [schoolsPages,  setSchoolsPages]  = useState(1);
+  const [schoolsPage,   setSchoolsPage]   = useState(1);
+  const [schoolsLoading,setSchoolsLoading]= useState(false);
+  const [schoolSearch,  setSchoolSearch]  = useState("");
+  const [schoolSearchInput, setSchoolSearchInput] = useState("");
+  const [schoolModal,   setSchoolModal]   = useState(null); // null | "create" | schoolObj
+  const [schoolSaving,  setSchoolSaving]  = useState(false);
+  const [confirmSchoolId, setConfirmSchoolId] = useState(null);
+
+  // Settings
+  const [settings,       setSettings]       = useState(null);
+  const [settingsLoading,setSettingsLoading]= useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  // Forum moderation
+  const [forumPosts,       setForumPosts]       = useState([]);
+  const [forumTotal,       setForumTotal]       = useState(0);
+  const [forumPages,       setForumPages]       = useState(1);
+  const [forumPage,        setForumPage]        = useState(1);
+  const [forumLoading,     setForumLoading]     = useState(false);
+  const [forumSearch,      setForumSearch]      = useState("");
+  const [forumSearchInput, setForumSearchInput] = useState("");
+  const [confirmForumId,   setConfirmForumId]   = useState(null);
+
+  // Registrations chart
+  const [registrations, setRegistrations] = useState([]);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -950,16 +1465,141 @@ export default function AdminDashboard() {
     } catch { showToast("Erreur réseau", "error"); }
   };
 
-  useEffect(() => { fetchStats(); fetchUsers(1, ""); fetchActivity(); }, []);
+  // ── Schools ──────────────────────────────────────────────────────────────
+  const fetchSchools = useCallback(async (p = 1, q = "") => {
+    setSchoolsLoading(true);
+    try {
+      const params = new URLSearchParams({ page: p, limit: 20, ...(q ? { search: q } : {}) });
+      const r = await fetch(SAPI(`/schools?${params}`), { headers: authH() });
+      if (r.ok) {
+        const d = await r.json();
+        setSchools(d.schools || []); setSchoolsTotal(d.total || 0); setSchoolsPages(d.pages || 1);
+      }
+    } catch {} finally { setSchoolsLoading(false); }
+  }, []);
+
+  const saveSchool = async (form) => {
+    setSchoolSaving(true);
+    const isEdit = schoolModal && schoolModal !== "create";
+    const url    = isEdit ? SAPI(`/schools/${schoolModal.id}`) : SAPI("/schools");
+    const method = isEdit ? "PUT" : "POST";
+    try {
+      const r = await fetch(url, { method, headers: { ...authH(), "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const d = await r.json();
+      if (r.ok) {
+        if (isEdit) setSchools(prev => prev.map(s => s.id === d.id ? d : s));
+        else        setSchools(prev => [d, ...prev]);
+        setSchoolsTotal(t => isEdit ? t : t + 1);
+        setSchoolModal(null);
+        showToast(isEdit ? "École mise à jour" : "École créée !");
+      } else showToast(d.error || "Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+    finally { setSchoolSaving(false); }
+  };
+
+  const deleteSchool = async (id) => {
+    try {
+      const r = await fetch(SAPI(`/schools/${id}`), { method: "DELETE", headers: authH() });
+      if (r.ok) { setSchools(prev => prev.filter(s => s.id !== id)); setSchoolsTotal(t => t - 1); showToast("École supprimée"); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+    finally { setConfirmSchoolId(null); }
+  };
+
+  // ── Settings ─────────────────────────────────────────────────────────────
+  const fetchSettings = async () => {
+    setSettingsLoading(true);
+    try {
+      const r = await fetch(SAPI("/settings"), { headers: authH() });
+      if (r.ok) setSettings(await r.json());
+    } catch {} finally { setSettingsLoading(false); }
+  };
+
+  const saveSettings = async (form) => {
+    setSettingsSaving(true);
+    try {
+      const r = await fetch(SAPI("/settings"), { method: "PUT", headers: { ...authH(), "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      if (r.ok) { showToast("Paramètres sauvegardés !"); fetchSettings(); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+    finally { setSettingsSaving(false); }
+  };
+
+  // ── Forum ─────────────────────────────────────────────────────────────────
+  const fetchForumPosts = useCallback(async (p = 1, q = "") => {
+    setForumLoading(true);
+    try {
+      const params = new URLSearchParams({ page: p, limit: 30, ...(q ? { search: q } : {}) });
+      const r = await fetch(SAPI(`/forum/posts?${params}`), { headers: authH() });
+      if (r.ok) {
+        const d = await r.json();
+        setForumPosts(d.posts || []); setForumTotal(d.total || 0); setForumPages(d.pages || 1);
+      }
+    } catch {} finally { setForumLoading(false); }
+  }, []);
+
+  const pinForumPost = async (id, val) => {
+    try {
+      const r = await fetch(SAPI(`/forum/posts/${id}`), { method:"PUT", headers:{ ...authH(), "Content-Type":"application/json" }, body: JSON.stringify({ is_pinned: val }) });
+      if (r.ok) {
+        const d = await r.json();
+        setForumPosts(prev => prev.map(p => p.id === id ? { ...p, is_pinned: d.is_pinned } : p));
+        showToast(val ? "Post épinglé" : "Post désépinglé");
+      } else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+  };
+
+  const lockForumPost = async (id, val) => {
+    try {
+      const r = await fetch(SAPI(`/forum/posts/${id}`), { method:"PUT", headers:{ ...authH(), "Content-Type":"application/json" }, body: JSON.stringify({ is_locked: val }) });
+      if (r.ok) {
+        const d = await r.json();
+        setForumPosts(prev => prev.map(p => p.id === id ? { ...p, is_locked: d.is_locked } : p));
+        showToast(val ? "Post verrouillé" : "Post déverrouillé");
+      } else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+  };
+
+  const deleteForumPost = async (id) => {
+    try {
+      const r = await fetch(SAPI(`/forum/posts/${id}`), { method:"DELETE", headers: authH() });
+      if (r.ok) { setForumPosts(prev => prev.filter(p => p.id !== id)); setForumTotal(t => t - 1); showToast("Post supprimé"); }
+      else showToast("Erreur", "error");
+    } catch { showToast("Erreur réseau", "error"); }
+    finally { setConfirmForumId(null); }
+  };
+
+  // ── Registrations chart ───────────────────────────────────────────────────
+  const fetchRegistrations = async () => {
+    try {
+      const r = await fetch(SAPI("/registrations"), { headers: authH() });
+      if (r.ok) setRegistrations((await r.json()).registrations || []);
+    } catch {}
+  };
+
+  useEffect(() => { fetchStats(); fetchUsers(1, ""); fetchActivity(); fetchRegistrations(); }, []);
   useEffect(() => { if (activeTab === "orientations"  && orientations.length === 0)  fetchOrientations(); }, [activeTab]);
   useEffect(() => { if (activeTab === "concours"      && concoursList.length === 0)  fetchConcours();      }, [activeTab]);
   useEffect(() => { if (activeTab === "temoignages")  fetchTemPending();                                   }, [activeTab]);
   useEffect(() => { if (activeTab === "documents")    fetchDocsAdmin();                                     }, [activeTab]);
+  useEffect(() => { if (activeTab === "schools")   { fetchSchools(1, ""); setSchoolSearchInput(""); }      }, [activeTab]);
+  useEffect(() => { if (activeTab === "settings")     fetchSettings();                                     }, [activeTab]);
+  useEffect(() => { if (activeTab === "forum")     { fetchForumPosts(1, ""); setForumSearchInput(""); }    }, [activeTab]);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setUsersPage(1); fetchUsers(1, searchInput); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { setSchoolSearch(schoolSearchInput); setSchoolsPage(1); fetchSchools(1, schoolSearchInput); }, 400);
+    return () => clearTimeout(t);
+  }, [schoolSearchInput]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { setForumSearch(forumSearchInput); setForumPage(1); fetchForumPosts(1, forumSearchInput); }, 400);
+    return () => clearTimeout(t);
+  }, [forumSearchInput]);
 
   const goPage = (p) => { setUsersPage(p); fetchUsers(p, search); };
 
@@ -1051,6 +1691,55 @@ export default function AdminDashboard() {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); border-radius: 99px; }
       `}</style>
+
+      {/* School modal */}
+      {schoolModal && (
+        <SchoolModal
+          mode={schoolModal === "create" ? "create" : "edit"}
+          initial={schoolModal === "create" ? undefined : schoolModal}
+          onSave={saveSchool}
+          onClose={() => setSchoolModal(null)}
+          saving={schoolSaving}
+        />
+      )}
+
+      {/* School delete confirm */}
+      {confirmSchoolId && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+          <div style={{ background:"#fff", borderRadius:20, padding:"30px 32px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 24px 60px rgba(0,0,0,0.18)", animation:"adm-fadeUp 0.22s ease" }}>
+            <div style={{ width:54, height:54, borderRadius:"50%", background:"rgba(239,68,68,0.1)", display:"grid", placeItems:"center", margin:"0 auto 18px" }}>
+              <AlertTriangle size={24} color="#ef4444"/>
+            </div>
+            <div style={{ fontSize:18, fontWeight:800, color:"#1a1a2e", marginBottom:8, fontFamily:"'Fraunces',serif" }}>Supprimer cette école ?</div>
+            <div style={{ fontSize:13, color:"#6b7280", marginBottom:26, lineHeight:1.6 }}>Cette action est irréversible.</div>
+            <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+              <button onClick={() => setConfirmSchoolId(null)} style={{ padding:"10px 22px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Annuler</button>
+              <button onClick={() => deleteSchool(confirmSchoolId)} style={{ padding:"10px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#ef4444,#dc2626)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans',sans-serif" }}>
+                <Trash2 size={14}/> Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Forum post delete confirm */}
+      {confirmForumId && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+          <div style={{ background:"#fff", borderRadius:20, padding:"30px 32px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 24px 60px rgba(0,0,0,0.18)", animation:"adm-fadeUp 0.22s ease" }}>
+            <div style={{ width:54, height:54, borderRadius:"50%", background:"rgba(239,68,68,0.1)", display:"grid", placeItems:"center", margin:"0 auto 18px" }}>
+              <AlertTriangle size={24} color="#ef4444"/>
+            </div>
+            <div style={{ fontSize:18, fontWeight:800, color:"#1a1a2e", marginBottom:8, fontFamily:"'Fraunces',serif" }}>Supprimer ce post ?</div>
+            <div style={{ fontSize:13, color:"#6b7280", marginBottom:26, lineHeight:1.6 }}>Les réponses seront également supprimées. Action irréversible.</div>
+            <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+              <button onClick={() => setConfirmForumId(null)} style={{ padding:"10px 22px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Annuler</button>
+              <button onClick={() => deleteForumPost(confirmForumId)} style={{ padding:"10px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#ef4444,#dc2626)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans',sans-serif" }}>
+                <Trash2 size={14}/> Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Concours modal (create / edit) */}
       {concoursModal && (
@@ -1153,8 +1842,9 @@ export default function AdminDashboard() {
               <OverviewSection
                 stats={stats} statsLoading={statsLoading}
                 activity={activity} actLoading={actLoading}
-                onRefresh={() => { fetchStats(); fetchActivity(); }}
+                onRefresh={() => { fetchStats(); fetchActivity(); fetchRegistrations(); }}
                 isMobile={isMobile}
+                registrations={registrations}
               />
             )}
             {activeTab === "users" && (
@@ -1185,7 +1875,16 @@ export default function AdminDashboard() {
                 onRefresh={fetchTemPending}
               />
             )}
-            {activeTab === "forum"    && <ComingSoon title="Forum"      icon={MessageSquare} />}
+            {activeTab === "forum" && (
+              <ForumAdminSection
+                posts={forumPosts} total={forumTotal} pages={forumPages} page={forumPage}
+                loading={forumLoading}
+                searchInput={forumSearchInput} setSearchInput={setForumSearchInput}
+                goPage={p => { setForumPage(p); fetchForumPosts(p, forumSearch); }}
+                onPin={pinForumPost} onLock={lockForumPost} onDelete={id => setConfirmForumId(id)}
+                onRefresh={() => fetchForumPosts(forumPage, forumSearch)}
+              />
+            )}
             {activeTab === "documents" && (
               <DocumentsSection
                 docs={docsAdmin} loading={docsLoading}
@@ -1193,8 +1892,23 @@ export default function AdminDashboard() {
                 onRefresh={fetchDocsAdmin}
               />
             )}
-            {activeTab === "schools"  && <ComingSoon title="Écoles"     icon={School} />}
-            {activeTab === "settings" && <ComingSoon title="Paramètres" icon={Settings} />}
+            {activeTab === "schools" && (
+              <SchoolsSection
+                schools={schools} total={schoolsTotal} pages={schoolsPages} page={schoolsPage}
+                loading={schoolsLoading}
+                searchInput={schoolSearchInput} setSearchInput={setSchoolSearchInput}
+                goPage={p => { setSchoolsPage(p); fetchSchools(p, schoolSearch); }}
+                onAdd={() => setSchoolModal("create")}
+                onEdit={s => setSchoolModal(s)}
+                onDelete={id => setConfirmSchoolId(id)}
+              />
+            )}
+            {activeTab === "settings" && (
+              <SettingsSection
+                settings={settings} loading={settingsLoading}
+                onSave={saveSettings} saving={settingsSaving}
+              />
+            )}
           </div>
         </main>
       </div>
