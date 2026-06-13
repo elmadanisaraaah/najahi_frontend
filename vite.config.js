@@ -39,19 +39,35 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/web-production-c79f81\.up\.railway\.app\/api/,
+            // API: network-first with 5-min cache fallback for offline
+            urlPattern: /\/api\/(profile|schools|concours|study\/stats|study\/leaderboard)/,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 300
-              }
-            }
-          }
-        ]
+              cacheName: 'najahi-api-data',
+              networkTimeoutSeconds: 8,
+              expiration: { maxEntries: 60, maxAgeSeconds: 3600 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // All other API calls: network-only (don't cache mutations)
+            urlPattern: /\/api\//,
+            handler: 'NetworkOnly',
+          },
+          {
+            // Google Fonts
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+        ],
       }
     })
   ],

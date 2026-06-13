@@ -8,6 +8,7 @@ import {
   FileText, User, MapPin, GraduationCap, BookOpen, Compass,
   Clock, Users, AlertCircle, AlertTriangle, Camera, Phone, Calendar,
   MessageSquare, TrendingUp, Settings2, BarChart3, Stethoscope, Palette, Landmark,
+  ScanLine, CheckCircle, Plus, Minus,
 } from "lucide-react";
 
 // ── constants ─────────────────────────────────────────────────────────────────
@@ -281,6 +282,7 @@ export default function Profile() {
   const [bulletins,        setBulletins]        = useState([]);
   const [bulletinUploading,setBulletinUploading]= useState(false);
   const [deletingId,       setDeletingId]       = useState(null);
+  const [ocr,              setOcr]              = useState(null);
   const [toast,            setToast]            = useState({ msg: "", type: "success" });
   const [orientResult,     setOrientResult]     = useState(undefined);
   const [myRooms,          setMyRooms]          = useState(null);
@@ -459,6 +461,7 @@ export default function Profile() {
       if (!res.ok) throw new Error(data.error || "Erreur");
       await fetchBulletins();
       showToast("Bulletin ajouté");
+      if (data.id) extractBulletinNotes(data.id);
     } catch (e) {
       showToast(e.message || "Erreur upload", "error");
     } finally {
@@ -492,6 +495,70 @@ export default function Profile() {
       URL.revokeObjectURL(url);
     } catch {
       showToast("Erreur lors du téléchargement", "error");
+    }
+  }
+
+  // ── OCR extraction ─────────────────────────────────────────────────────────
+  async function extractBulletinNotes(bulletinId) {
+    setOcr({ bulletinId, status: "loading", notes: [], moyenne: null, typeBac: null, error: null, saving: false });
+    try {
+      const res  = await fetch(API("/bulletin/extract"), {
+        method: "POST",
+        headers: { ...authH(), "Content-Type": "application/json" },
+        body: JSON.stringify({ bulletin_id: bulletinId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur réseau");
+      if (data.ok) {
+        setOcr(prev => ({
+          ...prev,
+          status: "done",
+          notes:  data.notes || [],
+          moyenne: data.moyenne_generale ?? null,
+          typeBac: data.type_bac ?? null,
+        }));
+      } else {
+        setOcr(prev => ({ ...prev, status: "error", notes: [], error: data.error || "Extraction échouée" }));
+      }
+    } catch (e) {
+      setOcr(prev => ({ ...prev, status: "error", notes: [], error: e.message || "Erreur réseau" }));
+    }
+  }
+
+  async function loadBulletinNotes(bulletinId) {
+    setOcr({ bulletinId, status: "loading", notes: [], moyenne: null, typeBac: null, error: null, saving: false });
+    try {
+      const res  = await fetch(API(`/bulletin/${bulletinId}/notes`), { headers: authH() });
+      const data = await res.json().catch(() => ({}));
+      setOcr(prev => ({ ...prev, status: "done", notes: data.notes || [] }));
+    } catch {
+      setOcr(prev => ({ ...prev, status: "done", notes: [] }));
+    }
+  }
+
+  async function confirmNotes() {
+    if (!ocr) return;
+    setOcr(prev => ({ ...prev, saving: true }));
+    try {
+      const res  = await fetch(API("/bulletin/confirm"), {
+        method: "POST",
+        headers: { ...authH(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bulletin_id:      ocr.bulletinId,
+          notes:            ocr.notes,
+          moyenne_generale: ocr.moyenne ?? undefined,
+          type_bac:         ocr.typeBac ?? undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      const s = data.saved ?? 0;
+      showToast(`${s} note${s !== 1 ? "s" : ""} enregistrée${s !== 1 ? "s" : ""}`);
+      setOcr(null);
+      fetchProfile();
+    } catch (e) {
+      setOcr(prev => ({ ...prev, saving: false }));
+      showToast(e.message || "Erreur lors de la sauvegarde", "error");
     }
   }
 
@@ -836,41 +903,183 @@ export default function Profile() {
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap: 8 }}>
               {bulletins.map(b => (
-                <div key={b.id} className="pfx-bul-row" style={{
-                  display:"flex", alignItems:"center", gap: 12,
-                  padding:"12px 14px", borderRadius: 12,
-                  background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-                  border:`1px solid ${border}`, transition:"background 0.15s",
-                }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-                    background:"rgba(220,38,38,0.1)",
-                    display:"flex", alignItems:"center", justifyContent:"center",
+                <div key={b.id}>
+                  <div className="pfx-bul-row" style={{
+                    display:"flex", alignItems:"center", gap: 12,
+                    padding:"12px 14px", borderRadius: ocr?.bulletinId === b.id ? "12px 12px 0 0" : 12,
+                    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                    border:`1px solid ${ocr?.bulletinId === b.id ? "rgba(124,58,237,0.3)" : border}`,
+                    borderBottom: ocr?.bulletinId === b.id ? "none" : undefined,
+                    transition:"background 0.15s",
                   }}>
-                    <FileText size={16} color="#dc2626" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {b.original_name}
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                      background:"rgba(220,38,38,0.1)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}>
+                      <FileText size={16} color="#dc2626" />
                     </div>
-                    <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{fmtDate(b.uploaded_at)}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                        {b.original_name}
+                      </div>
+                      <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{fmtDate(b.uploaded_at)}</div>
+                    </div>
+                    <div style={{ display:"flex", gap: 6, flexShrink: 0 }}>
+                      <button
+                        onClick={() => ocr?.bulletinId === b.id ? setOcr(null) : loadBulletinNotes(b.id)}
+                        title="Extraire les notes (OCR)"
+                        style={{ width:32, height:32, borderRadius:8, border:`1px solid ${ocr?.bulletinId===b.id ? purple : "rgba(124,58,237,0.3)"}`, background: ocr?.bulletinId===b.id ? `${purple}18` : "none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color: purple }}
+                        onMouseEnter={e => e.currentTarget.style.background=`${purple}18`}
+                        onMouseLeave={e => e.currentTarget.style.background= ocr?.bulletinId===b.id ? `${purple}18` : "none"}
+                      >
+                        <ScanLine size={14} />
+                      </button>
+                      <button onClick={() => downloadBulletin(b.id, b.original_name)}
+                        style={{ width:32, height:32, borderRadius:8, border:`1px solid ${border}`, background:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color: textMuted }}
+                        onMouseEnter={e => { e.currentTarget.style.color=purple; e.currentTarget.style.borderColor=purple; }}
+                        onMouseLeave={e => { e.currentTarget.style.color=textMuted; e.currentTarget.style.borderColor=border; }}
+                      >
+                        <Download size={14} />
+                      </button>
+                      <button onClick={() => deleteBulletin(b.id)} disabled={deletingId === b.id}
+                        style={{ width:32, height:32, borderRadius:8, border:"1px solid rgba(220,38,38,0.25)", background:"none", cursor: deletingId===b.id?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#dc2626", opacity: deletingId===b.id?0.5:1 }}
+                        onMouseEnter={e => e.currentTarget.style.background="rgba(220,38,38,0.1)"}
+                        onMouseLeave={e => e.currentTarget.style.background="none"}
+                      >
+                        {deletingId === b.id ? <Spinner size={12} color="#dc2626" /> : <Trash2 size={14} />}
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ display:"flex", gap: 6, flexShrink: 0 }}>
-                    <button onClick={() => downloadBulletin(b.id, b.original_name)}
-                      style={{ width:32, height:32, borderRadius:8, border:`1px solid ${border}`, background:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color: textMuted }}
-                      onMouseEnter={e => { e.currentTarget.style.color=purple; e.currentTarget.style.borderColor=purple; }}
-                      onMouseLeave={e => { e.currentTarget.style.color=textMuted; e.currentTarget.style.borderColor=border; }}
-                    >
-                      <Download size={14} />
-                    </button>
-                    <button onClick={() => deleteBulletin(b.id)} disabled={deletingId === b.id}
-                      style={{ width:32, height:32, borderRadius:8, border:"1px solid rgba(220,38,38,0.25)", background:"none", cursor: deletingId===b.id?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#dc2626", opacity: deletingId===b.id?0.5:1 }}
-                      onMouseEnter={e => e.currentTarget.style.background="rgba(220,38,38,0.1)"}
-                      onMouseLeave={e => e.currentTarget.style.background="none"}
-                    >
-                      {deletingId === b.id ? <Spinner size={12} color="#dc2626" /> : <Trash2 size={14} />}
-                    </button>
-                  </div>
+
+                  {/* ── OCR panel ── */}
+                  {ocr?.bulletinId === b.id && (
+                    <div style={{
+                      padding: "14px 14px 16px",
+                      borderRadius: "0 0 12px 12px",
+                      background: isDark ? "rgba(124,58,237,0.07)" : "rgba(124,58,237,0.04)",
+                      border: `1px solid rgba(124,58,237,0.3)`,
+                      borderTop: "none",
+                    }}>
+
+                      {/* loading */}
+                      {ocr.status === "loading" && (
+                        <div style={{ display:"flex", alignItems:"center", gap: 9, fontSize: 13, color: textMuted, padding: "8px 0" }}>
+                          <Spinner size={14} />
+                          Extraction automatique en cours…
+                        </div>
+                      )}
+
+                      {/* error banner (non-blocking — still show editable table) */}
+                      {ocr.status === "error" && (
+                        <div style={{ display:"flex", alignItems:"center", gap: 8, fontSize: 12, color:"#ef4444", marginBottom: 10,
+                          background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"8px 12px" }}>
+                          <AlertCircle size={13} style={{ flexShrink:0 }} />
+                          {ocr.error} — Saisis les notes manuellement ci-dessous.
+                        </div>
+                      )}
+
+                      {/* editable table (shown when done or error) */}
+                      {(ocr.status === "done" || ocr.status === "error") && (
+                        <>
+                          {/* panel header */}
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: 12 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: purple, display:"flex", alignItems:"center", gap: 6 }}>
+                              <ScanLine size={13} />
+                              {ocr.status === "done" && ocr.notes.length > 0
+                                ? `${ocr.notes.length} matière${ocr.notes.length !== 1 ? "s" : ""} extraite${ocr.notes.length !== 1 ? "s" : ""}`
+                                : "Saisis tes notes"}
+                            </div>
+                            <button onClick={() => setOcr(null)} style={{ width:24, height:24, borderRadius:6, border:`1px solid ${border}`, background:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:textMuted }}>
+                              <X size={12} />
+                            </button>
+                          </div>
+
+                          {/* column headers */}
+                          <div style={{ display:"grid", gridTemplateColumns:"1fr 76px 72px 28px", gap:5, marginBottom:6, padding:"0 2px" }}>
+                            {["MATIÈRE","NOTE /20","COEFF.",""].map(h => (
+                              <div key={h} style={{ fontSize:9, fontWeight:700, color:textMuted, letterSpacing:"0.04em" }}>{h}</div>
+                            ))}
+                          </div>
+
+                          {/* rows */}
+                          {ocr.notes.map((n, i) => (
+                            <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 76px 72px 28px", gap:5, marginBottom:5 }}>
+                              <input
+                                value={n.matiere}
+                                onChange={e => setOcr(prev => { const ns=[...prev.notes]; ns[i]={...ns[i],matiere:e.target.value}; return {...prev,notes:ns}; })}
+                                placeholder="Matière"
+                                style={{ padding:"5px 8px", fontSize:12, borderRadius:7, border:`1px solid ${border}`, background: isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", color:textMain, width:"100%", boxSizing:"border-box" }}
+                              />
+                              <input type="number" min="0" max="20" step="0.25"
+                                value={n.note}
+                                onChange={e => setOcr(prev => { const ns=[...prev.notes]; ns[i]={...ns[i],note:e.target.value}; return {...prev,notes:ns}; })}
+                                style={{ padding:"5px 6px", fontSize:12, borderRadius:7, border:`1px solid ${border}`, background: isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", color:textMain, width:"100%", boxSizing:"border-box", textAlign:"center" }}
+                              />
+                              <input type="number" min="0" max="10" step="0.5"
+                                value={n.coefficient ?? ""}
+                                placeholder="—"
+                                onChange={e => setOcr(prev => { const ns=[...prev.notes]; ns[i]={...ns[i],coefficient:e.target.value===""?null:e.target.value}; return {...prev,notes:ns}; })}
+                                style={{ padding:"5px 6px", fontSize:12, borderRadius:7, border:`1px solid ${border}`, background: isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", color:textMain, width:"100%", boxSizing:"border-box", textAlign:"center" }}
+                              />
+                              <button onClick={() => setOcr(prev => ({...prev, notes:prev.notes.filter((_,j)=>j!==i)}))}
+                                style={{ width:28, height:28, borderRadius:7, border:"1px solid rgba(220,38,38,0.25)", background:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#dc2626" }}
+                                onMouseEnter={e=>e.currentTarget.style.background="rgba(220,38,38,0.1)"}
+                                onMouseLeave={e=>e.currentTarget.style.background="none"}
+                              >
+                                <Minus size={11} />
+                              </button>
+                            </div>
+                          ))}
+
+                          {/* add row */}
+                          <button
+                            onClick={() => setOcr(prev => ({...prev, notes:[...prev.notes,{matiere:"",note:0,coefficient:null}]}))}
+                            style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:600, color:purple, background:`${purple}10`, border:`1px dashed ${purple}40`, borderRadius:7, padding:"5px 10px", cursor:"pointer", marginTop:4 }}
+                          >
+                            <Plus size={12} /> Ajouter une matière
+                          </button>
+
+                          {/* moyenne + type bac */}
+                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, margin:"12px 0 14px" }}>
+                            <div>
+                              <div style={{ fontSize:9, fontWeight:700, color:textMuted, letterSpacing:"0.04em", marginBottom:5 }}>MOYENNE GÉNÉRALE</div>
+                              <input type="number" min="0" max="20" step="0.01"
+                                value={ocr.moyenne ?? ""}
+                                placeholder="Ex: 14.75"
+                                onChange={e => setOcr(prev => ({...prev, moyenne: e.target.value===""?null:parseFloat(e.target.value)}))}
+                                style={{ padding:"6px 8px", fontSize:12, borderRadius:7, border:`1px solid ${border}`, background: isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", color:textMain, width:"100%", boxSizing:"border-box" }}
+                              />
+                            </div>
+                            <div>
+                              <div style={{ fontSize:9, fontWeight:700, color:textMuted, letterSpacing:"0.04em", marginBottom:5 }}>TYPE DE BAC</div>
+                              <select
+                                value={ocr.typeBac ?? ""}
+                                onChange={e => setOcr(prev => ({...prev, typeBac: e.target.value||null}))}
+                                style={{ padding:"6px 8px", fontSize:12, borderRadius:7, border:`1px solid ${border}`, background: isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", color: ocr.typeBac?textMain:textMuted, width:"100%", boxSizing:"border-box" }}
+                              >
+                                <option value="">Sélectionner…</option>
+                                {BAC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* action buttons */}
+                          <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+                            <button onClick={() => setOcr(null)} style={{ padding:"7px 14px", fontSize:12, fontWeight:600, borderRadius:9, background:"none", border:`1px solid ${border}`, cursor:"pointer", color:textMuted }}>
+                              Annuler
+                            </button>
+                            <button onClick={confirmNotes} disabled={ocr.saving}
+                              style={{ padding:"7px 16px", fontSize:12, fontWeight:700, borderRadius:9, background: purple, color:"#fff", border:"none", cursor:ocr.saving?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:6, opacity:ocr.saving?0.7:1 }}
+                            >
+                              {ocr.saving ? <Spinner size={12} color="#fff" /> : <CheckCircle size={13} />}
+                              Confirmer et enregistrer
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
