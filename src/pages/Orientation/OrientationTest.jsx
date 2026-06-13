@@ -808,7 +808,7 @@ export default function OrientationTest() {
                       marginBottom: 8, textTransform: "uppercase",
                     }}>
                       {medals[idx] ? (
-                        <>{medals[idx].icon && <medals[idx].icon size={11} style={{ verticalAlign: "middle", marginRight: 3 }} />}{medals[idx].label}</>
+                        <>{medals[idx].icon && (() => { const MIcon = medals[idx].icon; return <MIcon size={11} style={{ verticalAlign: "middle", marginRight: 3 }} />; })()}{medals[idx].label}</>
                       ) : `${idx + 2}ème choix`} · {TYPE_LABELS[school.type] || school.type}
                     </div>
                     <h3 style={{ fontSize: 15, fontWeight: 700, color: textMain, marginBottom: 7, lineHeight: 1.3 }}>
