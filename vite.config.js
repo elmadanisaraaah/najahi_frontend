@@ -38,6 +38,8 @@ export default defineConfig({
         ]
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
@@ -47,7 +49,7 @@ export default defineConfig({
             urlPattern: /\/api\/(profile|schools|concours|study\/stats|study\/leaderboard)/,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'najahi-api-data',
+              cacheName: 'najahi-api-data-v2',
               networkTimeoutSeconds: 8,
               expiration: { maxEntries: 60, maxAgeSeconds: 3600 },
               cacheableResponse: { statuses: [0, 200] },
@@ -63,7 +65,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'google-fonts',
+              cacheName: 'google-fonts-v2',
               expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },

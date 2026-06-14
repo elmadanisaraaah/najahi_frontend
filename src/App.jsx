@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import InstallPrompt from "./components/PWA/InstallPrompt";
+import SWUpdateToast from "./components/PWA/SWUpdateToast";
 import Register from "./pages/Auth/Register";
 import Login from "./pages/Auth/Login";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <InstallPrompt />
+      <SWUpdateToast />
     </>
   );
 }
