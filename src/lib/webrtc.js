@@ -27,9 +27,36 @@ export async function requestCamera(constraints = { video: true }) {
       : "Votre navigateur ne supporte pas l'accès à la caméra. Essayez Chrome ou Firefox.";
     throw Object.assign(new Error(msg), { userMessage: msg });
   }
+
+  // ── Diagnostic logging (query permissions BEFORE getUserMedia) ────────────
   try {
-    return await navigator.mediaDevices.getUserMedia(constraints);
+    const [camPerm, micPerm] = await Promise.all([
+      navigator.permissions.query({ name: "camera" }).catch(e => ({ state: `query-error: ${e.message}` })),
+      navigator.permissions.query({ name: "microphone" }).catch(e => ({ state: `query-error: ${e.message}` })),
+    ]);
+    console.log("[webrtc] requestCamera called", {
+      constraints,
+      isSecureContext: window.isSecureContext,
+      camera: camPerm.state,        // 'granted' | 'denied' | 'prompt'
+      microphone: micPerm.state,
+    });
+  } catch (e) {
+    console.warn("[webrtc] could not query permissions:", e.message);
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    console.log("[webrtc] getUserMedia succeeded", {
+      tracks: stream.getTracks().map(t => ({ kind: t.kind, label: t.label, state: t.readyState })),
+    });
+    return stream;
   } catch (err) {
+    console.error("[webrtc] getUserMedia FAILED", {
+      name:       err.name,
+      message:    err.message,
+      constraint: err.constraint ?? null,
+      stack:      err.stack,
+    });
     const msg = getCameraErrorMessage(err);
     throw Object.assign(err, { userMessage: msg });
   }
